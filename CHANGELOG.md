@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.0 — 2026-11-03
+- Commesse: «Chiudi commessa» / «Riapri commessa» ed «Elimina» (con conferma) nell'intestazione. Le commesse chiuse escono da Persone, Gantt (tutte), Ore ed Eventi, restano consultabili in sola lettura dalla sezione «commesse chiuse».
+
 ## 1.4.0 — 2026-11-03
 - Commesse: «Modifica intestazione» (codice, descrizione, cliente) ed eliminazione commessa.
 - Ore: budget e consuntivo per voci configurabili (Progetto meccanico, Progetto elettrico, Assemblaggio meccanico, Assemblaggio elettrico, Software, Robot, Gestione), gestibili in Impostazioni; foglio Ore nell'export Excel.
