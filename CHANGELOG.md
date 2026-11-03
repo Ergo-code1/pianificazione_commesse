@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.2 — 2026-11-03
+- Installazione: identità e ambito propri (id/scope /pianificazione_commesse/) per non confondersi con Turni e Ferie.
+
 ## 1.2.1 — 2026-11-03
 - Smartphone: Gantt con vista Elenco (predefinita sul telefono), commesse e ore a schede senza scorrimento orizzontale, tab su due righe.
 
