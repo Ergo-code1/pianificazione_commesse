@@ -251,8 +251,9 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 }
 .glg{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:12px;color:var(--muted)}
 .glg i{display:inline-block;width:18px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}.glg i.dia{width:10px;height:10px;background:var(--hi);transform:rotate(45deg)}
+.instbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:55;display:flex;align-items:center;gap:10px;background:var(--surface);color:var(--fg);border:1px solid var(--hi);border-radius:16px;padding:10px 12px;box-shadow:var(--shadow);width:min(calc(100% - 24px),460px)}
+.instbar img{width:40px;height:40px;border-radius:10px;flex:none}.instbar span{flex:1;min-width:0;font-size:13px}.instbar small{color:var(--muted)}
 </style>
-
 </head><body>
 <div class="wrap" id="app"><div class="login"><h1>Ergo Plan</h1><div class="muted">Caricamento…</div></div></div>
 
@@ -260,7 +261,7 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
-const VERSIONE='1.2.3';
+const VERSIONE='1.2.4';
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
  utenti:{admin:{pw:'admin',ruolo:'admin',nome:'Admin'},marco:{pw:'demo',ruolo:'persona',nome:'Marco Rossi'}},
  persone:['Marco Rossi','Giulia Bianchi','Luca Ferrero'],
@@ -771,4 +772,19 @@ onAuthStateChanged(auth,user=>{
 });
 </script>
 <script>if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register("sw.js",{scope:"/pianificazione_commesse/"}).catch(()=>{})</script>
+<script>
+// Installazione: pulsante proprio, così non serve il menu di Chrome
+let _bip=null;const isStd=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();_bip=e;showInst()});
+window.addEventListener('appinstalled',()=>{_bip=null;showInst();toast('Ergo Plan installata: la trovi tra le app del telefono')});
+function showInst(){let b=document.getElementById('instBar');try{if(sessionStorage.getItem('instNo')){b&&b.remove();return}}catch(e){}
+ if(isStd()){b&&b.remove();return}
+ const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);if(!_bip&&!ios){b&&b.remove();return}
+ if(!b){b=document.createElement('div');b.id='instBar';b.className='instbar';document.body.appendChild(b)}
+ b.innerHTML=_bip?'<img src="icon-192.png" alt=""><span><b>Installa Ergo Plan</b><br><small>Aprila come un’app dal telefono</small></span><button class="btn pri" id="instGo">Installa</button><button class="btn ghost" id="instNo" aria-label="Chiudi">✕</button>'
+  :'<img src="icon-192.png" alt=""><span><b>Installa Ergo Plan</b><br><small>Tocca Condividi e poi «Aggiungi alla schermata Home»</small></span><button class="btn ghost" id="instNo" aria-label="Chiudi">✕</button>';
+ const g=document.getElementById('instGo');if(g)g.onclick=async()=>{_bip.prompt();await _bip.userChoice;_bip=null;showInst()};
+ document.getElementById('instNo').onclick=()=>{b.remove();try{sessionStorage.setItem('instNo','1')}catch(e){}}}
+setTimeout(showInst,1500);
+</script>
 </body></html>

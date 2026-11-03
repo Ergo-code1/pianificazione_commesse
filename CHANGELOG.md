@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.4 — 2026-11-03
+- Pulsante «Installa Ergo Plan» nell'app (Android/Chrome) e istruzioni per iPhone.
+
 ## 1.2.3 — 2026-11-03
 - Installazione: nuovo id app e service worker, per separarla da Turni e Ferie.
 
