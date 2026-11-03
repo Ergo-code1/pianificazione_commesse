@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.3 — 2026-11-03
+- Installazione: nuovo id app e service worker, per separarla da Turni e Ferie.
+
 ## 1.2.2 — 2026-11-03
 - Installazione: identità e ambito propri (id/scope /pianificazione_commesse/) per non confondersi con Turni e Ferie.
 

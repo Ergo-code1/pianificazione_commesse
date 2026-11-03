@@ -1,1 +1,26 @@
-{"id":"/pianificazione_commesse/","name":"Ergo Plan","short_name":"Ergo Plan","start_url":"/pianificazione_commesse/","scope":"/pianificazione_commesse/","display":"standalone","background_color":"#e8ebf1","theme_color":"#15274f","icons":[{"src":"/pianificazione_commesse/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},{"src":"/pianificazione_commesse/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"}]}
+{
+ "id": "/pianificazione_commesse/?app=ergoplan",
+ "name": "Ergo Plan",
+ "short_name": "Ergo Plan",
+ "start_url": "/pianificazione_commesse/?app=ergoplan",
+ "scope": "/pianificazione_commesse/",
+ "display": "standalone",
+ "background_color": "#e8ebf1",
+ "theme_color": "#15274f",
+ "icons": [
+  {
+   "src": "/pianificazione_commesse/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "/pianificazione_commesse/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  }
+ ],
+ "description": "Pianificazione commesse e lavori Ergotech",
+ "lang": "it"
+}
