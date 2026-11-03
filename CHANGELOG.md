@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.0 — 2026-11-03
+- Persone: date di inizio e fine modificabili direttamente sul box (con permesso di modifica).
+- Gantt: filtro per persona (o non assegnate); nel diagramma le barre si trascinano col mouse per spostare le date e si allungano dal bordo destro; tocco/clic apre la scheda.
+- Correzione: calcolo date e giorno di oggi nel fuso orario locale.
+
 ## 1.5.0 — 2026-11-03
 - Commesse: «Chiudi commessa» / «Riapri commessa» ed «Elimina» (con conferma) nell'intestazione. Le commesse chiuse escono da Persone, Gantt (tutte), Ore ed Eventi, restano consultabili in sola lettura dalla sezione «commesse chiuse».
 

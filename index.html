@@ -277,6 +277,11 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 }
 .btn:disabled{opacity:.45;cursor:default}
 .cclosed{margin-top:16px;padding-top:12px;border-top:1px solid rgb(255 255 255/.12)}.cclosed>.btn{width:100%}.cclosed .list button{opacity:.75}
+.gbar[data-gedit]:not(.gs){cursor:grab;position:relative}.gbar.gdrag{cursor:grabbing;opacity:.85;z-index:3;box-shadow:0 4px 12px rgb(0 0 0/.25)}
+.grs{position:absolute;right:0;top:0;bottom:0;width:8px;cursor:ew-resize;border-radius:0 6px 6px 0}.gbar:hover .grs{background:rgb(255 255 255/.35)}
+.cdates{display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap}.cdates input{padding:4px 6px;font-size:12.5px;min-width:0;width:140px}
+.gper{min-width:0}
+@media(max-width:640px){.cdates input{width:calc(50% - 14px)}}
 .glg{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:12px;color:var(--muted)}
 .glg i{display:inline-block;width:18px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}.glg i.dia{width:10px;height:10px;background:var(--hi);transform:rotate(45deg)}
 .instbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:55;display:flex;align-items:center;gap:10px;background:var(--surface);color:var(--fg);border:1px solid var(--hi);border-radius:16px;padding:10px 12px;box-shadow:var(--shadow);width:min(calc(100% - 24px),460px)}
@@ -290,7 +295,9 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='1.5.0';
+const VERSIONE='1.6.0';
+const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
  utenti:{admin:{pw:'admin',ruolo:'admin',nome:'Admin'},marco:{pw:'demo',ruolo:'persona',nome:'Marco Rossi'}},
  persone:['Marco Rossi','Giulia Bianchi','Luca Ferrero'],
@@ -371,12 +378,12 @@ function vCommesse(){
  $('#addA')&&($('#addA').onclick=()=>{c.att.push({id:S.nextId++,nome:'Nuova attività',pers:S.persone[0],ini:'',fin:'',attiva:true,stato:'da fare',prio:9,bud:null,cons:null});render()});
  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const i=c.att.findIndex(a=>a.id==b.dataset.del);c.att.splice(i,1+cSub(c,i).length);render()});
  $('#cHead')&&($('#cHead').onclick=()=>cHead(c));
- $('#cClose')&&($('#cClose').onclick=()=>{if(c.chiusa){c.chiusa=false;delete c.chiusaIl;toastP('Commessa riaperta')}else{const ap=c.att.filter(a=>!a.sum&&a.stato!=='conclusa').length;c.chiusa=true;c.chiusaIl=new Date().toISOString().slice(0,10);toastP('Commessa chiusa'+(ap?' ('+ap+' attività non concluse)':''))}render()});
+ $('#cClose')&&($('#cClose').onclick=()=>{if(c.chiusa){c.chiusa=false;delete c.chiusaIl;toastP('Commessa riaperta')}else{const ap=c.att.filter(a=>!a.sum&&a.stato!=='conclusa').length;c.chiusa=true;c.chiusaIl=todayL();toastP('Commessa chiusa'+(ap?' ('+ap+' attività non concluse)':''))}render()});
  $('#cDel')&&($('#cDel').onclick=()=>{S.delC=c.id;render()});
  $('#cDelNo')&&($('#cDelNo').onclick=()=>{S.delC=null;render()});
  $('#cDel2')&&($('#cDel2').onclick=()=>{S.commesse=S.commesse.filter(x=>x!==c);S.eventi=S.eventi.filter(e=>e.comm!==c.id);S.commesse.filter(x=>!x.chiusa).sort((a,b)=>a.prio-b.prio).forEach((x,i)=>x.prio=i+1);S.delC=null;S.selC=null;toastP('Commessa eliminata');render()});
  $('#togC')&&($('#togC').onclick=()=>{S.showC=!S.showC;render()});
- document.querySelectorAll('[data-toev]').forEach(b=>b.onclick=()=>{const a=findAtt(b.dataset.toev);S.eventi.push({id:S.nextId++,nome:'Fine '+a.nome,data:a.fin||new Date().toISOString().slice(0,10),comm:c.id,rif:a.id});toastP('Aggiunto agli eventi: Fine '+a.nome);render()});
+ document.querySelectorAll('[data-toev]').forEach(b=>b.onclick=()=>{const a=findAtt(b.dataset.toev);S.eventi.push({id:S.nextId++,nome:'Fine '+a.nome,data:a.fin||todayL(),comm:c.id,rif:a.id});toastP('Aggiunto agli eventi: Fine '+a.nome);render()});
  document.querySelectorAll('[data-gf]').forEach(b=>b.onclick=()=>{const [ci,ai]=b.dataset.gf.split('|');gForm(ci,ai)});
  const sec=document.querySelectorAll('#view .panel')[1];
  if(sec&&!can('edit'))sec.querySelectorAll('table input,table select,[data-del],[data-gf]').forEach(x=>x.disabled=true);
@@ -399,7 +406,7 @@ function vPersone(){
  <section class="panel"><h2>${esc(S.selP)}</h2><div class="muted" style="margin-bottom:12px">Ordinate per priorità · tieni premuto e trascina per riordinare (o usa le frecce)</div><div class="stack" id="plist">
  ${lista.map(a=>`<div class="card ${a.stato==='conclusa'?'done':a.stato==='in corso'?'run':a.attiva?'att':''}" data-aid="${a.id}">
   <div class="row" style="gap:6px"><div class="prio"><button data-up="${a.id}" aria-label="Aumenta priorità">▲</button><button data-dn="${a.id}" aria-label="Diminuisci priorità">▼</button></div><span class="prionum">${a.prio}</span></div>
-  <div style="min-width:0"><div style="font-weight:600">${esc(a.nome)}</div><div class="muted" style="font-size:12px"><span class="mono">${a._c.id}</span> ${esc(a._c.nome)} · ${a.ini?fmt(a.ini)+'–'+fmt(a.fin):'senza date'}${!a.attiva&&a.stato==='da fare'?` · manca: ${esc(a.manca)}`:''}</div></div>
+  <div style="min-width:0"><div style="font-weight:600">${esc(a.nome)}</div><div class="muted" style="font-size:12px"><span class="mono">${a._c.id}</span> ${esc(a._c.nome)} · ${a.ini?fmt(a.ini)+'–'+fmt(a.fin):'senza date'}${!a.attiva&&a.stato==='da fare'?` · manca: ${esc(a.manca)}`:''}</div>${can('edit')&&a.stato!=='conclusa'?`<div class="cdates"><input type="date" data-pd="${a.id}|ini" value="${a.ini||''}" aria-label="Inizio"><span class="muted">→</span><input type="date" data-pd="${a.id}|fin" value="${a.fin||''}" aria-label="Fine"></div>`:''}</div>
   <div class="row acts">${statoPill(a)}
    ${a.stato==='da fare'?`<button class="btn sm" data-st="in corso" data-id="${a.id}" ${a.attiva?'':'disabled title="Non attiva"'}>Avvia</button>`:''}
    ${a.stato==='in corso'?`<button class="btn sm" data-st="da fare" data-id="${a.id}" title="Torna a non avviata">Annulla avvio</button><button class="btn sm pri" data-st="conclusa" data-id="${a.id}">Concludi</button>`:''}
@@ -409,7 +416,8 @@ function vPersone(){
  document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const a=findAtt(b.dataset.up);a.prio=Math.max(1,a.prio-1);render()});
  document.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>{const a=findAtt(b.dataset.dn);a.prio++;render()});
  document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{findAtt(b.dataset.id).stato=b.dataset.st;render()});
- const pl=$('#plist');if(pl&&window.Sortable&&lista.length>1)Sortable.create(pl,{animation:160,delay:280,delayOnTouchOnly:false,touchStartThreshold:6,filter:'button',preventOnFilter:false,ghostClass:'drag-ghost',chosenClass:'drag-chosen',
+ document.querySelectorAll('[data-pd]').forEach(el=>el.onchange=()=>{const [id,f]=el.dataset.pd.split('|'),a=findAtt(id);a[f]=el.value;if(a.ini&&a.fin&&a.fin<a.ini){if(f==='ini')a.fin=a.ini;else a.ini=a.fin}render()});
+ const pl=$('#plist');if(pl&&window.Sortable&&lista.length>1)Sortable.create(pl,{animation:160,delay:280,delayOnTouchOnly:false,touchStartThreshold:6,filter:'button,input',preventOnFilter:false,ghostClass:'drag-ghost',chosenClass:'drag-chosen',
   onEnd:()=>{[...pl.querySelectorAll('[data-aid]')].forEach((el,i)=>{const a=findAtt(el.dataset.aid);if(a)a.prio=i+1});render()}});
 }
 
@@ -440,7 +448,7 @@ function cHead(c){if(!can('commesse'))return;let o=$('#gOvl');if(!o){o=document.
   if(id!==c.id){S.eventi.forEach(e=>{if(e.comm===c.id)e.comm=id});if(S.selC===c.id)S.selC=id;if(S.gSel===c.id)S.gSel=id;c.id=id}
   c.nome=n;c.cliente=$('#chC').value.trim();close();render()}}
 function vEventi(){
- const ev=[...S.eventi].filter(e=>!(S.commesse.find(c=>c.id===e.comm)||{}).chiusa).sort((a,b)=>a.data.localeCompare(b.data));const oggi=new Date().toISOString().slice(0,10);
+ const ev=[...S.eventi].filter(e=>!(S.commesse.find(c=>c.id===e.comm)||{}).chiusa).sort((a,b)=>a.data.localeCompare(b.data));const oggi=todayL();
  $('#view').innerHTML=`<div class="evgrid"><aside class="panel"><h3 style="margin-bottom:10px">Nuovo gate</h3>
  <div class="evf"><label>Da pianificazione<select id="eSel"><option value="">— crea libero —</option>
  ${allAtt().map(a=>`<option value="${a.id}">${a._c.id} · ${esc(a.nome)}</option>`).join('')}</select></label>
@@ -467,10 +475,10 @@ function gateEdit(e){return`<div class="gate gedit"><div class="stack" style="gr
  <label>Collegato a attività<select id="gR"><option value="">— gate libero —</option>${allAtt().map(a=>`<option value="${a.id}" ${a.id===e.rif?'selected':''}>${a._c.id} · ${esc(a.nome)}</option>`).join('')}</select></label></div>
  <div class="row"><button class="btn pri sm" id="gs">Salva</button><button class="btn sm" id="gx">Annulla</button><span class="err" id="gErr"></span></div></div></div>`}
 
-const addD=(d,n)=>{const x=new Date(d+'T00:00:00');x.setDate(x.getDate()+n);return x.toISOString().slice(0,10)};
+const addD=(d,n)=>{const x=new Date(d+'T00:00:00Z');x.setUTCDate(x.getUTCDate()+n);return x.toISOString().slice(0,10)};
 function newCommessaForm(){
  const sec=document.querySelectorAll('#view .panel')[1];if(!sec)return;
- const today=new Date().toISOString().slice(0,10);S.master.forEach(mCalc);
+ const today=todayL();S.master.forEach(mCalc);
  sec.innerHTML=`<h2 style="margin-bottom:4px">Nuova commessa</h2><div class="muted" style="margin-bottom:14px">Scegli un masterplan per generare le attività, oppure parti da vuota e le crei tu.</div>
  <div class="gef"><label>Codice<input id="ncId" value="C-${new Date().getFullYear().toString().slice(2)}-${String(S.nextId).padStart(3,'0')}"></label>
  <label>Descrizione<input id="ncNome" placeholder="es. Linea assemblaggio cliente X"></label><label>Cliente<input id="ncCli"></label>
@@ -551,7 +559,7 @@ function mLeaves(m){mCalc(m);const path=[];return m.att.flatMap(a=>{path.length=
 function dl(name,text,type){const b=new Blob([text],{type}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
 const xe=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function wdays(s,f){let n=0;for(let d=new Date(s+'T00:00:00');d<=new Date(f+'T00:00:00');d.setDate(d.getDate()+1))if(d.getDay()%6)n++;return Math.max(n,1)}
-function toMSPDI(title,list){const U={};list.forEach((t,i)=>{if(t.id!=null)U[t.id]=i+1});const lk=t=>(t.dip||[]).filter(d=>U[d]).map(d=>`<PredecessorLink><PredecessorUID>${U[d]}</PredecessorUID><Type>1</Type></PredecessorLink>`).join('');const st=list.map(t=>t.start).sort()[0]||new Date().toISOString().slice(0,10);
+function toMSPDI(title,list){const U={};list.forEach((t,i)=>{if(t.id!=null)U[t.id]=i+1});const lk=t=>(t.dip||[]).filter(d=>U[d]).map(d=>`<PredecessorLink><PredecessorUID>${U[d]}</PredecessorUID><Type>1</Type></PredecessorLink>`).join('');const st=list.map(t=>t.start).sort()[0]||todayL();
  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Project xmlns="http://schemas.microsoft.com/project"><Name>${xe(title)}.xml</Name><Title>${xe(title)}</Title><ScheduleFromStart>1</ScheduleFromStart><StartDate>${st}T08:00:00</StartDate><MinutesPerDay>480</MinutesPerDay><MinutesPerWeek>2400</MinutesPerWeek><DaysPerMonth>20</DaysPerMonth><Tasks>
 `+list.map((t,i)=>`<Task><UID>${i+1}</UID><ID>${i+1}</ID><Name>${xe(t.nome)}</Name><Manual>0</Manual><OutlineLevel>${t.lvl}</OutlineLevel><Summary>${t.sum?1:0}</Summary><Start>${t.start}T08:00:00</Start><Finish>${t.fin}T17:00:00</Finish><Duration>PT${wdays(t.start,t.fin)*8}H0M0S</Duration><DurationFormat>7</DurationFormat>${lk(t)}${t.sum?'':`<ConstraintType>4</ConstraintType><ConstraintDate>${t.start}T08:00:00</ConstraintDate>`}${t.ore!=null&&!t.sum?`<Work>PT${Math.round(t.ore)}H0M0S</Work>`:''}</Task>`).join('\n')+`
@@ -561,11 +569,11 @@ function exportPrjGantt(){try{const {cs}=ganttData(),L=[];
   L.push({nome:c.id+' '+c.nome,lvl:1,sum:1,start:A.map(a=>a.ini).sort()[0],fin:A.map(a=>a.fin).sort().pop()});
   A.forEach(a=>L.push({id:a.id,dip:a.dip,nome:a.nome,lvl:(a.liv||0)+2,sum:a.sum,start:a.ini,fin:a.fin,ore:a.bud}))});
  dl('ergoplan.xml',toMSPDI('Ergo Plan',L),'application/xml')}catch(e){$('#xNote').textContent='Esportazione Project non riuscita: '+e.message}}
-function exportPrjMaster(m){mCalc(m);const b=new Date().toISOString().slice(0,10);
+function exportPrjMaster(m){mCalc(m);const b=todayL();
  dl(m.nome.replace(/[^\w\- ]+/g,'')+'.xml',toMSPDI(m.nome,m.att.map(a=>({nome:a.nome,lvl:a.liv+1,sum:a.sum,start:addD(b,a.off),fin:addD(b,a.off+a.dur-1),ore:a.ore}))),'application/xml')}
 
 function gForm(cid,aid){if(!(aid?can('edit'):can('add')))return;const c=S.commesse.find(x=>x.id===cid);if(!c)return;const a=aid?c.att.find(x=>x.id==aid):null;
- const t=new Date().toISOString().slice(0,10),sm=a&&a.sum;
+ const t=todayL(),sm=a&&a.sum;
  let o=$('#gOvl');if(!o){o=document.createElement('div');o.id='gOvl';o.className='ovl';document.body.appendChild(o)}
  o.innerHTML=`<div class="box"><div><span class="mono" style="color:var(--accent)">${c.id}</span><h2>${a?(sm?'Modifica voce':'Modifica attività'):'Nuova attività'}</h2><div class="muted" style="font-size:12px">${esc(c.nome)}</div></div>
  <div class="gef"><label>Nome<input id="gfN" value="${esc(a?.nome||'')}"></label>
@@ -606,23 +614,36 @@ function permHtml(u){const x=S.utenti[u];if(!x)return'';if(x.ruolo==='admin')ret
  return`<div class="perm">${[['add','Aggiunge attività'],['edit','Modifica ed elimina attività'],['commesse','Crea commesse e responsabili']].map(([k,l])=>`<label><input type="checkbox" data-perm="${esc(u)}|${k}" ${p[k]?'checked':''}> ${l}</label>`).join('')}</div>`}
 document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.perm){const [u,k]=t.dataset.perm.split('|');if(!S.utenti[u])return;(S.utenti[u].perm||(S.utenti[u].perm={}))[k]=t.checked;render()}});
 function toastP(t){if(typeof toast==='function')return toast(t);let el=document.getElementById('toastP');if(!el){el=document.createElement('div');el.id='toastP';el.className='toastp';document.body.appendChild(el)}el.textContent=t;el.hidden=false;clearTimeout(el._t);el._t=setTimeout(()=>el.hidden=true,3000)}
+
+function visAtt(c){const P=S.gPer||'tutte';if(P==='tutte')return c.att;const A=c.att,keep=new Set();
+ A.forEach((a,i)=>{if(a.sum)return;if(P==='__none'?!a.pers:a.pers===P){keep.add(a);for(let j=i-1,l=a.liv||0;j>=0&&l>0;j--)if((A[j].liv||0)<l){keep.add(A[j]);l=A[j].liv||0}}});return A.filter(a=>keep.has(a))}
+function gDrag(){if(!can('edit'))return;document.querySelectorAll('.gbar[data-gedit]:not(.gs)').forEach(bar=>{bar.insertAdjacentHTML('beforeend','<i class="grs"></i>');
+ bar.addEventListener('pointerdown',ev=>{if(ev.pointerType!=='mouse'||ev.button!==0)return;ev.preventDefault();
+  const [ci,ai]=bar.dataset.gedit.split('|'),c=S.commesse.find(x=>x.id===ci),a=c&&c.att.find(x=>x.id==ai);if(!a)return;
+  const dw=(document.querySelector('.gd')||{getBoundingClientRect:()=>({width:30})}).getBoundingClientRect().width||30,rs=ev.target.classList.contains('grs'),x0=ev.clientX;let dd=0,moved=false;
+  bar.setPointerCapture(ev.pointerId);bar.classList.add('gdrag');
+  const mv=e=>{const dx=e.clientX-x0;if(Math.abs(dx)>3)moved=true;dd=Math.round(dx/dw);bar.style.transform=rs?'':`translateX(${dd*dw}px)`;if(rs)bar.style.marginRight=(-dd*dw)+'px';bar.title=rs?'Fine: '+fmt(addD(a.fin,dd)):fmt(addD(a.ini,dd))+' → '+fmt(addD(a.fin,dd))};
+  const up=()=>{bar.removeEventListener('pointermove',mv);bar.removeEventListener('pointerup',up);bar.classList.remove('gdrag');
+   if(!moved||!dd){bar.style.transform='';bar.style.marginRight='';if(moved)bar.dataset.nc=1;return}
+   if(rs){const f=addD(a.fin,dd);a.fin=f<a.ini?a.ini:f}else{a.ini=addD(a.ini,dd);a.fin=addD(a.fin,dd)}bar.dataset.nc=1;toastP(a.nome+': '+fmt(a.ini)+' → '+fmt(a.fin));render()};
+  bar.addEventListener('pointermove',mv);bar.addEventListener('pointerup',up)})})}
 function ini(p){return esc(p.split(' ').map(s=>s[0]||'').join('').slice(0,2).toUpperCase())}
 function prog(c){const LA=c.att.filter(a=>!a.sum),t=LA.length,d=LA.filter(a=>a.stato==='conclusa').length,pc=t?Math.round(d/t*100):0;return`<span class="pg"><span class="pgb"><i style="width:${pc}%"></i></span><span class="pgt">${d}/${t}</span></span>`}
 
 const DAY=864e5,toD=s=>new Date(s+'T00:00:00');
-function ganttData(){const cs=[...S.commesse].sort((a,b)=>a.prio-b.prio).filter(c=>S.gSel==='tutte'?!c.chiusa:c.id===S.gSel);
- const rows=cs.flatMap(c=>c.att.filter(a=>a.ini&&a.fin).map(a=>({...a,_c:c})));
+function ganttData(){const cs=[...S.commesse].sort((a,b)=>a.prio-b.prio).filter(c=>S.gSel==='tutte'?!c.chiusa:c.id===S.gSel).filter(c=>!S.gPer||S.gPer==='tutte'||visAtt(c).length);
+ const rows=cs.flatMap(c=>visAtt(c).filter(a=>a.ini&&a.fin).map(a=>({...a,_c:c})));
  const ds=rows.flatMap(a=>[a.ini,a.fin]).concat(S.eventi.filter(e=>cs.some(c=>c.id===e.comm)).map(e=>e.data)).sort();
  return{cs,rows,start:ds[0],end:ds[ds.length-1]}}
 function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');const {cs,start,end}=ganttData();
  let body=`<div class="muted">Nessuna attività con date. Aggiungine una:</div><div class="gempty">${cs.map(c=>`<button class="btn" data-gadd="${c.id}">+ ${c.id}</button>`).join('')}</div>`;
  if(start){const s0=toD(start),n=Math.round((toD(end)-s0)/DAY)+1,col=d=>Math.round((toD(d)-s0)/DAY)+2;
   const days=[...Array(n)].map((_,i)=>new Date(+s0+i*DAY));
-  const head=`<div class="gn gh">Attività</div>`+days.map((d,i)=>`<div class="gd ${[0,6].includes(d.getDay())?'we':''} ${d.toISOString().slice(0,10)===new Date().toISOString().slice(0,10)?'td':''}" style="grid-column:${i+2}"><b>${d.getDate()}</b><span>${'DLMMGVS'[d.getDay()]}</span></div>`).join('');
+  const head=`<div class="gn gh">Attività</div>`+days.map((d,i)=>`<div class="gd ${[0,6].includes(d.getDay())?'we':''} ${isoL(d)===todayL()?'td':''}" style="grid-column:${i+2}"><b>${d.getDate()}</b><span>${'DLMMGVS'[d.getDay()]}</span></div>`).join('');
   const ms=[];days.forEach((d,i)=>{const k=d.getFullYear()+'-'+d.getMonth();if(!ms.length||ms[ms.length-1].k!==k)ms.push({k,d,s:i,n:1});else ms[ms.length-1].n++});
   let r=3,out=head.replace('class="gn gh"','class="gn gh" style="grid-row:1/3"')+ms.map(m=>`<div class="gm" style="grid-column:${m.s+2}/span ${m.n}">${m.n>=4?m.d.toLocaleDateString('it-IT',{month:'long',year:'numeric'}):m.n>=2?String(m.d.getMonth()+1).padStart(2,'0')+'/'+String(m.d.getFullYear()).slice(2):''}</div>`).join('');
   cs.forEach(c=>{out+=`<div class="gc" style="grid-row:${r};grid-column:1/-1"><span class="code">${c.id}</span> ${esc(c.nome)}${AD?`<button class="gadd" data-gadd="${c.id}">+ Attività</button>`:''}</div>`;r++;
-   const AA=c.att;AA.forEach(a=>{const ia=c.att.indexOf(a),canIn=ia>0&&(a.liv||0)<=(c.att[ia-1].liv||0);const k=a.sum?'gs':a.stato==='conclusa'?'b-done':a.stato==='in corso'?'b-run':a.attiva?'b-ok':'b-off';
+   const AA=visAtt(c);AA.forEach(a=>{const ia=c.att.indexOf(a),canIn=ia>0&&(a.liv||0)<=(c.att[ia-1].liv||0);const k=a.sum?'gs':a.stato==='conclusa'?'b-done':a.stato==='in corso'?'b-run':a.attiva?'b-ok':'b-off';
     out+=`<div class="gn ${a.sum?'gsumn':''}" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};padding-left:${8+(a.liv||0)*14}px"><span class="gnr">${ED?`<span class="garr"><button data-gmv="${c.id}|${a.id}|-1" ${a.liv?'':'disabled'} title="Sali di livello" aria-label="Sali di livello">←</button><button data-gmv="${c.id}|${a.id}|1" ${canIn?'':'disabled'} title="Rendi sottovoce" aria-label="Rendi sottovoce">→</button></span>`:''}<span style="min-width:0"><span class="cn">${esc(a.nome)}</span><span class="muted">${a.sum?'voce':esc(a.pers||'non assegnata')}${a.ini?'':' · senza date'}${a.dip&&a.dip.length?' · ⛓ dopo '+a.dip.length:''}</span></span></span></div>`+
     days.map((d,i)=>`<div class="gcell ${[0,6].includes(d.getDay())?'we':''}" style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+
     (a.ini&&a.fin?`<div class="gbar ${k}" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};grid-column:${col(a.ini)}/${col(a.fin)+1}" title="${esc(a.nome)} · ${fmt(a.ini)}–${fmt(a.fin)}"></div>`:'');r++});
@@ -633,21 +654,24 @@ function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');cons
  if(!S.gView)S.gView=window.innerWidth<700?'lista':'diagramma';
  if(S.gView==='lista'){body=cs.map(c=>{const ev=S.eventi.filter(e=>e.comm===c.id).sort((a,b)=>a.data.localeCompare(b.data));
   return`<div class="gl"><div class="glh"><span class="code">${c.id}</span><span class="cn">${esc(c.nome)}</span>${AD?`<button class="gadd" data-gadd="${c.id}">+ Attività</button>`:''}</div>
-  ${c.att.map((a,ia)=>{const canIn=ia>0&&(a.liv||0)<=(c.att[ia-1].liv||0);return`<div class="gli ${a.sum?'gls':''}" style="--lv:${a.liv||0}">
+  ${visAtt(c).map(a=>{const ia=c.att.indexOf(a),canIn=ia>0&&(a.liv||0)<=(c.att[ia-1].liv||0);return`<div class="gli ${a.sum?'gls':''}" style="--lv:${a.liv||0}">
    ${ED?`<span class="garr"><button data-gmv="${c.id}|${a.id}|-1" ${a.liv?'':'disabled'} aria-label="Sali di livello">←</button><button data-gmv="${c.id}|${a.id}|1" ${canIn?'':'disabled'} aria-label="Rendi sottovoce">→</button></span>`:''}
    <div class="glb" ${ED?`data-gedit="${c.id}|${a.id}"`:''}><div class="cn">${esc(a.nome)}</div><div class="glm"><span class="mono">${a.ini?fmt(a.ini)+' → '+fmt(a.fin):'senza date'}</span>${a.sum?'':`<span>${esc(a.pers||'non assegnata')}</span>`}</div></div>
    ${a.sum?'':statoPill(a)}</div>`}).join('')||'<div class="muted" style="padding:8px 0">Nessuna attività.</div>'}
   ${ev.map(e=>`<div class="gli glg2"><span class="gdia2"></span><div class="glb"><div class="cn">${esc(e.nome)}</div><div class="glm"><span class="mono">${fmt(e.data)}</span><span>gate</span></div></div></div>`).join('')}</div>`}).join('')}
 $('#view').innerHTML=`<section class="panel"><div class="row" style="justify-content:space-between;margin-bottom:14px"><div class="row"><h2>Gantt</h2><div class="seg"><button data-gv="lista" aria-pressed="${S.gView==='lista'}">Elenco</button><button data-gv="diagramma" aria-pressed="${S.gView==='diagramma'}">Diagramma</button></div>
- <select id="gSel"><option value="tutte">Tutte le commesse</option>${[...S.commesse].sort((a,b)=>a.prio-b.prio).map(c=>`<option value="${c.id}" ${S.gSel===c.id?'selected':''}>${c.id} · ${esc(c.nome)}${c.chiusa?' (chiusa)':''}</option>`).join('')}</select></div>
+ <select id="gSel"><option value="tutte">Tutte le commesse</option>${[...S.commesse].sort((a,b)=>a.prio-b.prio).map(c=>`<option value="${c.id}" ${S.gSel===c.id?'selected':''}>${c.id} · ${esc(c.nome)}${c.chiusa?' (chiusa)':''}</option>`).join('')}</select>
+ <select id="gPer" class="gper" aria-label="Filtra per persona"><option value="tutte">Tutte le persone</option>${S.persone.map(p=>`<option ${S.gPer===p?'selected':''}>${esc(p)}</option>`).join('')}<option value="__none" ${S.gPer==='__none'?'selected':''}>Non assegnate</option></select></div>
  <div class="row"><button class="btn" id="xPrj">Esporta Project</button><button class="btn" id="xPdf">Esporta PDF</button><button class="btn pri" id="xXls">Esporta Excel</button></div></div>${body}
  <div class="note" id="xNote">Esporta la commessa selezionata o tutte.</div></section>`;
  $('#gSel').onchange=e=>{S.gSel=e.target.value;render()};
+ $('#gPer').onchange=e=>{S.gPer=e.target.value;render()};
+ gDrag();
  const w=$('.gwrap'),t=$('.gd.td');if(w&&t)w.scrollLeft=Math.max(0,t.offsetLeft-w.querySelector('.gh').offsetWidth-60);
  document.querySelectorAll('[data-gadd]').forEach(b=>b.onclick=()=>gForm(b.dataset.gadd));
  document.querySelectorAll('[data-gv]').forEach(b=>b.onclick=()=>{S.gView=b.dataset.gv;render()});
  document.querySelectorAll('[data-gmv]').forEach(b=>b.onclick=e=>{e.stopPropagation();const [ci,ai,d]=b.dataset.gmv.split('|');cMove(S.commesse.find(c=>c.id===ci),ai,+d)});
- document.querySelectorAll('[data-gedit]').forEach(b=>b.onclick=()=>{const [ci,ai]=b.dataset.gedit.split('|');gForm(ci,ai)});
+ document.querySelectorAll('[data-gedit]').forEach(b=>b.onclick=()=>{if(b.dataset.nc){delete b.dataset.nc;return}const [ci,ai]=b.dataset.gedit.split('|');gForm(ci,ai)});
  $('#xXls').onclick=exportXls;$('#xPrj').onclick=exportPrjGantt;$('#xPdf').onclick=exportPdf;
 }
 function exportXls(){try{const {cs}=ganttData();const wb=XLSX.utils.book_new();
