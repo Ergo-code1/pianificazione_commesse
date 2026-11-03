@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ergo Plan</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#15274f"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ergo Plan">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: barra superiore con tab, contenuto a pannelli; stile "cantiere/ufficio tecnico" */
+:root{
+  --bg:#f3f4f2;--surface:#ffffff;--fg:#1d2321;--muted:#5f6a66;--line:#d9ddd9;
+  --accent:#c4421a;--accent-ink:#ffffff;--ok:#2f7d4f;--warn:#b07a12;--off:#8a8f8c;--info:#2a5fa8;
+  --f-disp:"Archivo",system-ui,sans-serif;--f-body:"IBM Plex Sans",system-ui,sans-serif;--f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#151917;--surface:#1e2421;--fg:#e8ece9;--muted:#9aa49f;--line:#323a36;
+  --accent:#ef6a3e;--accent-ink:#1a0e08;--ok:#5cc187;--warn:#e0aa3c;--off:#7c8480;--info:#79a7ec;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151917;--surface:#1e2421;--fg:#e8ece9;--muted:#9aa49f;--line:#323a36;
+  --accent:#ef6a3e;--accent-ink:#1a0e08;--ok:#5cc187;--warn:#e0aa3c;--off:#7c8480;--info:#79a7ec;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px}
+.wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+h1,h2,h3{font-family:var(--f-disp);margin:0;text-wrap:balance}
+h1{font-size:22px;font-weight:800;letter-spacing:-.01em}
+h2{font-size:17px;font-weight:700}
+h3{font-size:15px;font-weight:700}
+.muted{color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+input,select{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 12px;cursor:pointer}
+.btn:hover{border-color:var(--fg)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn.sm{padding:4px 8px;font-size:12px}
+/* login */
+.login{max-width:360px;margin:12vh auto 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:28px;display:grid;gap:12px}
+.login label{display:grid;gap:4px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.err{color:var(--accent);font-size:13px}
+/* header */
+header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
+nav.tabs{display:flex;gap:2px;border-bottom:2px solid var(--line);margin-bottom:18px;overflow-x:auto}
+nav.tabs button{background:none;border:0;padding:10px 16px;cursor:pointer;font-family:var(--f-disp);font-weight:700;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.grid2{display:grid;grid-template-columns:260px 1fr;gap:18px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}
+.list{display:grid;gap:4px}
+.list button{text-align:left;background:none;border:1px solid transparent;border-radius:6px;padding:8px 10px;cursor:pointer;display:grid;gap:2px}
+.list button.sel{background:var(--bg);border-color:var(--line)}
+.list .code{font-family:var(--f-mono);font-size:12px;color:var(--accent)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;padding:8px 6px;border-bottom:1px solid var(--line)}
+td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+td input,td select{width:100%}
+td input.num{width:80px;text-align:right;font-family:var(--f-mono)}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;border:1px solid currentColor;white-space:nowrap}
+.p-ok{color:var(--ok)}.p-off{color:var(--off)}.p-run{color:var(--info)}.p-done{color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent)}.p-warn{color:var(--warn)}
+.card{border:1px solid var(--line);border-left:4px solid var(--off);border-radius:6px;padding:10px 12px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:var(--surface)}
+.card.att{border-left-color:var(--ok)}.card.run{border-left-color:var(--info)}.card.done{opacity:.6}
+.prio{display:grid;gap:2px}
+.prio button{background:none;border:1px solid var(--line);border-radius:4px;width:26px;height:20px;cursor:pointer;font-size:10px;line-height:1}
+.prionum{font-family:var(--f-mono);font-size:18px;font-weight:500;min-width:26px;text-align:center}
+.stack{display:grid;gap:8px}
+.diff-pos{color:var(--ok)}.diff-neg{color:var(--accent)}
+.note{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:6px;padding:8px 10px;margin-top:14px}
+.gate{display:grid;grid-template-columns:90px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.gate .date{font-family:var(--f-mono);font-size:13px}
+@media(max-width:560px){.card{grid-template-columns:auto 1fr}.card .acts{grid-column:1/-1}.gate{grid-template-columns:1fr}}
+</style>
+<style>
+/* Restyling: fondo con griglia tecnica, testata scura, superfici morbide */
+:root{--bg:#eef0ec;--surface:#ffffff;--line:#dde1dc;--head:#1f2a26;--head-fg:#f1f4f0;--accent:#d2491d;--shadow:0 1px 2px rgba(20,30,25,.06),0 6px 20px rgba(20,30,25,.06)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121614;--surface:#1b211e;--line:#2c3430;--head:#0c0f0e;--head-fg:#eef2ef;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3)}}
+:root[data-theme="dark"]{--bg:#121614;--surface:#1b211e;--line:#2c3430;--head:#0c0f0e;--head-fg:#eef2ef;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3)}
+body{background-color:var(--bg);background-image:linear-gradient(color-mix(in srgb,var(--fg) 4%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--fg) 4%,transparent) 1px,transparent 1px);background-size:28px 28px}
+header.top{background:var(--head);color:var(--head-fg);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+header.top::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border:22px solid var(--accent);border-radius:50%;opacity:.35}
+header.top h1{font-size:24px}
+header.top .muted{color:color-mix(in srgb,var(--head-fg) 65%,transparent)}
+header.top .btn{background:transparent;color:var(--head-fg);border-color:color-mix(in srgb,var(--head-fg) 35%,transparent);position:relative;z-index:1}
+header.top>div{position:relative;z-index:1}
+nav.tabs{border:0;background:var(--surface);border-radius:10px;padding:5px;gap:4px;box-shadow:var(--shadow);width:fit-content;max-width:100%}
+nav.tabs button{border:0;border-radius:7px;margin:0;padding:9px 18px;transition:background .15s,color .15s}
+nav.tabs button:hover{color:var(--fg)}
+nav.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.panel{border:0;border-radius:12px;padding:18px;box-shadow:var(--shadow)}
+.list button{border-radius:8px;transition:background .12s}
+.list button:hover{background:var(--bg)}
+.list button.sel{background:color-mix(in srgb,var(--accent) 10%,var(--surface));border-color:color-mix(in srgb,var(--accent) 40%,transparent)}
+.btn{border-radius:8px;transition:border-color .12s,transform .12s}
+.btn.pri:hover{filter:brightness(1.07)}
+.btn:active{transform:translateY(1px)}
+input,select{border-radius:8px;background:var(--surface)}
+td input,td select{border-color:transparent;background:transparent}
+td input:hover,td select:hover{border-color:var(--line)}
+tbody tr:hover td{background:color-mix(in srgb,var(--accent) 4%,transparent)}
+th{border-bottom:2px solid var(--line)}
+.pill{border:0;padding:3px 10px;background:color-mix(in srgb,currentColor 13%,transparent)}
+.pill::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:6px;vertical-align:1px}
+.card{border:0;border-left:5px solid var(--off);border-radius:10px;padding:12px 14px;box-shadow:var(--shadow);transition:transform .12s}
+.card:hover{transform:translateX(2px)}
+.prionum{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:var(--bg);font-size:15px;font-weight:600}
+.card.att .prionum{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.card.run .prionum{background:color-mix(in srgb,var(--info) 15%,transparent);color:var(--info)}
+.prio button{border-radius:5px;background:var(--surface);color:var(--muted)}
+.prio button:hover{color:var(--accent);border-color:var(--accent)}
+.gate{border-bottom:0;padding:12px;border-radius:10px;margin-bottom:6px;background:var(--bg)}
+.gate .date{background:var(--surface);border-radius:8px;padding:8px;text-align:center;font-weight:500;border-top:3px solid var(--accent)}
+.login{border:0;border-radius:14px;box-shadow:var(--shadow);border-top:6px solid var(--accent);padding:32px}
+.login h1{font-size:26px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<style>
+/* Stile Turni e Ferie: testata blu notte, tab nella banda scura, evidenza oro */
+:root{--bg:#e8ebf1;--surface:#fbfcfe;--soft:#f1f3f8;--fg:#18213a;--muted:#5f6a80;--line:#d5dbe6;--ink:#15274f;--ink2:#22397a;--onink:#eef2fa;--onink2:#a9b6d3;--accent:#24529e;--accent-ink:#fff;--hi:#f2b33d;--ok:#18603f;--info:#1c4f94;--warn:#7d4c06;--shadow:0 1px 2px rgb(21 39 79/.08),0 8px 24px -8px rgb(21 39 79/.18)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d121d;--surface:#151c2b;--soft:#1a2234;--fg:#e4e9e5;--muted:#93a097;--line:#283248;--ink:#0f1c3b;--ink2:#15274f;--onink:#e6ecf8;--onink2:#8f9dbd;--accent:#7ea4ea;--accent-ink:#0d121d;--hi:#e0a63a;--ok:#9fd8bc;--info:#a9c8f2;--warn:#f1cf8b;--shadow:0 1px 2px rgb(0 0 0/.5)}}
+:root[data-theme="dark"]{--bg:#0d121d;--surface:#151c2b;--soft:#1a2234;--fg:#e4e9e5;--muted:#93a097;--line:#283248;--ink:#0f1c3b;--ink2:#15274f;--onink:#e6ecf8;--onink2:#8f9dbd;--accent:#7ea4ea;--accent-ink:#0d121d;--hi:#e0a63a;--ok:#9fd8bc;--info:#a9c8f2;--warn:#f1cf8b;--shadow:0 1px 2px rgb(0 0 0/.5)}
+body{background-image:none!important}
+header.top{background:radial-gradient(120% 140% at 100% 0,var(--ink2),var(--ink)) var(--ink)!important;color:var(--onink);border-radius:18px 18px 0 0!important;margin-bottom:0!important;box-shadow:none!important}
+header.top::after{display:none}
+header.top h1{font-size:26px;color:var(--onink)}
+header.top .muted{color:var(--onink2)!important}
+nav.tabs{background:var(--ink)!important;border-radius:0 0 18px 18px!important;width:auto!important;padding:4px 14px 10px!important;margin-bottom:18px;box-shadow:var(--shadow)!important}
+nav.tabs button{color:var(--onink2)!important}
+nav.tabs button:hover{background:rgb(255 255 255/.06)}
+nav.tabs button[aria-selected="true"]{background:var(--ink2)!important;color:var(--hi)!important}
+.panel{border:1px solid var(--line)!important;border-radius:16px!important}
+.list button.sel{background:var(--soft)!important;border-color:var(--accent)!important}
+.list .code{color:var(--accent)}
+.crow{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:6px;align-items:center}
+.cprio{font-family:var(--f-disp);font-weight:800;font-size:15px;color:var(--hi);text-align:center}
+.prio button:disabled{opacity:.3;cursor:default}
+.gate .date{border-top-color:var(--hi)!important}
+.login{border-top-color:var(--ink)!important}
+.gate{background:var(--soft)!important}
+/* menu sinistro */
+aside.panel{background:var(--ink)!important;border:0!important;color:var(--onink)}
+aside.panel h3{color:var(--onink);font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--onink2)}
+aside.panel .muted{color:var(--onink2)!important}
+aside.panel .btn{background:rgb(255 255 255/.08);border-color:rgb(255 255 255/.16);color:var(--onink)}
+aside.panel .btn.pri{background:var(--hi);border-color:var(--hi);color:#15274f}
+aside.panel input,aside.panel select{background:rgb(255 255 255/.07);border-color:rgb(255 255 255/.16);color:var(--onink)}
+aside.panel select option{color:#15274f;background:#fff}
+aside.panel .err{color:var(--hi)}
+aside .list{gap:6px}
+aside .list button{color:var(--onink);border-radius:12px;padding:10px 12px;background:rgb(255 255 255/.04)!important;border:1px solid transparent!important}
+aside .list button:hover{background:rgb(255 255 255/.09)!important}
+aside .list button.sel{background:var(--ink2)!important;border-color:var(--hi)!important;box-shadow:inset 3px 0 0 var(--hi)}
+aside .list button:disabled{opacity:.4;cursor:default}
+aside .list .code{color:var(--hi)}
+.cn{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+aside .cprio{color:var(--hi)}
+aside .prio button{background:transparent;border-color:rgb(255 255 255/.18);color:var(--onink2)}
+.pg{display:flex;align-items:center;gap:8px;margin-top:4px}.pgb{flex:1;height:5px;border-radius:99px;background:rgb(255 255 255/.12);overflow:hidden}.pgb i{display:block;height:100%;background:var(--hi);border-radius:99px}.pgt{font-family:var(--f-mono);font-size:11px;color:var(--onink2)}
+.pbtn{display:grid!important;grid-template-columns:36px minmax(0,1fr);gap:10px!important;align-items:center}
+.av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12px;background:var(--soft);color:var(--accent);flex:none}
+aside .av{background:rgb(255 255 255/.12);color:var(--hi)}
+.irow{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--soft)}
+@media(max-width:560px){.irow{grid-template-columns:36px minmax(0,1fr)}.irow>:last-child{grid-column:1/-1}}
+/* gantt */
+.gwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+.gantt{display:grid;grid-auto-rows:38px;position:relative;min-width:max-content}
+.gn{grid-column:1;position:sticky;left:0;z-index:2;background:var(--surface);padding:4px 10px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-size:12.5px;min-width:0}
+.gn .muted{font-size:11px}
+.gh{grid-row:1;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--soft)}
+.gd{grid-row:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;color:var(--muted);background:var(--soft);border-bottom:1px solid var(--line)}
+.gd b{font-family:var(--f-mono);font-size:11px;color:var(--fg)}.gd.we{background:color-mix(in srgb,var(--line) 70%,var(--soft))}
+.gd.td{box-shadow:inset 0 -3px 0 var(--hi)}.gd.td b{color:var(--hi)}
+.gc{background:var(--ink);color:var(--onink);display:flex;align-items:center;gap:8px;padding:0 10px;font-family:var(--f-disp);font-weight:700;font-size:13px;position:sticky;left:0}
+.gc .code{color:var(--hi);font-family:var(--f-mono);font-size:12px}
+.gcell{border-bottom:1px solid var(--line)}.gcell.we{background:var(--soft)}
+.gbar{align-self:center;height:18px;border-radius:6px;z-index:1;margin:0 2px}
+.b-ok{background:var(--accent)}.b-off{background:repeating-linear-gradient(45deg,var(--muted) 0 4px,color-mix(in srgb,var(--muted) 60%,transparent) 4px 8px)}.b-run{background:var(--info);box-shadow:0 0 0 2px var(--hi)}.b-done{background:var(--ok);opacity:.7}
+.gdia{align-self:center;justify-self:center;width:14px;height:14px;background:var(--hi);transform:rotate(45deg);z-index:1;border-radius:2px}
+.gev .cn{color:var(--warn)}
+:root{--gnw:220px;--gdw:30px}
+.resp{margin-top:14px;padding:12px;border-radius:12px;background:var(--soft)}
+.rh{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;margin-bottom:8px}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,170px),1fr));gap:8px}
+.rcell{display:grid;gap:3px;font-size:12px;font-weight:600;color:var(--accent)}.rcell select{width:100%}
+.rrow2 input{width:100%}
+.gedit{display:block!important}.gef{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:10px}.gef label{display:grid;gap:4px;font-size:12px;color:var(--muted)}
+@media(max-width:640px){:root{--gnw:112px;--gdw:24px}
+ .gantt{grid-auto-rows:34px}.gn{padding:3px 6px;font-size:11px}.gn .muted{display:none}.gd span{display:none}.gd b{font-size:10px}
+ .gc{font-size:12px;white-space:nowrap}.gbar{height:14px;border-radius:4px}.gdia{width:11px;height:11px}
+ .gwrap{margin-inline:-8px;border-radius:8px}section.panel:has(.gantt){padding:12px}
+ section.panel:has(.gantt)>.row{flex-direction:column;align-items:stretch}section.panel:has(.gantt) select{width:100%}}
+.mt td input:not(.num){min-width:180px}.mbar{position:relative;height:12px;background:var(--soft);border-radius:6px}.mbar i{position:absolute;top:0;bottom:0;background:var(--accent);border-radius:6px}
+.gd{grid-row:2!important}.gm{grid-row:1;position:sticky;top:0;background:var(--ink);color:var(--onink);font-family:var(--f-disp);font-weight:700;font-size:12px;text-transform:capitalize;display:flex;align-items:center;padding:0 8px;border-left:2px solid var(--hi);white-space:nowrap;overflow:hidden}
+.ggr .cn{font-weight:700;color:var(--accent)}.gsub{padding-left:22px!important}.gsum{align-self:center;height:8px;background:var(--fg);border-radius:2px;z-index:1;position:relative;margin:0 2px}
+.gsum::before,.gsum::after{content:"";position:absolute;bottom:-5px;border:5px solid transparent;border-top-color:var(--fg)}.gsum::before{left:-2px}.gsum::after{right:-2px}
+.grp{font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.mt tr.sum td{background:var(--soft)}.mt tr.sum input[data-mf="nome"]{font-weight:700}.lv{font-family:var(--f-mono);font-size:10px;color:var(--muted);min-width:18px}
+.mt input:disabled{opacity:1;color:var(--muted);border-color:transparent;background:transparent}
+.mn{display:flex;gap:4px;align-items:center}.mn .btn{padding:2px 7px}.mbar.s i{background:var(--fg);height:6px;top:3px}
+@media(max-width:640px){.gm{font-size:11px;padding:0 4px}}
+.glg{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:12px;color:var(--muted)}
+.glg i{display:inline-block;width:18px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}.glg i.dia{width:10px;height:10px;background:var(--hi);transform:rotate(45deg)}
+</style>
+
+</head><body>
+<div class="wrap" id="app"><div class="login"><h1>Ergo Plan</h1><div class="muted">Caricamento…</div></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script>
+const VERSIONE='1.0.0';
+const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
+ utenti:{admin:{pw:'admin',ruolo:'admin',nome:'Admin'},marco:{pw:'demo',ruolo:'persona',nome:'Marco Rossi'}},
+ persone:['Marco Rossi','Giulia Bianchi','Luca Ferrero'],
+ ruoli:['Progetto','Meccanica','Elettrica','Software','Robot'],
+ master:[{id:50,nome:'Linea automatica standard',att:[{liv:0,nome:'Kick-off e specifiche',off:0,dur:3,ore:12},{liv:0,nome:'Progettazione',off:3,dur:30,ore:null},{liv:1,nome:'Meccanica',off:3,dur:15,ore:120},{liv:1,nome:'Elettrica',off:10,dur:12,ore:80},{liv:1,nome:'Software PLC',off:18,dur:15,ore:100},{liv:1,nome:'Robot',off:25,dur:10,ore:60},{liv:0,nome:'Realizzazione',off:22,dur:19,ore:null},{liv:1,nome:'Montaggio',off:22,dur:15,ore:160},{liv:1,nome:'Collaudo FAT',off:37,dur:4,ore:32}]}],
+
+ commesse:[
+  {id:'C-24-031',prio:1,nome:'Capannone Via Saluzzo – SCIA antincendio',cliente:'Logistica Nord srl',att:[
+   {id:1,nome:'Sopralluogo e rilievo',pers:'Marco Rossi',ini:'2026-11-04',fin:'2026-11-05',attiva:true,stato:'conclusa',prio:1,bud:8,cons:7},
+   {id:2,nome:'Calcolo carico d\'incendio',pers:'Giulia Bianchi',ini:'2026-11-06',fin:'2026-11-12',attiva:true,stato:'in corso',prio:1,bud:16,cons:6},
+   {id:3,nome:'Tavole compartimentazione',pers:'Marco Rossi',ini:'2026-11-10',fin:'2026-11-18',attiva:false,stato:'da fare',prio:2,bud:24,cons:null,manca:'Planimetrie aggiornate dal cliente'},
+   {id:4,nome:'Relazione tecnica',pers:'Giulia Bianchi',ini:'2026-11-16',fin:'2026-11-22',attiva:false,stato:'da fare',prio:2,bud:20,cons:null,manca:'Esito calcolo carico'}]},
+  {id:'C-24-034',prio:2,nome:'Scuola media – rinnovo CPI',cliente:'Comune di Pinerolo',att:[
+   {id:5,nome:'Verifica impianti',pers:'Luca Ferrero',ini:'2026-11-05',fin:'2026-11-08',attiva:true,stato:'da fare',prio:1,bud:10,cons:null},
+   {id:6,nome:'Asseverazione',pers:'Marco Rossi',ini:'2026-11-20',fin:'2026-11-24',attiva:true,stato:'da fare',prio:3,bud:6,cons:null}]}],
+ eventi:[
+  {id:1,nome:'Consegna tavole al cliente',data:'2026-11-18',comm:'C-24-031',rif:3},
+  {id:2,nome:'Deposito SCIA ai VVF',data:'2026-11-25',comm:'C-24-031',rif:null},
+  {id:3,nome:'Fine verifica impianti',data:'2026-11-08',comm:'C-24-034',rif:5}],
+ nextId:100};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const allAtt=()=>S.commesse.flatMap(c=>c.att.map(a=>({...a,_c:c})));
+const findAtt=id=>{for(const c of S.commesse){const a=c.att.find(x=>x.id==id);if(a)return a}};
+const fmt=d=>d?d.split('-').reverse().slice(0,2).join('/'):'';
+function statoPill(a){
+ if(a.stato==='conclusa')return'<span class="pill p-done">Conclusa</span>';
+ if(a.stato==='in corso')return'<span class="pill p-run">In corso</span>';
+ return a.attiva?'<span class="pill p-ok">Attiva</span>':'<span class="pill p-off">Non attiva</span>';}
+
+function render(){
+ if(!S.user){renderLogin();return}
+ const isAdm=S.user.ruolo==='admin';
+ const tabs=[['commesse','Commesse'],['persone','Persone'],['gantt','Gantt'],['ore','Ore'],['eventi','Eventi'],...(isAdm?[['master','Masterplan'],['imp','Impostazioni']]:[])];
+ $('#app').innerHTML=`<header class="top"><div><h1>Ergo Plan <span class="rev">v${VERSIONE}</span></h1><div class="muted">Dati condivisi</div></div>
+ <div class="row"><span class="muted">${esc(S.user.nome)} (${S.user.ruolo})</span><button class="btn sm" id="acct">Il mio account</button><button class="btn sm" id="logout">Esci</button></div></header>
+ <nav class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${S.tab===k}" data-tab="${k}">${l}</button>`).join('')}</nav>
+ <main id="view"></main>`;
+ $('#logout').onclick=()=>FB.logout();$('#acct').onclick=()=>accountSheet();
+ document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;render()});
+ ({commesse:vCommesse,persone:vPersone,gantt:vGantt,master:vMaster,ore:vOre,eventi:vEventi,imp:vImp})[S.tab]();
+}
+
+function renderLogin(){
+ $('#app').innerHTML=`<form class="login" id="lf"><h1>Ergo Plan <span class="rev">v${VERSIONE}</span></h1>
+ <label>Nome utente<input id="u" autocomplete="username" value="admin"></label>
+ <label>Password<input id="p" type="password" autocomplete="current-password" value="admin"></label>
+ <div class="err" id="le"></div><button class="btn pri">Accedi</button>
+ <div class="muted" style="font-size:12px">Demo: admin / admin · marco / demo</div></form>`;
+ $('#lf').onsubmit=e=>{e.preventDefault();const u=S.utenti[$('#u').value.trim()];
+  if(u&&u.pw===$('#p').value){S.user=u;if(u.ruolo==='persona'){S.selP=u.nome;S.tab='persone'}render()}
+  else $('#le').textContent='Nome utente o password errati.'};
+}
+
+function vCommesse(){
+ const c=S.commesse.find(x=>x.id===S.selC)||S.commesse[0];S.selC=c?.id;
+ $('#view').innerHTML=`<div class="grid2"><aside class="panel"><div class="row" style="justify-content:space-between;margin-bottom:8px"><h3>Commesse</h3><button class="btn sm" id="newC">+ Nuova</button></div>
+ <div class="muted" style="font-size:12px;margin-bottom:8px">Ordinate per priorità</div><div class="list">${[...S.commesse].sort((a,b)=>a.prio-b.prio).map((x,i,arr)=>`<div class="crow"><span class="cprio">${i+1}</span><button class="${x.id===S.selC?'sel':''}" data-c="${x.id}"><span class="code">${x.id}</span><span class="cn">${esc(x.nome)}</span>${prog(x)}</button><div class="prio"><button data-cup="${x.id}" ${i===0?'disabled':''} aria-label="Sposta su">▲</button><button data-cdn="${x.id}" ${i===arr.length-1?'disabled':''} aria-label="Sposta giù">▼</button></div></div>`).join('')}</div></aside>
+ <section class="panel">${c?`<div class="row" style="justify-content:space-between"><div><div class="mono" style="color:var(--accent)">${c.id}</div><h2>${esc(c.nome)}</h2><div class="muted">${esc(c.cliente)}${c.master?' · da masterplan '+esc(c.master):''}</div></div></div>
+ <div class="resp"><div class="rh">Responsabili</div><div class="rgrid">${S.ruoli.map(r=>`<label class="rcell"><span>${esc(r)}</span><select data-resp="${esc(r)}"><option value="">—</option>${S.persone.map(p=>`<option ${(c.resp||{})[r]===p?'selected':''}>${esc(p)}</option>`).join('')}</select></label>`).join('')||'<span class="muted">Nessun ruolo: aggiungili in Impostazioni.</span>'}</div></div>
+ <div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Attività</th><th>Persona</th><th>Inizio</th><th>Fine</th><th>Condizioni</th><th>Stato</th><th></th></tr></thead><tbody>
+ ${c.att.map(a=>`<tr><td>${a.gruppo?`<div class="grp">${esc(a.gruppo)}</div>`:''}<input data-f="nome" data-id="${a.id}" value="${esc(a.nome)}">${!a.attiva&&a.manca?`<div class="muted" style="font-size:12px;margin-top:3px">Manca: <input data-f="manca" data-id="${a.id}" value="${esc(a.manca)}"></div>`:''}</td>
+ <td><select data-f="pers" data-id="${a.id}"><option value="" ${S.persone.includes(a.pers)?'':'selected'}>— non assegnata —</option>${S.persone.map(p=>`<option ${p===a.pers?'selected':''}>${p}</option>`).join('')}</select></td>
+ <td><input type="date" data-f="ini" data-id="${a.id}" value="${a.ini}"></td><td><input type="date" data-f="fin" data-id="${a.id}" value="${a.fin}"></td>
+ <td><select data-f="attiva" data-id="${a.id}"><option value="1" ${a.attiva?'selected':''}>Attiva</option><option value="0" ${!a.attiva?'selected':''}>Non attiva</option></select></td>
+ <td>${statoPill(a)}</td><td><button class="btn sm" data-del="${a.id}" aria-label="Elimina">✕</button></td></tr>`).join('')}
+ </tbody></table></div><button class="btn" id="addA" style="margin-top:10px">+ Aggiungi attività</button>`:'Nessuna commessa'}</section></div>`;
+ document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{S.selC=b.dataset.c;render()});
+ const mv=(id,d)=>{const s=[...S.commesse].sort((a,b)=>a.prio-b.prio),i=s.findIndex(c=>c.id===id),j=i+d;if(j<0||j>=s.length)return;[s[i],s[j]]=[s[j],s[i]];s.forEach((c,k)=>c.prio=k+1);render()};
+ document.querySelectorAll('[data-cup]').forEach(b=>b.onclick=()=>mv(b.dataset.cup,-1));
+ document.querySelectorAll('[data-cdn]').forEach(b=>b.onclick=()=>mv(b.dataset.cdn,1));
+ $('#newC').onclick=()=>newCommessaForm();const _old=()=>{const id='C-26-'+String(S.nextId++).padStart(3,'0');S.commesse.push({id,prio:S.commesse.length+1,nome:'Nuova commessa',cliente:'Cliente',att:[]});S.selC=id;render()};
+ bindAttInputs();
+ document.querySelectorAll('[data-resp]').forEach(s=>s.onchange=()=>{c.resp=c.resp||{};c.resp[s.dataset.resp]=s.value});
+ $('#addA')&&($('#addA').onclick=()=>{c.att.push({id:S.nextId++,nome:'Nuova attività',pers:S.persone[0],ini:'',fin:'',attiva:true,stato:'da fare',prio:9,bud:null,cons:null});render()});
+ document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{c.att=c.att.filter(a=>a.id!=b.dataset.del);render()});
+}
+function bindAttInputs(){
+ document.querySelectorAll('[data-f]').forEach(el=>el.onchange=()=>{const a=findAtt(el.dataset.id),f=el.dataset.f;
+  if(f==='attiva'){a.attiva=el.value==='1';if(!a.attiva&&!a.manca)a.manca='Da specificare';render();return}
+  if(f==='bud'||f==='cons'){a[f]=el.value===''?null:+el.value;render();return}
+  a[f]=el.value;});
+}
+
+function vPersone(){
+ const isAdm=S.user.ruolo==='admin';
+ const lista=allAtt().filter(a=>a.pers===S.selP).sort((x,y)=>(x.stato==='conclusa')-(y.stato==='conclusa')||x.prio-y.prio);
+ $('#view').innerHTML=`<div class="grid2"><aside class="panel"><h3 style="margin-bottom:8px">Persone</h3><div class="list">
+ ${S.persone.map(p=>{const n=allAtt().filter(a=>a.pers===p&&a.stato!=='conclusa').length;return`<button class="pbtn ${p===S.selP?'sel':''}" data-p="${esc(p)}" ${!isAdm&&p!==S.user.nome?'disabled':''}><span class="av">${ini(p)}</span><span style="min-width:0"><span class="cn">${esc(p)}</span><span class="muted" style="font-size:12px;display:block">${n} attività aperte</span></span></button>`}).join('')}</div></aside>
+ <section class="panel"><h2>${esc(S.selP)}</h2><div class="muted" style="margin-bottom:12px">Ordinate per priorità · le frecce cambiano la priorità</div><div class="stack">
+ ${lista.map(a=>`<div class="card ${a.stato==='conclusa'?'done':a.stato==='in corso'?'run':a.attiva?'att':''}">
+  <div class="row" style="gap:6px"><div class="prio"><button data-up="${a.id}" aria-label="Aumenta priorità">▲</button><button data-dn="${a.id}" aria-label="Diminuisci priorità">▼</button></div><span class="prionum">${a.prio}</span></div>
+  <div style="min-width:0"><div style="font-weight:600">${esc(a.nome)}</div><div class="muted" style="font-size:12px"><span class="mono">${a._c.id}</span> · ${fmt(a.ini)}–${fmt(a.fin)}${!a.attiva&&a.stato==='da fare'?` · manca: ${esc(a.manca)}`:''}</div></div>
+  <div class="row acts">${statoPill(a)}
+   ${a.stato==='da fare'?`<button class="btn sm" data-st="in corso" data-id="${a.id}" ${a.attiva?'':'disabled title="Non attiva"'}>Avvia</button>`:''}
+   ${a.stato==='in corso'?`<button class="btn sm pri" data-st="conclusa" data-id="${a.id}">Concludi</button>`:''}
+   ${a.stato==='conclusa'?`<button class="btn sm" data-st="in corso" data-id="${a.id}">Riapri</button>`:''}</div></div>`).join('')||'<div class="muted">Nessuna attività assegnata.</div>'}
+ </div></section></div>`;
+ document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{S.selP=b.dataset.p;render()});
+ document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const a=findAtt(b.dataset.up);a.prio=Math.max(1,a.prio-1);render()});
+ document.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>{const a=findAtt(b.dataset.dn);a.prio++;render()});
+ document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{findAtt(b.dataset.id).stato=b.dataset.st;render()});
+}
+
+function vOre(){
+ const rows=S.commesse.map(c=>{const tb=c.att.reduce((s,a)=>s+(a.bud||0),0),tc=c.att.reduce((s,a)=>s+(a.cons||0),0);
+ return`<tr><td colspan="6" style="background:var(--bg);font-weight:600"><span class="mono" style="color:var(--accent)">${c.id}</span> ${esc(c.nome)}</td></tr>
+ ${c.att.map(a=>{const d=a.bud!=null&&a.cons!=null?a.bud-a.cons:null;return`<tr><td>${esc(a.nome)}</td><td>${esc(a.pers)}</td><td>${statoPill(a)}</td>
+ <td><input class="num" type="number" min="0" step="0.5" data-f="bud" data-id="${a.id}" value="${a.bud??''}" placeholder="—"></td>
+ <td><input class="num" type="number" min="0" step="0.5" data-f="cons" data-id="${a.id}" value="${a.cons??''}" placeholder="—"></td>
+ <td class="mono ${d==null?'':d<0?'diff-neg':'diff-pos'}" style="text-align:right">${d==null?'':(d>0?'+':'')+d}</td></tr>`}).join('')}
+ <tr><td colspan="3" class="muted" style="text-align:right">Totale commessa</td><td class="mono" style="text-align:right">${tb} h</td><td class="mono" style="text-align:right">${tc} h</td><td class="mono ${tb-tc<0?'diff-neg':'diff-pos'}" style="text-align:right">${tb-tc>0?'+':''}${tb-tc}</td></tr>`}).join('');
+ $('#view').innerHTML=`<section class="panel"><h2 style="margin-bottom:10px">Budget e consuntivo ore</h2><div class="tablewrap"><table>
+ <thead><tr><th>Attività</th><th>Persona</th><th>Stato</th><th style="text-align:right">Budget h</th><th style="text-align:right">Consuntivo h</th><th style="text-align:right">Scost.</th></tr></thead><tbody>${rows}</tbody></table></div>
+ <div class="note">Campi liberi: lascia vuoto ciò che non è ancora noto. Scostamento positivo = ore residue.</div></section>`;
+ bindAttInputs();
+}
+
+function vEventi(){
+ const ev=[...S.eventi].sort((a,b)=>a.data.localeCompare(b.data));const oggi=new Date().toISOString().slice(0,10);
+ $('#view').innerHTML=`<div class="grid2"><aside class="panel"><h3 style="margin-bottom:10px">Nuovo gate</h3>
+ <div class="stack"><label class="muted" style="font-size:12px">Da pianificazione<select id="eSel"><option value="">— crea libero —</option>
+ ${allAtt().map(a=>`<option value="${a.id}">${a._c.id} · ${esc(a.nome)}</option>`).join('')}</select></label>
+ <input id="eNome" placeholder="Nome gate"><input id="eData" type="date"><button class="btn pri" id="eAdd">Aggiungi gate</button></div></aside>
+ <section class="panel"><h2 style="margin-bottom:6px">Prossimi gate</h2>
+ ${ev.map(e=>{const a=e.rif?findAtt(e.rif):null;const gg=Math.round((new Date(e.data)-new Date(oggi))/864e5);
+ if(S.editE===e.id)return gateEdit(e);return`<div class="gate"><div class="date">${fmt(e.data)}<div class="muted" style="font-size:11px">${gg>=0?'tra '+gg+' gg':'scaduto'}</div></div>
+ <div style="min-width:0"><div style="font-weight:600">${esc(e.nome)}</div><div class="muted" style="font-size:12px"><span class="mono">${e.comm||''}</span>${a?' · da pianificazione: '+esc(a.nome)+' '+statoPill(a):' · gate libero'}</div></div>
+ <div class="row"><button class="btn sm" data-eed="${e.id}">Modifica</button><button class="btn sm" data-edel="${e.id}" aria-label="Elimina">✕</button></div></div>`}).join('')}</section></div>`;
+ $('#eSel').onchange=()=>{const a=findAtt($('#eSel').value);if(a){$('#eNome').value='Fine '+a.nome;$('#eData').value=a.fin}};
+ $('#eAdd').onclick=()=>{const n=$('#eNome').value.trim(),d=$('#eData').value;if(!n||!d)return;const rif=$('#eSel').value||null;
+  const a=rif?findAtt(rif):null;const c=a?S.commesse.find(c=>c.att.includes(a)):null;
+  S.eventi.push({id:S.nextId++,nome:n,data:d,comm:c?.id||'',rif:rif?+rif:null});render()};
+ document.querySelectorAll('[data-edel]').forEach(b=>b.onclick=()=>{S.eventi=S.eventi.filter(e=>e.id!=b.dataset.edel);render()});
+ document.querySelectorAll('[data-eed]').forEach(b=>b.onclick=()=>{S.editE=+b.dataset.eed;render()});
+ $('#gx')&&($('#gx').onclick=()=>{S.editE=null;render()});
+ $('#gR')&&($('#gR').onchange=()=>{const a=findAtt($('#gR').value);if(a){$('#gD').value=a.fin;$('#gC').value=S.commesse.find(c=>c.att.includes(a)).id}});
+ $('#gs')&&($('#gs').onclick=()=>{const e=S.eventi.find(x=>x.id===S.editE),n=$('#gN').value.trim(),d=$('#gD').value;if(!n||!d){$('#gErr').textContent='Inserisci nome e data.';return}
+  e.nome=n;e.data=d;e.rif=$('#gR').value?+$('#gR').value:null;e.comm=$('#gC').value;S.editE=null;render()});
+}
+function gateEdit(e){return`<div class="gate gedit"><div class="stack" style="grid-column:1/-1">
+ <div class="gef"><label>Nome gate<input id="gN" value="${esc(e.nome)}"></label><label>Data<input id="gD" type="date" value="${e.data}"></label>
+ <label>Commessa<select id="gC"><option value="">—</option>${S.commesse.map(c=>`<option value="${c.id}" ${c.id===e.comm?'selected':''}>${c.id}</option>`).join('')}</select></label>
+ <label>Collegato a attività<select id="gR"><option value="">— gate libero —</option>${allAtt().map(a=>`<option value="${a.id}" ${a.id===e.rif?'selected':''}>${a._c.id} · ${esc(a.nome)}</option>`).join('')}</select></label></div>
+ <div class="row"><button class="btn pri sm" id="gs">Salva</button><button class="btn sm" id="gx">Annulla</button><span class="err" id="gErr"></span></div></div></div>`}
+
+const addD=(d,n)=>{const x=new Date(d+'T00:00:00');x.setDate(x.getDate()+n);return x.toISOString().slice(0,10)};
+function newCommessaForm(){
+ const sec=document.querySelectorAll('#view .panel')[1];if(!sec)return;
+ const today=new Date().toISOString().slice(0,10);S.master.forEach(mCalc);
+ sec.innerHTML=`<h2 style="margin-bottom:4px">Nuova commessa</h2><div class="muted" style="margin-bottom:14px">Scegli un masterplan per generare le attività, oppure parti da vuota e le crei tu.</div>
+ <div class="gef"><label>Codice<input id="ncId" value="C-${new Date().getFullYear().toString().slice(2)}-${String(S.nextId).padStart(3,'0')}"></label>
+ <label>Descrizione<input id="ncNome" placeholder="es. Linea assemblaggio cliente X"></label><label>Cliente<input id="ncCli"></label>
+ <label>Data inizio<input id="ncIni" type="date" value="${today}"></label>
+ <label>Masterplan<select id="ncM"><option value="">— nessuno, commessa vuota —</option>${S.master.map(m=>`<option value="${m.id}">${esc(m.nome)} (${m.att.length} attività)</option>`).join('')}</select></label></div>
+ <div id="ncPrev" class="muted" style="margin:12px 0;font-size:12px"></div>
+ <div class="row"><button class="btn pri" id="ncOk">Crea commessa</button><button class="btn" id="ncNo">Annulla</button><span class="err" id="ncErr"></span></div>`;
+ const prev=()=>{const m=S.master.find(x=>x.id==$('#ncM').value);$('#ncPrev').textContent=m?`Verranno create ${m.att.length} attività, dal ${fmt($('#ncIni').value)} al ${fmt(addD($('#ncIni').value,Math.max(...m.att.map(a=>a.off+a.dur))-1))}.`:'Commessa vuota: aggiungerai le attività a mano.'};
+ $('#ncM').onchange=prev;$('#ncIni').onchange=prev;prev();
+ $('#ncNo').onclick=()=>render();
+ $('#ncOk').onclick=()=>{const id=$('#ncId').value.trim(),ini=$('#ncIni').value;
+  if(!id||!$('#ncNome').value.trim()){$('#ncErr').textContent='Inserisci codice e descrizione.';return}
+  if(S.commesse.some(c=>c.id===id)){$('#ncErr').textContent='Codice già usato.';return}
+  const m=S.master.find(x=>x.id==$('#ncM').value);
+  const att=m&&ini?mLeaves(m).map((a,i)=>({id:S.nextId++,gruppo:a.gruppo,nome:a.nome,pers:'',ini:addD(ini,a.off),fin:addD(ini,a.off+a.dur-1),attiva:true,stato:'da fare',prio:i+1,bud:a.ore??null,cons:null})):[];
+  S.nextId++;S.commesse.push({id,prio:S.commesse.length+1,nome:$('#ncNome').value.trim(),cliente:$('#ncCli').value.trim(),master:m?.nome||'',resp:{},att});S.selC=id;render()};
+}
+function vMaster(){
+ const m=S.master.find(x=>x.id===S.selM)||S.master[0];S.selM=m?.id;if(m)mCalc(m);
+ const tot=m&&m.att.length?Math.max(...m.att.map(a=>a.off+a.dur)):1;
+ $('#view').innerHTML=`<div class="grid2"><aside class="panel"><h3 style="margin-bottom:10px">Masterplan</h3><div class="list">
+ ${S.master.map(x=>`<button class="${x.id===S.selM?'sel':''}" data-m="${x.id}"><span class="cn">${esc(x.nome)}</span><span class="muted" style="font-size:12px">${x.att.length} attività · ${x.att.length?Math.max(...x.att.map(a=>a.off+a.dur)):0} giorni</span></button>`).join('')||'<span class="muted">Nessun masterplan.</span>'}</div>
+ <div class="stack" style="margin-top:14px"><button class="btn" id="mNew">+ Nuovo vuoto</button>
+ <label class="btn pri" style="text-align:center;cursor:pointer">Importa da Excel o Project<input id="mFile" type="file" accept=".xlsx,.xls,.csv,.xml,.mpp" hidden></label>
+ <div class="muted" style="font-size:11px">Excel: colonne Attività, Inizio, Fine (o Durata), Ore, Livello (o WBS 1.2.3). Project: File → Salva con nome → XML o Excel.</div><div class="err" id="mErr"></div></div></aside>
+ <section class="panel">${m?`<div class="row" style="justify-content:space-between;margin-bottom:12px"><input id="mNome" value="${esc(m.nome)}" style="font-family:var(--f-disp);font-weight:700;font-size:17px;flex:1;min-width:0">
+ <div class="row"><button class="btn sm" id="mPrj">Esporta Project</button><button class="btn sm" id="mDup">Duplica</button>${S.delM===m.id?`<button class="btn sm pri" id="mDelOk">Conferma eliminazione</button><button class="btn sm" id="mDelNo">Annulla</button>`:`<button class="btn sm" id="mDel">Elimina</button>`}</div></div>
+ <div class="tablewrap"><table class="mt"><thead><tr><th>Voce / sottovoce</th><th>Giorno inizio</th><th>Durata gg</th><th>Ore</th><th style="min-width:160px">Sequenza</th><th></th></tr></thead><tbody>
+ ${m.att.map((a,i)=>{const ds=a.sum?'disabled title="Calcolato dalle sottovoci"':'';return`<tr class="${a.sum?'sum':''}"><td><div class="mn" style="padding-left:${a.liv*22}px"><button class="btn sm" data-mout="${i}" ${a.liv?'':'disabled'} aria-label="Sali di livello" title="Sali di livello">←</button><button class="btn sm" data-min="${i}" ${i>0&&a.liv<=m.att[i-1].liv?'':'disabled'} aria-label="Rendi sottovoce" title="Rendi sottovoce della riga sopra">→</button><span class="lv">${a.liv?'L'+(a.liv+1):''}</span><input data-mf="nome" data-i="${i}" value="${esc(a.nome)}"></div></td><td><input class="num" type="number" min="0" data-mf="off" data-i="${i}" value="${a.off}" ${ds}></td><td><input class="num" type="number" min="1" data-mf="dur" data-i="${i}" value="${a.dur}" ${ds}></td><td><input class="num" type="number" min="0" step="0.5" data-mf="ore" data-i="${i}" value="${a.ore??''}" placeholder="—" ${ds}></td>
+ <td><div class="mbar ${a.sum?'s':''}"><i style="left:${a.off/tot*100}%;width:${Math.max(a.dur/tot*100,1.5)}%"></i></div></td><td><button class="btn sm" data-mdel="${i}" aria-label="Elimina">✕</button></td></tr>`}).join('')}
+ </tbody></table></div><button class="btn" id="mAdd" style="margin-top:10px">+ Aggiungi attività</button>
+ <div class="note">Il giorno inizio è contato dall'avvio della commessa (0 = primo giorno). Con → una riga diventa sottovoce di quella sopra (anche su più livelli), con ← risale; le sue sottovoci la seguono. Inizio, durata e ore di una voce sono calcolati dalle sue sottovoci. Quando crei una commessa da questo masterplan le date vengono calcolate dalla data di inizio.</div>`:'<div class="muted">Crea o importa un masterplan.</div>'}</section></div>`;
+ document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{S.selM=+b.dataset.m;S.delM=null;render()});
+ $('#mNew').onclick=()=>{const id=S.nextId++;S.master.push({id,nome:'Nuovo masterplan',att:[]});S.selM=id;render()};
+ $('#mFile').onchange=e=>{const f=e.target.files[0];if(f)importMaster(f).catch(er=>{$('#mErr').textContent=er.message})};
+ if(!m)return;
+ $('#mNome').onchange=e=>{m.nome=e.target.value.trim()||m.nome;render()};
+ document.querySelectorAll('[data-mf]').forEach(el=>el.onchange=()=>{const a=m.att[+el.dataset.i],f=el.dataset.mf;
+  a[f]=f==='nome'?el.value:el.value===''?(f==='ore'?null:0):Math.max(f==='dur'?1:0,+el.value);render()});
+ const sub=i=>{const A=m.att,r=[];for(let j=i+1;j<A.length&&A[j].liv>A[i].liv;j++)r.push(A[j]);return r};
+ document.querySelectorAll('[data-min]').forEach(b=>b.onclick=()=>{const i=+b.dataset.min;sub(i).forEach(x=>x.liv++);m.att[i].liv++;render()});
+ document.querySelectorAll('[data-mout]').forEach(b=>b.onclick=()=>{const i=+b.dataset.mout;sub(i).forEach(x=>x.liv--);m.att[i].liv--;render()});
+ $('#mPrj').onclick=()=>exportPrjMaster(m);
+ document.querySelectorAll('[data-mdel]').forEach(b=>b.onclick=()=>{m.att.splice(+b.dataset.mdel,1);render()});
+ $('#mAdd').onclick=()=>{const end=m.att.length?Math.max(...m.att.map(a=>a.off+a.dur)):0;m.att.push({nome:'Nuova attività',off:end,dur:5,ore:null});render()};
+ $('#mDup').onclick=()=>{const id=S.nextId++;S.master.push({id,nome:m.nome+' (copia)',att:m.att.map(a=>({...a}))});S.selM=id;render()};
+ $('#mDel')&&($('#mDel').onclick=()=>{S.delM=m.id;render()});
+ $('#mDelNo')&&($('#mDelNo').onclick=()=>{S.delM=null;render()});
+ $('#mDelOk')&&($('#mDelOk').onclick=()=>{S.master=S.master.filter(x=>x!==m);S.delM=null;S.selM=null;render()});
+}
+async function importMaster(f){
+ const ext=f.name.split('.').pop().toLowerCase(),base=f.name.replace(/\.[^.]+$/,'');
+ if(ext==='mpp')throw new Error('Il formato .mpp non si può leggere direttamente: da Project usa File → Salva con nome → XML (oppure Excel) e importa quel file.');
+ let rows=[];const D=v=>{if(v instanceof Date)return v;if(typeof v==='number')return new Date(Math.round((v-25569)*864e5));if(!v)return null;
+  const s=String(v).trim(),it=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/);if(it)return new Date(+(it[3].length===2?'20'+it[3]:it[3]),it[2]-1,+it[1]);const d=new Date(s);return isNaN(d)?null:d};
+ if(ext==='xml'){const x=new DOMParser().parseFromString(await f.text(),'application/xml');
+  [...x.getElementsByTagName('Task')].forEach(t=>{const g=n=>t.getElementsByTagName(n)[0]?.textContent;
+   if(g('UID')==='0'||g('IsNull')==='1'||!g('Name'))return;
+   const w=(g('Work')||'').match(/PT(\d+)H(\d+)M/);rows.push({liv:Math.max(0,(+g('OutlineLevel')||1)-1),sum:g('Summary')==='1',nome:g('Name'),s:D(g('Start')),e:D(g('Finish')),ore:w?+w[1]+(+w[2])/60:null})});
+  if(!rows.length)throw new Error('Nessuna attività trovata nel file XML di Project.');
+ }else{const wb=XLSX.read(await f.arrayBuffer(),{cellDates:true});const a=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true});
+  const hi=a.findIndex(r=>r.some(c=>/attivit|task|nome|name|descriz/i.test(String(c??''))));if(hi<0)throw new Error('Non trovo la colonna delle attività (Attività, Nome o Task Name).');
+  const h=a[hi].map(c=>String(c??'').toLowerCase()),col=re=>h.findIndex(c=>re.test(c));
+  const cN=col(/attivit|task|nome|name|descriz/),cS=col(/inizio|start|dal/),cE=col(/fine|finish|end|al$/),cD=col(/durata|duration|gg|giorni/),cO=col(/ore|work|lavoro|budget/),cL=col(/livello|level|wbs|struttura/);
+  a.slice(hi+1).forEach(r=>{const n=r[cN];if(!n)return;const s=cS>=0?D(r[cS]):null;let e=cE>=0?D(r[cE]):null;const du=cD>=0?parseFloat(String(r[cD]).replace(',','.')):NaN;
+   if(s&&!e&&du>0)e=new Date(+s+(du-1)*864e5);rows.push({liv:cL>=0&&r[cL]!=null&&r[cL]!==''?(/\./.test(String(r[cL]))?String(r[cL]).split('.').length-1:Math.max(0,parseInt(r[cL])-1||0)):0,nome:String(n).trim(),s,e,du,ore:cO>=0&&r[cO]!==''&&r[cO]!=null?parseFloat(String(r[cO]).replace(',','.'))||null:null})});
+  if(!rows.length)throw new Error('Nessuna attività trovata nel foglio.');}
+ const dated=rows.filter(r=>r.s);const t0=dated.length?Math.min(...dated.map(r=>+r.s)):null;let cur=0;
+ const att=rows.map(r=>{let off,dur;if(r.s&&t0!=null){off=Math.round((r.s-t0)/864e5);dur=r.e?Math.max(1,Math.round((r.e-r.s)/864e5)+1):(r.du>0?Math.round(r.du):1)}else{off=cur;dur=r.du>0?Math.round(r.du):5}
+  cur=Math.max(cur,off+dur);return{liv:r.liv||0,nome:r.nome,off,dur,ore:r.sum?null:r.ore}});
+ const id=S.nextId++;S.master.push({id,nome:base,att});S.selM=id;render();
+}
+
+function mCalc(m){const A=m.att;A.forEach((a,i)=>{a.liv=Math.max(0,Math.min(+a.liv||0,i?A[i-1].liv+1:0));a.sum=false});
+ for(let i=A.length-1;i>=0;i--){const a=A[i],ch=[];for(let j=i+1;j<A.length&&A[j].liv>a.liv;j++)if(A[j].liv===a.liv+1)ch.push(A[j]);
+  if(ch.length){a.sum=true;a.off=Math.min(...ch.map(c=>c.off));a.dur=Math.max(...ch.map(c=>c.off+c.dur))-a.off;const o=ch.filter(c=>c.ore!=null);a.ore=o.length?o.reduce((s,c)=>s+c.ore,0):null}}return m}
+function mLeaves(m){mCalc(m);const path=[];return m.att.flatMap(a=>{path.length=a.liv;if(a.sum){path.push(a.nome);return[]}return[{...a,gruppo:path.join(' › ')}]})}
+function dl(name,text,type){const b=new Blob([text],{type}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+const xe=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function wdays(s,f){let n=0;for(let d=new Date(s+'T00:00:00');d<=new Date(f+'T00:00:00');d.setDate(d.getDate()+1))if(d.getDay()%6)n++;return Math.max(n,1)}
+function toMSPDI(title,list){const st=list.map(t=>t.start).sort()[0]||new Date().toISOString().slice(0,10);
+ return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project xmlns="http://schemas.microsoft.com/project"><Name>${xe(title)}.xml</Name><Title>${xe(title)}</Title><ScheduleFromStart>1</ScheduleFromStart><StartDate>${st}T08:00:00</StartDate><MinutesPerDay>480</MinutesPerDay><MinutesPerWeek>2400</MinutesPerWeek><DaysPerMonth>20</DaysPerMonth><Tasks>
+`+list.map((t,i)=>`<Task><UID>${i+1}</UID><ID>${i+1}</ID><Name>${xe(t.nome)}</Name><Manual>0</Manual><OutlineLevel>${t.lvl}</OutlineLevel><Summary>${t.sum?1:0}</Summary><Start>${t.start}T08:00:00</Start><Finish>${t.fin}T17:00:00</Finish><Duration>PT${wdays(t.start,t.fin)*8}H0M0S</Duration><DurationFormat>7</DurationFormat>${t.sum?'':`<ConstraintType>4</ConstraintType><ConstraintDate>${t.start}T08:00:00</ConstraintDate>`}${t.ore!=null&&!t.sum?`<Work>PT${Math.round(t.ore)}H0M0S</Work>`:''}</Task>`).join('\n')+`
+</Tasks></Project>`}
+function exportPrjGantt(){try{const {cs}=ganttData(),L=[];
+ cs.forEach(c=>{const A=c.att.filter(a=>a.ini&&a.fin);if(!A.length)return;
+  L.push({nome:c.id+' '+c.nome,lvl:1,sum:1,start:A.map(a=>a.ini).sort()[0],fin:A.map(a=>a.fin).sort().pop()});let g='';
+  A.forEach(a=>{if(a.gruppo&&a.gruppo!==g){g=a.gruppo;const G=A.filter(x=>x.gruppo===g);L.push({nome:g,lvl:2,sum:1,start:G.map(x=>x.ini).sort()[0],fin:G.map(x=>x.fin).sort().pop()})}if(!a.gruppo)g='';
+   L.push({nome:a.nome,lvl:a.gruppo?3:2,start:a.ini,fin:a.fin,ore:a.bud})})});
+ dl('ergoplan.xml',toMSPDI('Ergo Plan',L),'application/xml')}catch(e){$('#xNote').textContent='Esportazione Project non riuscita: '+e.message}}
+function exportPrjMaster(m){mCalc(m);const b=new Date().toISOString().slice(0,10);
+ dl(m.nome.replace(/[^\w\- ]+/g,'')+'.xml',toMSPDI(m.nome,m.att.map(a=>({nome:a.nome,lvl:a.liv+1,sum:a.sum,start:addD(b,a.off),fin:addD(b,a.off+a.dur-1),ore:a.ore}))),'application/xml')}
+function ini(p){return esc(p.split(' ').map(s=>s[0]||'').join('').slice(0,2).toUpperCase())}
+function prog(c){const t=c.att.length,d=c.att.filter(a=>a.stato==='conclusa').length,pc=t?Math.round(d/t*100):0;return`<span class="pg"><span class="pgb"><i style="width:${pc}%"></i></span><span class="pgt">${d}/${t}</span></span>`}
+
+const DAY=864e5,toD=s=>new Date(s+'T00:00:00');
+function ganttData(){const cs=[...S.commesse].sort((a,b)=>a.prio-b.prio).filter(c=>S.gSel==='tutte'||c.id===S.gSel);
+ const rows=cs.flatMap(c=>c.att.filter(a=>a.ini&&a.fin).map(a=>({...a,_c:c})));
+ const ds=rows.flatMap(a=>[a.ini,a.fin]).concat(S.eventi.filter(e=>cs.some(c=>c.id===e.comm)).map(e=>e.data)).sort();
+ return{cs,rows,start:ds[0],end:ds[ds.length-1]}}
+function vGantt(){S.gSel=S.gSel||'tutte';const {cs,start,end}=ganttData();
+ let body='<div class="muted">Nessuna attività con date.</div>';
+ if(start){const s0=toD(start),n=Math.round((toD(end)-s0)/DAY)+1,col=d=>Math.round((toD(d)-s0)/DAY)+2;
+  const days=[...Array(n)].map((_,i)=>new Date(+s0+i*DAY));
+  const head=`<div class="gn gh">Attività</div>`+days.map((d,i)=>`<div class="gd ${[0,6].includes(d.getDay())?'we':''} ${d.toISOString().slice(0,10)===new Date().toISOString().slice(0,10)?'td':''}" style="grid-column:${i+2}"><b>${d.getDate()}</b><span>${'DLMMGVS'[d.getDay()]}</span></div>`).join('');
+  const ms=[];days.forEach((d,i)=>{const k=d.getFullYear()+'-'+d.getMonth();if(!ms.length||ms[ms.length-1].k!==k)ms.push({k,d,s:i,n:1});else ms[ms.length-1].n++});
+  let r=3,out=head.replace('class="gn gh"','class="gn gh" style="grid-row:1/3"')+ms.map(m=>`<div class="gm" style="grid-column:${m.s+2}/span ${m.n}">${m.n>=4?m.d.toLocaleDateString('it-IT',{month:'long',year:'numeric'}):m.n>=2?String(m.d.getMonth()+1).padStart(2,'0')+'/'+String(m.d.getFullYear()).slice(2):''}</div>`).join('');
+  cs.forEach(c=>{out+=`<div class="gc" style="grid-row:${r};grid-column:1/-1"><span class="code">${c.id}</span> ${esc(c.nome)}</div>`;r++;
+   let lastG='';const AA=c.att.filter(a=>a.ini&&a.fin);AA.forEach(a=>{if(a.gruppo&&a.gruppo!==lastG){lastG=a.gruppo;const g=AA.filter(x=>x.gruppo===a.gruppo),gi=g.map(x=>x.ini).sort()[0],gf=g.map(x=>x.fin).sort().pop();out+=`<div class="gn ggr" style="grid-row:${r}"><span class="cn">${esc(a.gruppo)}</span></div>`+days.map((d,i)=>`<div class="gcell ${[0,6].includes(d.getDay())?'we':''}" style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+`<div class="gsum" style="grid-row:${r};grid-column:${col(gi)}/${col(gf)+1}" title="${esc(a.gruppo)}"></div>`;r++}if(!a.gruppo)lastG='';const k=a.stato==='conclusa'?'b-done':a.stato==='in corso'?'b-run':a.attiva?'b-ok':'b-off';
+    out+=`<div class="gn ${a.gruppo?'gsub':''}" style="grid-row:${r}"><span class="cn">${esc(a.nome)}</span><span class="muted">${esc(a.pers||'non assegnata')}</span></div>`+
+    days.map((d,i)=>`<div class="gcell ${[0,6].includes(d.getDay())?'we':''}" style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+
+    `<div class="gbar ${k}" style="grid-row:${r};grid-column:${col(a.ini)}/${col(a.fin)+1}" title="${esc(a.nome)} · ${fmt(a.ini)}–${fmt(a.fin)}"></div>`;r++});
+   S.eventi.filter(e=>e.comm===c.id).forEach(e=>{out+=`<div class="gn gev" style="grid-row:${r}"><span class="cn">◆ ${esc(e.nome)}</span><span class="muted">gate</span></div>`+days.map((d,i)=>`<div class="gcell ${[0,6].includes(d.getDay())?'we':''}" style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+`<div class="gdia" style="grid-row:${r};grid-column:${col(e.data)}" title="${esc(e.nome)} · ${fmt(e.data)}"></div>`;r++});
+  });
+  body=`<div class="gwrap"><div class="gantt" style="grid-template-columns:var(--gnw) repeat(${n},var(--gdw))">${out}</div></div>
+  <div class="glg"><span><i class="b-ok"></i>Attiva</span><span><i class="b-off"></i>Non attiva</span><span><i class="b-run"></i>In corso</span><span><i class="b-done"></i>Conclusa</span><span><i class="dia"></i>Gate</span></div>`}
+ $('#view').innerHTML=`<section class="panel"><div class="row" style="justify-content:space-between;margin-bottom:14px"><div class="row"><h2>Gantt</h2>
+ <select id="gSel"><option value="tutte">Tutte le commesse</option>${[...S.commesse].sort((a,b)=>a.prio-b.prio).map(c=>`<option value="${c.id}" ${S.gSel===c.id?'selected':''}>${c.id} · ${esc(c.nome)}</option>`).join('')}</select></div>
+ <div class="row"><button class="btn" id="xPrj">Esporta Project</button><button class="btn" id="xPdf">Esporta PDF</button><button class="btn pri" id="xXls">Esporta Excel</button></div></div>${body}
+ <div class="note" id="xNote">Esporta la commessa selezionata o tutte.</div></section>`;
+ $('#gSel').onchange=e=>{S.gSel=e.target.value;render()};
+ const w=$('.gwrap'),t=$('.gd.td');if(w&&t)w.scrollLeft=Math.max(0,t.offsetLeft-w.querySelector('.gh').offsetWidth-60);
+ $('#xXls').onclick=exportXls;$('#xPrj').onclick=exportPrjGantt;$('#xPdf').onclick=exportPdf;
+}
+function exportXls(){try{const {cs}=ganttData();const wb=XLSX.utils.book_new();
+ const att=cs.flatMap(c=>c.att.map(a=>({Priorità:c.prio,Commessa:c.id,Descrizione:c.nome,Voce:a.gruppo||'',Attività:a.nome,Persona:a.pers,Inizio:a.ini,Fine:a.fin,Condizioni:a.attiva?'Attiva':'Non attiva','Manca':a.attiva?'':a.manca||'',Stato:a.stato,'Budget h':a.bud??'','Consuntivo h':a.cons??''})));
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(att),'Attività');
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(S.eventi.filter(e=>cs.some(c=>c.id===e.comm)).map(e=>({Gate:e.nome,Data:e.data,Commessa:e.comm}))),'Gate');
+ XLSX.writeFile(wb,'pianificazione.xlsx')}catch(e){$('#xNote').textContent='Esportazione Excel non riuscita: '+e.message}}
+function exportPdf(){try{const {cs,rows,start,end}=ganttData();const doc=new jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+ doc.setFontSize(14);doc.text('Ergo Plan – Gantt',12,12);
+ if(start){const s0=toD(start),n=Math.round((toD(end)-s0)/DAY)+1,x0=72,w=(285-x0)/n;let y=26;doc.setFontSize(6);
+  for(let i=0;i<n;i++){const d=new Date(+s0+i*DAY);if([0,6].includes(d.getDay())){doc.setFillColor(232,235,241);doc.rect(x0+i*w,y-4,w,rows.length*6+cs.length*6+6,'F')}doc.setTextColor(90);doc.text(String(d.getDate()),x0+i*w+w/2,y,{align:'center'});if(i===0||d.getDate()===1){doc.setTextColor(21,39,79);doc.text(d.toLocaleDateString('it-IT',{month:'long',year:'numeric'}),x0+i*w,y-4)}}
+  y+=4;const col={'conclusa':[24,96,63],'in corso':[28,79,148]};
+  cs.forEach(c=>{doc.setFontSize(8);doc.setTextColor(21,39,79);doc.text(c.id+' '+c.nome,12,y+4);y+=6;
+   c.att.filter(a=>a.ini&&a.fin).forEach(a=>{doc.setFontSize(7);doc.setTextColor(30);doc.text(a.nome.slice(0,40),14,y+4);
+    const cc=col[a.stato]||(a.attiva?[36,82,158]:[150,155,165]);doc.setFillColor(...cc);
+    const i0=Math.round((toD(a.ini)-s0)/DAY),i1=Math.round((toD(a.fin)-s0)/DAY);doc.roundedRect(x0+i0*w,y+1,(i1-i0+1)*w,4,1,1,'F');y+=6})});}
+ doc.addPage();doc.autoTable({head:[['Commessa','Attività','Persona','Inizio','Fine','Stato','Budget h','Consuntivo h']],body:rows.map(a=>[a._c.id,a.nome,a.pers,fmt(a.ini),fmt(a.fin),a.stato,a.bud??'',a.cons??'']),headStyles:{fillColor:[21,39,79]},styles:{fontSize:8}});
+ doc.save('pianificazione.pdf')}catch(e){$('#xNote').textContent='Esportazione PDF non riuscita: '+e.message}}
+
+function vImp(){
+ $('#view').innerHTML=`<div class="grid2"><aside class="panel"><h3 style="margin-bottom:10px">Nuova persona</h3><div class="stack">
+ <input id="nNome" placeholder="Nome e cognome"><input id="nUser" placeholder="Nome utente" autocomplete="off"><input id="nPw" type="password" placeholder="Password" autocomplete="new-password">
+ <select id="nRuolo"><option value="persona">Persona</option><option value="admin">Amministratore</option></select>
+ <div class="err" id="nErr"></div><button class="btn pri" id="nAdd">Aggiungi persona</button></div></aside>
+ <section class="panel"><h2 style="margin-bottom:12px">Persone</h2><div class="stack">
+ ${S.persone.map(p=>{const u=Object.entries(S.utenti).find(([k,v])=>v.nome===p);const n=allAtt().filter(a=>a.pers===p).length;
+  return`<div class="irow"><span class="av">${ini(p)}</span><div style="min-width:0"><div class="cn">${esc(p)}</div><div class="muted" style="font-size:12px">${u?'utente <span class="mono">'+esc(u[0])+'</span> · '+u[1].ruolo:'senza accesso'} · ${n} attività</div></div>
+  ${S.delP===p?`<div class="row"><span class="muted" style="font-size:12px">Le sue attività restano non assegnate.</span><button class="btn sm pri" data-rm="${esc(p)}">Conferma</button><button class="btn sm" data-no>Annulla</button></div>`:`<button class="btn sm" data-ask="${esc(p)}">Rimuovi</button>`}</div>`}).join('')}
+ </div>
+ <h2 style="margin:22px 0 4px">Ruoli responsabili</h2><div class="muted" style="font-size:12px;margin-bottom:10px">Le voci compaiono in ogni commessa.</div><div class="stack">
+ ${S.ruoli.map((r,i)=>`<div class="irow rrow2"><span class="av">${i+1}</span><input data-rn="${i}" value="${esc(r)}" aria-label="Nome ruolo">${S.delR===i?`<div class="row"><button class="btn sm pri" data-rdel="${i}">Conferma</button><button class="btn sm" data-rno>Annulla</button></div>`:`<button class="btn sm" data-rask="${i}">Elimina</button>`}</div>`).join('')}
+ <div class="row"><input id="rNew" placeholder="Nuovo ruolo (es. Pneumatica)" style="flex:1"><button class="btn pri" id="rAdd">Aggiungi ruolo</button></div></div>
+ </section></div>`;
+ $('#nAdd').onclick=()=>{const nome=$('#nNome').value.trim(),u=$('#nUser').value.trim(),pw=$('#nPw').value;
+  if(!nome)return $('#nErr').textContent='Inserisci nome e cognome.';if(S.persone.includes(nome))return $('#nErr').textContent='Questa persona esiste già.';
+  if(u&&S.utenti[u])return $('#nErr').textContent='Nome utente già in uso.';if(u&&!pw)return $('#nErr').textContent='Inserisci una password.';
+  FB.addPersona(nome,u,pw,$('#nRuolo').value).catch(e=>{$('#nErr').textContent=FB.err(e)})};
+ document.querySelectorAll('[data-ask]').forEach(b=>b.onclick=()=>{S.delP=b.dataset.ask;render()});
+ document.querySelectorAll('[data-no]').forEach(b=>b.onclick=()=>{S.delP=null;render()});
+ document.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const p=b.dataset.rm;S.persone=S.persone.filter(x=>x!==p);
+  for(const k in S.utenti)if(S.utenti[k].nome===p&&S.utenti[k].ruolo!=='admin')delete S.utenti[k];
+  S.commesse.forEach(c=>c.att.forEach(a=>{if(a.pers===p)a.pers=''}));if(S.selP===p)S.selP=S.persone[0];S.delP=null;render()});
+ document.querySelectorAll('[data-rn]').forEach(inp=>inp.onchange=()=>{const i=+inp.dataset.rn,o=S.ruoli[i],n=inp.value.trim();if(!n||S.ruoli.includes(n)){inp.value=o;return}
+  S.ruoli[i]=n;S.commesse.forEach(c=>{if(c.resp&&o in c.resp){c.resp[n]=c.resp[o];delete c.resp[o]}})});
+ document.querySelectorAll('[data-rask]').forEach(b=>b.onclick=()=>{S.delR=+b.dataset.rask;render()});
+ document.querySelectorAll('[data-rno]').forEach(b=>b.onclick=()=>{S.delR=null;render()});
+ document.querySelectorAll('[data-rdel]').forEach(b=>b.onclick=()=>{const r=S.ruoli[+b.dataset.rdel];S.ruoli.splice(+b.dataset.rdel,1);S.commesse.forEach(c=>c.resp&&delete c.resp[r]);S.delR=null;render()});
+ $('#rAdd').onclick=()=>{const n=$('#rNew').value.trim();if(n&&!S.ruoli.includes(n)){S.ruoli.push(n);render()}};
+}
+// avvio: nessun dato finché Firebase non risponde
+Object.assign(S,{master:[],persone:[],commesse:[],eventi:[],utenti:{}});
+const PW0='123';
+function toast(t){let el=$('#toast');if(!el){el=document.createElement('div');el.id='toast';el.className='toast';document.body.appendChild(el)}el.textContent=t;el.hidden=false;clearTimeout(el._t);el._t=setTimeout(()=>el.hidden=true,4000)}
+function sheet(html){let o=$('#ovl');if(!o){o=document.createElement('div');o.id='ovl';o.className='ovl';document.body.appendChild(o)}o.innerHTML=`<div class="box">${html}</div>`;o.hidden=false;return o}
+function closeSheet(){const o=$('#ovl');if(o)o.hidden=true}
+function uname(nome){const w=nome.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z ]/g,'').trim().split(/\s+/);
+ let b=(w[0]||'').slice(0,3)+(w.length>1?w[w.length-1].slice(0,3):'');if(!b)b='utente';let u=b,n=2;while(S.utenti[u])u=b+n++;return u}
+function renderLogin(msg){
+ $('#app').innerHTML=`<div class="login"><h1>Ergo Plan <span class="rev">v${VERSIONE}</span></h1>
+ <span class="muted" style="font-size:12px">Nome utente: prime 3 lettere del nome + prime 3 del cognome (es. marros).</span>
+ <label>Nome utente o email<input id="u" autocomplete="username" autocapitalize="none"></label>
+ <label>Password<input id="p" type="password" autocomplete="current-password"></label>
+ <label class="chkl"><input type="checkbox" id="rem" checked> Ricorda l'accesso su questo dispositivo</label>
+ <div class="err" id="le">${msg||FB.msg||''}</div><button class="btn pri" id="lb">Entra</button>
+ <button class="btn ghost" id="lf">Password dimenticata?</button></div>`;FB.msg='';
+ const go=()=>{const raw=$('#u').value.trim().toLowerCase(),pw=$('#p').value,bad=t=>{$('#le').textContent=t;$('#lb').disabled=false};
+  if(!raw.includes('@')&&!/^[a-z0-9]+$/.test(raw))return bad('Scrivi il nome utente (solo lettere e numeri) o la tua email.');if(!pw)return bad('Scrivi la password.');
+  $('#lb').disabled=true;$('#le').textContent='Accesso in corso…';FB.login(raw,pw,$('#rem').checked).catch(e=>bad(FB.err(e)))};
+ $('#lb').onclick=go;$('#p').onkeydown=e=>{if(e.key==='Enter')go()};$('#u').onkeydown=e=>{if(e.key==='Enter')$('#p').focus()};
+ $('#lf').onclick=()=>{$('#app').innerHTML=`<div class="login"><h1>Password dimenticata</h1><span class="muted">Funziona solo se hai collegato la tua email all'account (pulsante Il mio account). Altrimenti chiedi all'amministratore.</span>
+  <label>La tua email<input id="fe" type="email" autocomplete="email"></label><div class="err" id="fx"></div><button class="btn pri" id="fok">Invia il link</button><button class="btn ghost" id="fb">Torna all'accesso</button></div>`;
+  $('#fb').onclick=()=>renderLogin();
+  $('#fok').onclick=async()=>{const e=$('#fe').value.trim();if(!e.includes('@')){$('#fx').textContent='Scrivi la tua email.';return}await FB.reset(e);
+   $('#fx').textContent="Se l'email è collegata a un account, tra poco ricevi il link per scegliere una nuova password. Controlla anche lo spam."}};
+ setTimeout(()=>$('#u')&&$('#u').focus(),50)}
+function pwSheet(first){const o=sheet(`<h2>${first?'Scegli la tua password':'Cambia password'}</h2><span class="muted">${first?'Stai usando la password iniziale. ':''}Almeno 8 caratteri.</span>
+ <label>Nuova password<input type="password" id="pw1" autocomplete="new-password"></label><label>Ripeti la password<input type="password" id="pw2" autocomplete="new-password"></label>
+ <div class="err" id="pwx"></div><div class="row"><button class="btn pri" id="pwok">Salva</button><button class="btn" id="pwno">${first?'Esci':'Annulla'}</button></div>`);
+ $('#pwno').onclick=()=>{closeSheet();if(first)FB.logout()};
+ $('#pwok').onclick=async()=>{const a=$('#pw1').value,b=$('#pw2').value,x=$('#pwx');if(a.length<8)return x.textContent='La password deve avere almeno 8 caratteri.';if(a===PW0)return x.textContent='Scegli una password diversa da quella iniziale.';if(a!==b)return x.textContent='Le due password non coincidono.';
+  try{await FB.setPw(a);closeSheet();toast('Password salvata');render()}catch(e){x.textContent=e.code==='auth/requires-recent-login'?'Esci e rientra, poi riprova.':FB.err(e)}}}
+function accountSheet(){const me=S.utenti[FB.key]||{};sheet(`<h2>Il mio account</h2><div>Utente <span class="mono">${esc(FB.key)}</span>${me.email?' · '+esc(me.email):''}</div>
+ <label>Email per il recupero password<input id="ae" type="email" value="${esc(me.email||'')}" autocomplete="email"></label><span class="muted" style="font-size:12px">Riceverai un'email di conferma: dopo potrai entrare anche con l'email e recuperare la password da sola.</span>
+ <div class="err" id="ax"></div><div class="row"><button class="btn pri" id="aok">Collega email</button><button class="btn" id="apw">Cambia password</button><button class="btn" id="ano">Chiudi</button></div>`);
+ $('#ano').onclick=closeSheet;$('#apw').onclick=()=>pwSheet(false);
+ $('#aok').onclick=async()=>{const e=$('#ae').value.trim();if(!e.includes('@'))return $('#ax').textContent='Scrivi un indirizzo email valido.';
+  try{await FB.linkEmail(e);$('#ax').textContent='Ti abbiamo inviato un link a '+e+': aprilo per confermare.'}catch(er){$('#ax').textContent=er.code==='auth/requires-recent-login'?'Esci e rientra, poi riprova.':FB.err(er)}}}
+function vImp(){
+ const us=Object.entries(S.utenti);
+ $('#view').innerHTML=`<div class="grid2"><aside class="panel"><h3 style="margin-bottom:10px">Nuova persona</h3><div class="stack">
+ <input id="nNome" placeholder="Nome e cognome"><label class="chkl" style="color:var(--onink)"><input type="checkbox" id="nAcc" checked> Crea accesso all'app</label>
+ <div class="muted" style="font-size:11px">Nome utente: prime 3 lettere del nome + prime 3 del cognome. Password iniziale <span class="mono">123</span>, da cambiare al primo accesso.</div>
+ <div class="err" id="nErr"></div><button class="btn pri" id="nAdd">Aggiungi persona</button></div></aside>
+ <section class="panel"><h2 style="margin-bottom:12px">Persone e accessi</h2><div class="stack">
+ ${S.persone.map(p=>{const e=us.find(([k,v])=>v.nome===p),n=allAtt().filter(a=>a.pers===p).length;
+  const acc=e?`<span class="mono">${esc(e[0])}</span> · <select data-ruolo="${esc(e[0])}"><option value="persona" ${e[1].ruolo!=='admin'?'selected':''}>Persona</option><option value="admin" ${e[1].ruolo==='admin'?'selected':''}>Amministratore</option></select> ${e[1].must?'<span class="pill p-warn">Primo accesso da fare</span>':'<span class="pill p-ok">Attivo</span>'}${e[1].email?' · '+esc(e[1].email):''}`:'senza accesso';
+  return`<div class="irow"><span class="av">${ini(p)}</span><div style="min-width:0"><div class="cn">${esc(p)}</div><div class="muted" style="font-size:12px">${acc} · ${n} attività</div></div>
+  ${S.delP===p?`<div class="row"><span class="muted" style="font-size:12px">Le sue attività restano non assegnate.</span><button class="btn sm pri" data-rm="${esc(p)}">Conferma</button><button class="btn sm" data-no>Annulla</button></div>`:
+  `<div class="row">${e?`<button class="btn sm" data-rs="${esc(e[0])}">Reimposta password</button><button class="btn sm" data-ra="${esc(e[0])}">Togli accesso</button>`:`<button class="btn sm pri" data-mk="${esc(p)}">Crea accesso</button>`}<button class="btn sm" data-ask="${esc(p)}">Rimuovi</button></div>`}</div>`}).join('')}
+ </div>
+ <h2 style="margin:22px 0 4px">Ruoli responsabili</h2><div class="muted" style="font-size:12px;margin-bottom:10px">Le voci compaiono in ogni commessa.</div><div class="stack">
+ ${S.ruoli.map((r,i)=>`<div class="irow rrow2"><span class="av">${i+1}</span><input data-rn="${i}" value="${esc(r)}" aria-label="Nome ruolo">${S.delR===i?`<div class="row"><button class="btn sm pri" data-rdel="${i}">Conferma</button><button class="btn sm" data-rno>Annulla</button></div>`:`<button class="btn sm" data-rask="${i}">Elimina</button>`}</div>`).join('')}
+ <div class="row"><input id="rNew" placeholder="Nuovo ruolo (es. Pneumatica)" style="flex:1"><button class="btn pri" id="rAdd">Aggiungi ruolo</button></div></div></section></div>`;
+ const busy=(b,p)=>{b.disabled=true;p.catch(e=>toast(FB.err(e))).finally(()=>render())};
+ $('#nAdd').onclick=e=>{const nome=$('#nNome').value.trim();if(!nome)return $('#nErr').textContent='Inserisci nome e cognome.';if(S.persone.includes(nome))return $('#nErr').textContent='Questa persona esiste già.';
+  S.persone.push(nome);if($('#nAcc').checked)busy(e.target,FB.creaAccesso(nome));else render()};
+ document.querySelectorAll('[data-mk]').forEach(b=>b.onclick=()=>busy(b,FB.creaAccesso(b.dataset.mk)));
+ document.querySelectorAll('[data-ra]').forEach(b=>b.onclick=()=>busy(b,FB.togliAccesso(b.dataset.ra)));
+ document.querySelectorAll('[data-rs]').forEach(b=>b.onclick=()=>{const u=S.utenti[b.dataset.rs];
+  if(u.email)FB.reset(u.email).then(()=>toast('Link per la nuova password inviato a '+u.email));
+  else sheet(`<h2>Reimposta password</h2><span class="muted">${esc(u.nome)} non ha collegato un'email. Apri la console Firebase → Authentication, elimina l'utente <span class="mono">${esc(b.dataset.rs)}</span>, poi qui premi Togli accesso e Crea accesso: la password tornerà 123.</span><button class="btn" onclick="closeSheet()">Chiudi</button>`)});
+ document.querySelectorAll('[data-ruolo]').forEach(s=>s.onchange=()=>{S.utenti[s.dataset.ruolo].ruolo=s.value;render()});
+ document.querySelectorAll('[data-ask]').forEach(b=>b.onclick=()=>{S.delP=b.dataset.ask;render()});
+ document.querySelectorAll('[data-no]').forEach(b=>b.onclick=()=>{S.delP=null;render()});
+ document.querySelectorAll('[data-rm]').forEach(b=>b.onclick=async()=>{const p=b.dataset.rm;for(const k in S.utenti)if(S.utenti[k].nome===p&&k!=='admin')await FB.togliAccesso(k).catch(()=>{});
+  S.persone=S.persone.filter(x=>x!==p);S.commesse.forEach(c=>c.att.forEach(a=>{if(a.pers===p)a.pers=''}));if(S.selP===p)S.selP=S.persone[0];S.delP=null;render()});
+ document.querySelectorAll('[data-rn]').forEach(inp=>inp.onchange=()=>{const i=+inp.dataset.rn,o=S.ruoli[i],n=inp.value.trim();if(!n||S.ruoli.includes(n)){inp.value=o;return}
+  S.ruoli[i]=n;S.commesse.forEach(c=>{if(c.resp&&o in c.resp){c.resp[n]=c.resp[o];delete c.resp[o]}})});
+ document.querySelectorAll('[data-rask]').forEach(b=>b.onclick=()=>{S.delR=+b.dataset.rask;render()});
+ document.querySelectorAll('[data-rno]').forEach(b=>b.onclick=()=>{S.delR=null;render()});
+ document.querySelectorAll('[data-rdel]').forEach(b=>b.onclick=()=>{const r=S.ruoli[+b.dataset.rdel];S.ruoli.splice(+b.dataset.rdel,1);S.commesse.forEach(c=>c.resp&&delete c.resp[r]);S.delR=null;render()});
+ $('#rAdd').onclick=()=>{const n=$('#rNew').value.trim();if(n&&!S.ruoli.includes(n)){S.ruoli.push(n);render()}};
+}
+</script>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,doc,onSnapshot,setDoc,deleteDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const cfg={apiKey:"AIzaSyAbscB5amw2TAfWWvrHk1Mt3cxY9UgbPhM",authDomain:"pianificazione-2cb19.firebaseapp.com",projectId:"pianificazione-2cb19",storageBucket:"pianificazione-2cb19.firebasestorage.app",messagingSenderId:"453354724899",appId:"1:453354724899:web:f382d27638cf1059275b96"};
+const FB_DOM='ergoplan-ergotech.it',fem=u=>u+'@'+FB_DOM,fpw=p=>'ep#'+p;
+const app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app),ref=doc(db,'app','stato');
+const secApp=initializeApp(cfg,'sec'),sa=getAuth(secApp);setPersistence(sa,inMemoryPersistence).catch(()=>{});
+try{auth.languageCode='it'}catch(e){}
+const KEYS=['master','persone','ruoli','commesse','eventi','utenti','nextId','admOk'];
+let last='',unsub=null,timer=null,remote=false;
+const pack=()=>JSON.stringify(Object.fromEntries(KEYS.map(k=>[k,S[k]??null])));
+function save(){clearTimeout(timer);timer=setTimeout(()=>{if(!S.user)return;const d=pack();if(d===last)return;last=d;
+ setDoc(ref,JSON.parse(d)).catch(e=>toast('Salvataggio non riuscito: '+e.message))},400)}
+const _render=render;
+window.render=render=function(){_render();if(!remote)save()};
+document.addEventListener('change',()=>save());
+document.addEventListener('click',()=>save());
+function blocco(t){S.user=null;$('#app').innerHTML=`<div class="login"><h1>Ergo Plan</h1><span class="muted">${t}</span><button class="btn" id="lgout">Esci</button></div>`;$('#lgout').onclick=()=>FB.logout()}
+window.FB={msg:'',key:null,
+ async login(raw,pw,rem){const em=raw.includes('@')?raw:fem(raw);
+  await setPersistence(auth,rem?browserLocalPersistence:browserSessionPersistence).catch(()=>{});
+  try{try{await signInWithEmailAndPassword(auth,em,fpw(pw))}catch(e0){if(pw.length>=6&&e0.code!=='auth/too-many-requests')await signInWithEmailAndPassword(auth,em,pw);else throw e0}}
+  catch(e){if(raw==='admin'&&pw===PW0&&e.code!=='auth/too-many-requests')await createUserWithEmailAndPassword(auth,fem('admin'),fpw(PW0));else throw e}},
+ logout(){unsub&&unsub();unsub=null;S.user=null;FB.key=null;closeSheet();signOut(auth)},
+ reset:e=>sendPasswordResetEmail(auth,e).catch(()=>{}),
+ async setPw(p){await updatePassword(auth.currentUser,fpw(p));if(FB.key==='admin')S.admOk=1;if(S.utenti[FB.key])S.utenti[FB.key].must=false;save()},
+ async linkEmail(e){await verifyBeforeUpdateEmail(auth.currentUser,e);S.utenti[FB.key].email=e;save()},
+ err:e=>({'auth/invalid-credential':'Nome utente o password errati.','auth/wrong-password':'Nome utente o password errati.','auth/user-not-found':'Nome utente o password errati.','auth/invalid-email':'Nome utente non valido.','auth/too-many-requests':'Troppi tentativi: riprova tra qualche minuto.','auth/network-request-failed':'Connessione assente.','auth/email-already-in-use':'Email già usata da un altro account.','permission-denied':'Permesso negato dalle regole del database.'}[e&&e.code]||(e&&e.message)||String(e)),
+ async creaAccesso(nome){const u=uname(nome);let uid;
+  try{uid=(await createUserWithEmailAndPassword(sa,fem(u),fpw(PW0))).user.uid}
+  catch(e){if(e.code==='auth/email-already-in-use'){try{uid=(await signInWithEmailAndPassword(sa,fem(u),fpw(PW0))).user.uid}catch(e2){throw new Error("L'utente "+u+" esiste già su Firebase con un'altra password: eliminalo dalla console (Authentication) e riprova.")}}else throw e}
+  await signOut(sa).catch(()=>{});await setDoc(doc(db,'utenti',uid),{user:u});
+  S.utenti[u]={nome,ruolo:'persona',uid,must:true};toast('Accesso creato: utente '+u+', password 123')},
+ async togliAccesso(u){const x=S.utenti[u];if(!x||u==='admin')return;if(x.uid)await deleteDoc(doc(db,'utenti',x.uid)).catch(()=>{});delete S.utenti[u]}
+};
+onAuthStateChanged(auth,user=>{
+ if(!user){S.user=null;renderLogin();return}
+ const un=user.email.endsWith('@'+FB_DOM)?user.email.split('@')[0]:null;
+ unsub&&unsub();
+ unsub=onSnapshot(ref,async snap=>{
+  if(!snap.exists()){if(un!=='admin')return blocco("L'amministratore deve aprire l'app la prima volta.");
+   await setDoc(doc(db,'utenti',user.uid),{user:'admin'});
+   Object.assign(S,{utenti:{admin:{nome:'Amministratore',ruolo:'admin',uid:user.uid,must:true}}});S.user={nome:'Amministratore',ruolo:'admin'};FB.key='admin';last='';_render();save();pwSheet(true);return}
+  const d=snap.data(),txt=JSON.stringify(Object.fromEntries(KEYS.map(k=>[k,d[k]??S[k]??null])));
+  const ut=d.utenti||{},e=Object.entries(ut).find(([k,v])=>v.uid===user.uid)||(un&&ut[un]?[un,ut[un]]:null);
+  if(!e)return blocco("Questo utente non corrisponde a nessuna persona dell'app. Chiedi all'amministratore.");
+  if(txt===last&&S.user)return;last=txt;Object.assign(S,JSON.parse(txt));
+  const first=!S.user;FB.key=e[0];S.user={nome:e[1].nome,ruolo:e[1].ruolo};
+  if(first&&e[1].ruolo!=='admin'){S.selP=e[1].nome;S.tab='persone'}
+  if(!S.persone.includes(S.selP))S.selP=S.persone[0];
+  if(!first&&document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))return;
+  remote=true;_render();remote=false;
+  if(first&&(e[1].must||(e[0]==='admin'&&!S.admOk)))pwSheet(true);
+ },er=>{FB.msg='Accesso al database negato: '+FB.err(er);FB.logout()});
+});
+</script>
+</body></html>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="g" cx="100%" cy="0%" r="140%">
+      <stop offset="0" stop-color="#22397a"/>
+      <stop offset="1" stop-color="#15274f"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#g)"/>
+  <g stroke="#a9b6d3" stroke-opacity=".22" stroke-width="4">
+    <line x1="176" y1="70" x2="176" y2="248"/>
+    <line x1="256" y1="70" x2="256" y2="248"/>
+    <line x1="336" y1="70" x2="336" y2="248"/>
+  </g>
+  <rect x="104" y="80" width="168" height="34" rx="11" fill="#cfe2fb"/>
+  <rect x="184" y="134" width="192" height="34" rx="11" fill="#7ea4ea"/>
+  <rect x="104" y="188" width="168" height="34" rx="11" fill="#c9ead6"/>
+  <rect x="358" y="183" width="44" height="44" rx="7" fill="#f2b33d" transform="rotate(45 380 205)"/>
+  <text x="256" y="330" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-size="66" letter-spacing="14" fill="#eef2fa">ERGO</text>
+  <text x="256" y="436" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-weight="bold" font-size="112" letter-spacing="6" fill="#f2b33d">PLAN</text>
+</svg>
