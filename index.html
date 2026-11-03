@@ -286,6 +286,12 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 .gpv{align-self:center;height:20px;border-radius:6px;background:color-mix(in srgb,var(--hi) 70%,transparent);border:2px dashed var(--ink);z-index:4;pointer-events:none;font:600 10px var(--f-mono);color:var(--ink);display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:visible}
 .gantt{-webkit-user-select:none;user-select:none}.gbar{touch-action:pan-x pan-y}
 .pord{margin-bottom:12px}
+.gwrap{max-height:calc(100vh - 230px);max-height:calc(100dvh - 230px);overflow:auto;overscroll-behavior:contain}
+.gm{position:sticky!important;top:0;z-index:5}.gd{position:sticky;top:var(--grh,38px);z-index:5}.gh{position:sticky!important;top:0;left:0;z-index:7!important}
+.gm span,.gct{position:sticky;left:calc(var(--gnw) + 8px);display:inline-flex;align-items:center;gap:8px}.gct{left:8px}
+#gOvl input[type=checkbox]{width:auto!important}#xFmt{width:fit-content}
+.xsec{display:grid;gap:6px}.xsec .rh{display:flex;align-items:center;gap:6px;margin:0}
+@media(max-width:640px){.gantt{--grh:42px}.gwrap{max-height:calc(100dvh - 190px)}.gm span{left:calc(var(--gnw) + 4px)}}
 .glg{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:12px;color:var(--muted)}
 .glg i{display:inline-block;width:18px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}.glg i.dia{width:10px;height:10px;background:var(--hi);transform:rotate(45deg)}
 .instbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:55;display:flex;align-items:center;gap:10px;background:var(--surface);color:var(--fg);border:1px solid var(--hi);border-radius:16px;padding:10px 12px;box-shadow:var(--shadow);width:min(calc(100% - 24px),460px)}
@@ -299,7 +305,7 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='1.7.1';
+const VERSIONE='1.8.0';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -570,11 +576,11 @@ function toMSPDI(title,list){const U={};list.forEach((t,i)=>{if(t.id!=null)U[t.i
 <Project xmlns="http://schemas.microsoft.com/project"><Name>${xe(title)}.xml</Name><Title>${xe(title)}</Title><ScheduleFromStart>1</ScheduleFromStart><StartDate>${st}T08:00:00</StartDate><MinutesPerDay>480</MinutesPerDay><MinutesPerWeek>2400</MinutesPerWeek><DaysPerMonth>20</DaysPerMonth><Tasks>
 `+list.map((t,i)=>`<Task><UID>${i+1}</UID><ID>${i+1}</ID><Name>${xe(t.nome)}</Name><Manual>0</Manual><OutlineLevel>${t.lvl}</OutlineLevel><Summary>${t.sum?1:0}</Summary><Start>${t.start}T08:00:00</Start><Finish>${t.fin}T17:00:00</Finish><Duration>PT${wdays(t.start,t.fin)*8}H0M0S</Duration><DurationFormat>7</DurationFormat>${lk(t)}${t.sum?'':`<ConstraintType>4</ConstraintType><ConstraintDate>${t.start}T08:00:00</ConstraintDate>`}${t.ore!=null&&!t.sum?`<Work>PT${Math.round(t.ore)}H0M0S</Work>`:''}</Task>`).join('\n')+`
 </Tasks></Project>`}
-function exportPrjGantt(){try{const {cs}=ganttData(),L=[];
- cs.forEach(c=>{const A=c.att.filter(a=>a.ini&&a.fin);if(!A.length)return;
+function exportPrjGantt(X){X=X||{};try{const G=ganttData(X),L=[];
+ G.cs.forEach(c=>{const A=visAtt(c,G.P).filter(a=>a.ini&&a.fin&&G.inP(a));if(!A.length)return;
   L.push({nome:c.id+' '+c.nome,lvl:1,sum:1,start:A.map(a=>a.ini).sort()[0],fin:A.map(a=>a.fin).sort().pop()});
   A.forEach(a=>L.push({id:a.id,dip:a.dip,nome:a.nome,lvl:(a.liv||0)+2,sum:a.sum,start:a.ini,fin:a.fin,ore:a.bud}))});
- dl('ergoplan.xml',toMSPDI('Ergo Plan',L),'application/xml')}catch(e){$('#xNote').textContent='Esportazione Project non riuscita: '+e.message}}
+ if(!L.length)throw new Error('nessuna attività con date');dl('ergoplan.xml',toMSPDI('Ergo Plan',L),'application/xml')}catch(e){toastP('Esportazione Project non riuscita: '+e.message)}}
 function exportPrjMaster(m){mCalc(m);const b=todayL();
  dl(m.nome.replace(/[^\w\- ]+/g,'')+'.xml',toMSPDI(m.nome,m.att.map(a=>({nome:a.nome,lvl:a.liv+1,sum:a.sum,start:addD(b,a.off),fin:addD(b,a.off+a.dur-1),ore:a.ore}))),'application/xml')}
 
@@ -621,7 +627,7 @@ function permHtml(u){const x=S.utenti[u];if(!x)return'';if(x.ruolo==='admin')ret
 document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.perm){const [u,k]=t.dataset.perm.split('|');if(!S.utenti[u])return;(S.utenti[u].perm||(S.utenti[u].perm={}))[k]=t.checked;render()}});
 function toastP(t){if(typeof toast==='function')return toast(t);let el=document.getElementById('toastP');if(!el){el=document.createElement('div');el.id='toastP';el.className='toastp';document.body.appendChild(el)}el.textContent=t;el.hidden=false;clearTimeout(el._t);el._t=setTimeout(()=>el.hidden=true,3000)}
 
-function visAtt(c){const P=S.gPer||'tutte';if(P==='tutte')return c.att;const A=c.att,keep=new Set();
+function visAtt(c,P){P=P||S.gPer||'tutte';if(P==='tutte')return c.att;const A=c.att,keep=new Set();
  A.forEach((a,i)=>{if(a.sum)return;if(P==='__none'?!a.pers:a.pers===P){keep.add(a);for(let j=i-1,l=a.liv||0;j>=0&&l>0;j--)if((A[j].liv||0)<l){keep.add(A[j]);l=A[j].liv||0}}});return A.filter(a=>keep.has(a))}
 function gDrag(){if(!can('edit'))return;const G=document.querySelector('.gantt');if(!G)return;
  const dw=()=>(G.querySelector('.gd')||{getBoundingClientRect:()=>({width:30})}).getBoundingClientRect().width||30;
@@ -653,18 +659,22 @@ function ini(p){return esc(p.split(' ').map(s=>s[0]||'').join('').slice(0,2).toU
 function prog(c){const LA=c.att.filter(a=>!a.sum),t=LA.length,d=LA.filter(a=>a.stato==='conclusa').length,pc=t?Math.round(d/t*100):0;return`<span class="pg"><span class="pgb"><i style="width:${pc}%"></i></span><span class="pgt">${d}/${t}</span></span>`}
 
 const DAY=864e5,toD=s=>new Date(s+'T00:00:00');
-function ganttData(){const cs=[...S.commesse].sort((a,b)=>a.prio-b.prio).filter(c=>S.gSel==='tutte'?!c.chiusa:c.id===S.gSel).filter(c=>!S.gPer||S.gPer==='tutte'||visAtt(c).length);
- const rows=cs.flatMap(c=>visAtt(c).filter(a=>a.ini&&a.fin).map(a=>({...a,_c:c})));
- const ds=rows.flatMap(a=>[a.ini,a.fin]).concat(S.eventi.filter(e=>cs.some(c=>c.id===e.comm)).map(e=>e.data)).sort();
- return{cs,rows,start:ds[0],end:ds[ds.length-1]}}
-function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');let {cs,start,end}=ganttData();if(!start&&cs.some(c=>visAtt(c).length)){start=todayL();end=addD(start,30)}if(end)end=addD(end,21);
+function ganttData(X){X=X||{};const P=X.per!=null?X.per:S.gPer;
+ let cs=X.comm?S.commesse.filter(c=>X.comm.includes(c.id)):S.commesse.filter(c=>S.gSel==='tutte'?!c.chiusa:c.id===S.gSel);
+ cs=cs.sort((a,b)=>a.prio-b.prio).filter(c=>!P||P==='tutte'||visAtt(c,P).length);
+ const inP=a=>!X.from&&!X.to||(a.ini&&a.fin&&(!X.from||a.fin>=X.from)&&(!X.to||a.ini<=X.to));
+ const rows=cs.flatMap(c=>visAtt(c,P).filter(a=>a.ini&&a.fin&&inP(a)).map(a=>({...a,_c:c})));
+ const ev=S.eventi.filter(e=>cs.some(c=>c.id===e.comm)&&(!X.from||e.data>=X.from)&&(!X.to||e.data<=X.to));
+ const ds=rows.flatMap(a=>[a.ini,a.fin]).concat(ev.map(e=>e.data)).sort();
+ return{cs,rows,ev,P,inP,start:X.from||ds[0],end:X.to||ds[ds.length-1]}}
+function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');let {cs,start,end}=ganttData();if(!start&&cs.some(c=>visAtt(c).length)){start=todayL();end=addD(start,30)}if(start){const t7=addD(todayL(),-7);if(t7<start)start=t7;const y1=addD(start,365);end=addD(end,21);if(end<y1)end=y1}
  let body=`<div class="muted">Nessuna attività con date. Aggiungine una:</div><div class="gempty">${cs.map(c=>`<button class="btn" data-gadd="${c.id}">+ ${c.id}</button>`).join('')}</div>`;
  if(start){const s0=toD(start),n=Math.round((toD(end)-s0)/DAY)+1,col=d=>Math.round((toD(d)-s0)/DAY)+2;
   const days=[...Array(n)].map((_,i)=>new Date(+s0+i*DAY));window._gDays=days.map(isoL);
   const head=`<div class="gn gh">Attività</div>`+days.map((d,i)=>`<div class="gd ${[0,6].includes(d.getDay())?'we':''} ${isoL(d)===todayL()?'td':''}" style="grid-column:${i+2}"><b>${d.getDate()}</b><span>${'DLMMGVS'[d.getDay()]}</span></div>`).join('');
   const ms=[];days.forEach((d,i)=>{const k=d.getFullYear()+'-'+d.getMonth();if(!ms.length||ms[ms.length-1].k!==k)ms.push({k,d,s:i,n:1});else ms[ms.length-1].n++});
-  let r=3,out=head.replace('class="gn gh"','class="gn gh" style="grid-row:1/3"')+ms.map(m=>`<div class="gm" style="grid-column:${m.s+2}/span ${m.n}">${m.n>=4?m.d.toLocaleDateString('it-IT',{month:'long',year:'numeric'}):m.n>=2?String(m.d.getMonth()+1).padStart(2,'0')+'/'+String(m.d.getFullYear()).slice(2):''}</div>`).join('');
-  cs.forEach(c=>{out+=`<div class="gc" style="grid-row:${r};grid-column:1/-1"><span class="code">${c.id}</span> ${esc(c.nome)}${AD?`<button class="gadd" data-gadd="${c.id}">+ Attività</button>`:''}</div>`;r++;
+  let r=3,out=head.replace('class="gn gh"','class="gn gh" style="grid-row:1/3"')+ms.map(m=>`<div class="gm" style="grid-column:${m.s+2}/span ${m.n}"><span>${m.n>=4?m.d.toLocaleDateString('it-IT',{month:'long',year:'numeric'}):m.n>=2?String(m.d.getMonth()+1).padStart(2,'0')+'/'+String(m.d.getFullYear()).slice(2):''}</span></div>`).join('');
+  cs.forEach(c=>{out+=`<div class="gc" style="grid-row:${r};grid-column:1/-1"><span class="gct"><span class="code">${c.id}</span> ${esc(c.nome)}${AD?`<button class="gadd" data-gadd="${c.id}">+ Attività</button>`:''}</span></div>`;r++;
    const AA=visAtt(c);AA.forEach(a=>{const ia=c.att.indexOf(a),canIn=ia>0&&(a.liv||0)<=(c.att[ia-1].liv||0);const k=a.sum?'gs':a.stato==='conclusa'?'b-done':a.stato==='in corso'?'b-run':a.attiva?'b-ok':'b-off';
     out+=`<div class="gn ${a.sum?'gsumn':''}" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};padding-left:${8+(a.liv||0)*14}px"><span class="gnr">${ED?`<span class="garr"><button data-gmv="${c.id}|${a.id}|-1" ${a.liv?'':'disabled'} title="Sali di livello" aria-label="Sali di livello">←</button><button data-gmv="${c.id}|${a.id}|1" ${canIn?'':'disabled'} title="Rendi sottovoce" aria-label="Rendi sottovoce">→</button></span>`:''}<span style="min-width:0"><span class="cn">${esc(a.nome)}</span><span class="muted">${a.sum?'voce':esc(a.pers||'non assegnata')}${a.ini?'':' · senza date'}${a.dip&&a.dip.length?' · ⛓ dopo '+a.dip.length:''}</span></span></span></div>`+
     days.map((d,i)=>`<div class="gcell ${[0,6].includes(d.getDay())?'we':''}" ${ED&&!a.sum?`data-gr="${c.id}|${a.id}|${i}"`:''} style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+
@@ -684,7 +694,7 @@ function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');let 
 $('#view').innerHTML=`<section class="panel"><div class="row" style="justify-content:space-between;margin-bottom:14px"><div class="row"><h2>Gantt</h2><div class="seg"><button data-gv="lista" aria-pressed="${S.gView==='lista'}">Elenco</button><button data-gv="diagramma" aria-pressed="${S.gView==='diagramma'}">Diagramma</button></div>
  <select id="gSel"><option value="tutte">Tutte le commesse</option>${[...S.commesse].sort((a,b)=>a.prio-b.prio).map(c=>`<option value="${c.id}" ${S.gSel===c.id?'selected':''}>${c.id} · ${esc(c.nome)}${c.chiusa?' (chiusa)':''}</option>`).join('')}</select>
  <select id="gPer" class="gper" aria-label="Filtra per persona"><option value="tutte">Tutte le persone</option>${S.persone.map(p=>`<option ${S.gPer===p?'selected':''}>${esc(p)}</option>`).join('')}<option value="__none" ${S.gPer==='__none'?'selected':''}>Non assegnate</option></select></div>
- <div class="row"><button class="btn" id="xPrj">Esporta Project</button><button class="btn" id="xPdf">Esporta PDF</button><button class="btn pri" id="xXls">Esporta Excel</button></div></div>${body}
+ <div class="row"><button class="btn pri" id="xDlg">Esporta…</button></div></div>${body}
  <div class="note">Nel diagramma: trascina su una riga per impostare le date (sul telefono tieni premuto, poi trascina); trascina una barra per spostarla, dal bordo destro per allungarla.</div><div class="note" id="xNote">Esporta la commessa selezionata o tutte.</div></section>`;
  $('#gSel').onchange=e=>{S.gSel=e.target.value;render()};
  $('#gPer').onchange=e=>{S.gPer=e.target.value;render()};
@@ -694,26 +704,45 @@ $('#view').innerHTML=`<section class="panel"><div class="row" style="justify-con
  document.querySelectorAll('[data-gv]').forEach(b=>b.onclick=()=>{S.gView=b.dataset.gv;render()});
  document.querySelectorAll('[data-gmv]').forEach(b=>b.onclick=e=>{e.stopPropagation();const [ci,ai,d]=b.dataset.gmv.split('|');cMove(S.commesse.find(c=>c.id===ci),ai,+d)});
  document.querySelectorAll('[data-gedit]').forEach(b=>b.onclick=()=>{if(b.dataset.nc){delete b.dataset.nc;return}const [ci,ai]=b.dataset.gedit.split('|');gForm(ci,ai)});
- $('#xXls').onclick=exportXls;$('#xPrj').onclick=exportPrjGantt;$('#xPdf').onclick=exportPdf;
+ $('#xDlg').onclick=expDlg;
 }
-function exportXls(){try{const {cs}=ganttData();const wb=XLSX.utils.book_new();
- const att=cs.flatMap(c=>c.att.map(a=>({Priorità:c.prio,Commessa:c.id,Descrizione:c.nome,Livello:(a.liv||0)+1,Tipo:a.sum?'Voce':'Attività',Attività:a.nome,Persona:a.pers,Inizio:a.ini,Fine:a.fin,Condizioni:a.attiva?'Attiva':'Non attiva','Manca':a.attiva?'':a.manca||'',Stato:a.stato,'Budget h':a.bud??'','Consuntivo h':a.cons??''})));
- XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(att),'Attività');
- XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(cs.flatMap(c=>S.voci.map(v=>({Commessa:c.id,Descrizione:c.nome,Voce:v,'Budget h':(c.ore||{})[v]?.bud??'','Consuntivo h':(c.ore||{})[v]?.cons??''})))),'Ore');
- XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(S.eventi.filter(e=>cs.some(c=>c.id===e.comm)).map(e=>({Gate:e.nome,Data:e.data,Commessa:e.comm}))),'Gate');
- XLSX.writeFile(wb,'pianificazione.xlsx')}catch(e){$('#xNote').textContent='Esportazione Excel non riuscita: '+e.message}}
-function exportPdf(){try{const {cs,rows,start,end}=ganttData();const doc=new jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
- doc.setFontSize(14);doc.text('Ergo Plan – Gantt',12,12);
- if(start){const s0=toD(start),n=Math.round((toD(end)-s0)/DAY)+1,x0=72,w=(285-x0)/n;let y=26;doc.setFontSize(6);
-  for(let i=0;i<n;i++){const d=new Date(+s0+i*DAY);if([0,6].includes(d.getDay())){doc.setFillColor(232,235,241);doc.rect(x0+i*w,y-4,w,rows.length*6+cs.length*6+6,'F')}doc.setTextColor(90);doc.text(String(d.getDate()),x0+i*w+w/2,y,{align:'center'});if(i===0||d.getDate()===1){doc.setTextColor(21,39,79);doc.text(d.toLocaleDateString('it-IT',{month:'long',year:'numeric'}),x0+i*w,y-4)}}
-  y+=4;const col={'conclusa':[24,96,63],'in corso':[28,79,148]};
-  cs.forEach(c=>{doc.setFontSize(8);doc.setTextColor(21,39,79);doc.text(c.id+' '+c.nome,12,y+4);y+=6;
-   c.att.filter(a=>a.ini&&a.fin).forEach(a=>{doc.setFontSize(7);doc.setTextColor(30);doc.text(a.nome.slice(0,40),14,y+4);
-    const cc=col[a.stato]||(a.attiva?[36,82,158]:[150,155,165]);doc.setFillColor(...cc);
-    const i0=Math.round((toD(a.ini)-s0)/DAY),i1=Math.round((toD(a.fin)-s0)/DAY);doc.roundedRect(x0+i0*w,y+1,(i1-i0+1)*w,4,1,1,'F');y+=6})});}
- doc.addPage();doc.autoTable({head:[['Commessa','Attività','Persona','Inizio','Fine','Stato','Budget h','Consuntivo h']],body:rows.map(a=>[a._c.id,a.nome,a.pers,fmt(a.ini),fmt(a.fin),a.stato,a.bud??'',a.cons??'']),headStyles:{fillColor:[21,39,79]},styles:{fontSize:8}});
- doc.save('pianificazione.pdf')}catch(e){$('#xNote').textContent='Esportazione PDF non riuscita: '+e.message}}
-
+function exportXls(X){X=X||{inc:{att:1,gate:1,ore:1}};try{const G=ganttData(X),wb=XLSX.utils.book_new();
+ if(X.inc.att)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(G.cs.flatMap(c=>visAtt(c,G.P).filter(a=>a.sum||G.inP(a)).map(a=>({Priorità:c.prio,Commessa:c.id,Descrizione:c.nome,Livello:(a.liv||0)+1,Tipo:a.sum?'Voce':'Attività',Attività:a.nome,Persona:a.pers,Inizio:a.ini,Fine:a.fin,Condizioni:a.attiva?'Attiva':'Non attiva','Manca':a.attiva?'':a.manca||'',Stato:a.stato,'Budget h':a.bud??'','Consuntivo h':a.cons??''})))),'Attività');
+ if(X.inc.ore)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(G.cs.flatMap(c=>S.voci.map(v=>({Commessa:c.id,Descrizione:c.nome,Voce:v,'Budget h':(c.ore||{})[v]?.bud??'','Consuntivo h':(c.ore||{})[v]?.cons??''})))),'Ore');
+ if(X.inc.gate)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(G.ev.map(e=>({Gate:e.nome,Data:e.data,Commessa:e.comm}))),'Gate');
+ if(!wb.SheetNames.length)throw new Error('scegli almeno un contenuto');XLSX.writeFile(wb,'ergoplan.xlsx')}catch(e){toastP('Esportazione Excel non riuscita: '+e.message)}}
+function exportPdf(X){X=X||{inc:{gantt:1,att:1,gate:1,ore:0}};try{const G=ganttData(X),{cs,rows}=G,doc=new jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});let first=true;
+ const page=t=>{if(!first)doc.addPage();first=false;doc.setFontSize(13);doc.setTextColor(21,39,79);doc.text('Ergo Plan – '+t,12,12);doc.setFontSize(8);doc.setTextColor(110);doc.text((G.P&&G.P!=='tutte'?'Persona: '+(G.P==='__none'?'non assegnate':G.P)+' · ':'')+(X.from||X.to?'Periodo: '+(fmt(X.from)||'…')+' – '+(fmt(X.to)||'…'):''),12,17)};
+ if(X.inc.gantt&&G.start&&G.end){const s0=toD(G.start),n=Math.round((toD(G.end)-s0)/DAY)+1,x0=72,w=(285-x0)/n,col={'conclusa':[24,96,63],'in corso':[28,79,148]};let y;
+  const head=()=>{page('Gantt');y=28;doc.setFontSize(n>60?4.5:6);for(let i=0;i<n;i++){const d=new Date(+s0+i*DAY);if([0,6].includes(d.getDay())){doc.setFillColor(232,235,241);doc.rect(x0+i*w,y-3,w,178,'F')}
+    if(n<=62||d.getDay()===1){doc.setTextColor(90);doc.text(String(d.getDate()),x0+i*w+w/2,y,{align:'center'})}if(i===0||d.getDate()===1){doc.setTextColor(21,39,79);doc.setFontSize(7);doc.text(d.toLocaleDateString('it-IT',{month:'long',year:'numeric'}),x0+i*w,y-4);doc.setFontSize(n>60?4.5:6)}}y+=4};head();
+  cs.forEach(c=>{if(y>190)head();doc.setFontSize(8);doc.setTextColor(21,39,79);doc.text((c.id+' '+c.nome).slice(0,48),12,y+4);y+=6;
+   visAtt(c,G.P).filter(a=>a.ini&&a.fin&&G.inP(a)).forEach(a=>{if(y>192)head();doc.setFontSize(7);doc.setTextColor(30);doc.text(('  '.repeat(a.liv||0)+a.nome).slice(0,44),14,y+4);
+    const cc=a.sum?[24,33,58]:col[a.stato]||(a.attiva?[36,82,158]:[150,155,165]);doc.setFillColor(...cc);
+    const i0=Math.max(0,Math.round((toD(a.ini)-s0)/DAY)),i1=Math.min(n-1,Math.round((toD(a.fin)-s0)/DAY));if(i1>=i0)doc.roundedRect(x0+i0*w,y+(a.sum?2:1),(i1-i0+1)*w,a.sum?2:4,1,1,'F');y+=6});
+   G.ev.filter(e=>e.comm===c.id).forEach(e=>{if(y>192)head();const i=Math.round((toD(e.data)-s0)/DAY);doc.setFontSize(7);doc.setTextColor(125,76,6);doc.text('◆ '+e.nome.slice(0,40),14,y+4);doc.setFillColor(242,179,61);if(i>=0&&i<n)doc.rect(x0+i*w,y+1,Math.max(w,1.5),4,'F');y+=6})})}
+ if(X.inc.att){page('Attività');doc.autoTable({startY:22,head:[['Commessa','Attività','Persona','Inizio','Fine','Stato','Budget h','Consuntivo h']],body:rows.filter(a=>!a.sum).map(a=>[a._c.id,a.nome,a.pers,fmt(a.ini),fmt(a.fin),a.stato,a.bud??'',a.cons??'']),headStyles:{fillColor:[21,39,79]},styles:{fontSize:8}})}
+ if(X.inc.gate&&G.ev.length){page('Gate');doc.autoTable({startY:22,head:[['Data','Gate','Commessa']],body:[...G.ev].sort((a,b)=>a.data.localeCompare(b.data)).map(e=>[fmt(e.data),e.nome,e.comm]),headStyles:{fillColor:[21,39,79]},styles:{fontSize:8}})}
+ if(X.inc.ore){page('Ore');doc.autoTable({startY:22,head:[['Commessa','Voce','Budget h','Consuntivo h','Scost.']],body:cs.flatMap(c=>S.voci.map(v=>{const o=(c.ore||{})[v]||{};return[c.id,v,o.bud??'',o.cons??'',o.bud!=null&&o.cons!=null?o.bud-o.cons:'']})),headStyles:{fillColor:[21,39,79]},styles:{fontSize:8}})}
+ if(first)throw new Error('scegli almeno un contenuto');doc.save('ergoplan.pdf')}catch(e){toastP('Esportazione PDF non riuscita: '+e.message)}}
+function expDlg(){let o=$('#gOvl');if(!o){o=document.createElement('div');o.id='gOvl';document.body.appendChild(o)}
+ const cur=ganttData().cs.map(c=>c.id),all=[...S.commesse].sort((a,b)=>(a.chiusa?1:0)-(b.chiusa?1:0)||a.prio-b.prio);
+ o.innerHTML=`<div class="box"><h2>Esporta</h2>
+ <div class="xsec"><div class="rh">Formato</div><div class="seg" id="xFmt"><button data-xf="pdf" aria-pressed="true">PDF</button><button data-xf="xls" aria-pressed="false">Excel</button><button data-xf="prj" aria-pressed="false">Project</button></div></div>
+ <div class="xsec"><div class="rh">Commesse <button class="btn ghost sm" id="xAll">tutte</button><button class="btn ghost sm" id="xNone">nessuna</button></div><div class="dep">${all.map(c=>`<label><input type="checkbox" class="xC" value="${esc(c.id)}" ${cur.includes(c.id)?'checked':''}> <span class="mono">${esc(c.id)}</span> ${esc(c.nome)}${c.chiusa?' <span class="muted">(chiusa)</span>':''}</label>`).join('')}</div></div>
+ <div class="gef"><label>Persona<select id="xP"><option value="tutte">Tutte</option>${S.persone.map(p=>`<option ${S.gPer===p?'selected':''}>${esc(p)}</option>`).join('')}<option value="__none" ${S.gPer==='__none'?'selected':''}>Non assegnate</option></select></label>
+ <label>Dal<input type="date" id="xF"></label><label>Al<input type="date" id="xT"></label></div>
+ <div class="xsec" id="xIncS"><div class="rh">Contenuto</div><div class="perm" id="xInc"><label class="xpdf"><input type="checkbox" value="gantt" checked> Diagramma Gantt</label><label><input type="checkbox" value="att" checked> Elenco attività</label><label><input type="checkbox" value="gate" checked> Gate</label><label><input type="checkbox" value="ore"> Ore per voce</label></div></div>
+ <div class="err" id="xE"></div><div class="row"><button class="btn pri" id="xGo">Esporta</button><button class="btn" id="xX">Annulla</button></div></div>`;
+ o.hidden=false;let F='pdf';const upd=()=>{o.querySelectorAll('[data-xf]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.xf===F));$('#xIncS').hidden=F==='prj';o.querySelectorAll('.xpdf').forEach(l=>l.hidden=F!=='pdf')};upd();
+ o.querySelectorAll('[data-xf]').forEach(b=>b.onclick=()=>{F=b.dataset.xf;upd()});
+ $('#xAll').onclick=()=>o.querySelectorAll('.xC').forEach(x=>x.checked=true);$('#xNone').onclick=()=>o.querySelectorAll('.xC').forEach(x=>x.checked=false);
+ $('#xX').onclick=()=>o.hidden=true;
+ $('#xGo').onclick=()=>{const comm=[...o.querySelectorAll('.xC:checked')].map(x=>x.value);if(!comm.length)return $('#xE').textContent='Scegli almeno una commessa.';
+  const X={comm,per:$('#xP').value,from:$('#xF').value||null,to:$('#xT').value||null,inc:{}};if(X.from&&X.to&&X.to<X.from)return $('#xE').textContent='La data finale è prima di quella iniziale.';
+  o.querySelectorAll('#xInc input').forEach(x=>{if(x.checked&&!(x.value==='gantt'&&F!=='pdf'))X.inc[x.value]=1});
+  if(F!=='prj'&&!Object.keys(X.inc).length)return $('#xE').textContent='Scegli almeno un contenuto.';
+  o.hidden=true;(F==='pdf'?exportPdf:F==='xls'?exportXls:exportPrjGantt)(X)}}
 function vImp(){
  $('#view').innerHTML=`<div class="grid2"><aside class="panel"><h3 style="margin-bottom:10px">Nuova persona</h3><div class="stack">
  <input id="nNome" placeholder="Nome e cognome"><input id="nUser" placeholder="Nome utente" autocomplete="off"><input id="nPw" type="password" placeholder="Password" autocomplete="new-password">

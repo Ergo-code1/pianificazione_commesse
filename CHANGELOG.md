@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.0 — 2026-11-03
+- Gantt diagramma: banda mesi/giorni fissa in alto e titolo commessa sempre visibile durante lo scorrimento; scorrimento per almeno un anno.
+- Esporta…: scelta di formato (PDF, Excel, Project), commesse, persona, periodo e contenuti (diagramma, attività, gate, ore per voce). PDF su più pagine.
+
 ## 1.7.1 — 2026-11-03
 - Persone: ordine «Per date (Gantt)» per data di inizio, poi di fine (senza date in fondo).
 
