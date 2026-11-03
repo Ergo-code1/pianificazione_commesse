@@ -210,6 +210,45 @@ aside .av{background:rgb(255 255 255/.12);color:var(--hi)}
 tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}tr.csum input:disabled,tr.csum select:disabled{color:var(--muted)}
 .perm{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px;font-size:12px}.perm label{display:flex;gap:5px;align-items:center;color:var(--fg)}
 @media(max-width:640px){.garr button{width:18px;height:18px}}
+.seg{display:inline-flex;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}.seg button{border:0;background:transparent;padding:5px 12px;border-radius:7px;cursor:pointer;font-weight:600;color:var(--muted)}.seg button[aria-pressed="true"]{background:var(--ink);color:var(--hi)}
+.gl{margin-bottom:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.glh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--ink);color:var(--onink);padding:10px 12px}.glh .code{color:var(--hi);font-family:var(--f-mono);font-size:12px}.glh .cn{flex:1;min-width:0;white-space:normal;font-family:var(--f-disp)}.glh .gadd{position:static;margin:0}
+.gli{display:flex;align-items:center;gap:8px;padding:9px 12px;padding-left:calc(12px + var(--lv,0)*16px);border-top:1px solid var(--line)}
+.gli .glb{flex:1;min-width:0}.gli .cn{white-space:normal;font-size:13.5px}.glm{display:flex;flex-wrap:wrap;gap:2px 10px;font-size:12px;color:var(--muted);margin-top:2px}
+.gls{background:var(--soft)}.gls .cn{font-weight:700;color:var(--accent)}.gdia2{width:10px;height:10px;background:var(--hi);transform:rotate(45deg);flex:none;margin:0 4px}.glg2 .cn{color:var(--warn)}
+.glb[data-gedit]{cursor:pointer}
+@media(max-width:640px){
+ nav.tabs{flex-wrap:wrap;gap:4px;padding:6px 10px 10px!important}nav.tabs button{flex:1 1 auto;padding:8px 10px;font-size:13px}
+ header.top{padding:14px 16px}header.top h1{font-size:21px}header.top .row{gap:6px}
+ .panel{padding:14px}
+ .tablewrap:has(.ctab),.tablewrap:has(.otab){overflow:visible}
+ .ctab thead,.otab thead{display:none}
+ .ctab,.ctab tbody,.otab,.otab tbody{display:block;width:100%}
+ .ctab tr,.otab tr{display:grid;gap:6px 10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;margin:0 0 8px calc(var(--lv,0)*12px);background:var(--surface)}
+ .ctab td,.otab td{display:block;border:0;padding:0!important;min-width:0}
+ .ctab tr{grid-template-columns:1fr 1fr}
+ .ctab td:nth-child(1){grid-column:1/-1}.ctab td:nth-child(1) input{font-weight:600}
+ .ctab td:nth-child(2),.ctab td:nth-child(5){grid-column:1/-1}
+ .ctab td:nth-child(6){align-self:center}.ctab td:nth-child(7){justify-self:end;align-self:center}
+ .ctab td:nth-child(n+2):nth-child(-n+5)::before,.otab td:nth-child(n+4):nth-child(-n+6)::before{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:2px}
+ .ctab td:nth-child(2)::before{content:"Persona"}.ctab td:nth-child(3)::before{content:"Inizio"}.ctab td:nth-child(4)::before{content:"Fine"}.ctab td:nth-child(5)::before{content:"Condizioni"}
+ .ctab td input,.ctab td select{width:100%;border-color:var(--line)!important;background:var(--surface)!important}
+ .ctab tr.csum{background:var(--soft)}
+ .otab tr{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .otab td:nth-child(1){grid-column:1/-1;font-weight:600}.otab td:nth-child(2){grid-column:1/3;color:var(--muted);font-size:12px;align-self:center}.otab td:nth-child(3){justify-self:end}
+ .otab tr:not(:has(td[colspan])) td:nth-child(4)::before{content:"Budget"}.otab tr:not(:has(td[colspan])) td:nth-child(5)::before{content:"Consuntivo"}.otab tr:not(:has(td[colspan])) td:nth-child(6)::before{content:"Scost."}
+ .otab td input.num{width:100%}.otab td:nth-child(6){text-align:left!important;align-self:end;padding-bottom:8px!important}
+ .otab tr:has(td[colspan="6"]){display:block;border:0;padding:10px 0 4px;margin:6px 0 0;background:transparent}.otab tr:has(td[colspan="6"]) td{background:transparent!important}
+ .otab tr:has(td[colspan="3"]){grid-template-columns:repeat(3,minmax(0,1fr));background:var(--soft)}.otab tr:has(td[colspan="3"]) td{text-align:left!important}
+ .gate{padding:10px}.card{padding:10px}
+ .otab td input.num{border:1px solid var(--line)!important;background:var(--surface)!important;text-align:left}
+ .otab tr:has(td[colspan="3"]) td:first-child{grid-column:1/-1;font-weight:600;color:var(--fg)}
+ .otab tr:has(td[colspan="3"]) td:nth-child(n+2)::before{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:2px}
+ .otab tr:has(td[colspan="3"]) td:nth-child(2)::before{content:"Budget"}.otab tr:has(td[colspan="3"]) td:nth-child(3)::before{content:"Consuntivo"}.otab tr:has(td[colspan="3"]) td:nth-child(4)::before{content:"Scost."}
+ .otab tr:has(td[colspan="3"]) td:nth-child(n+4)::before{}
+ .rgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #view>section.panel>.row:first-child{flex-direction:column;align-items:stretch}#view>section.panel>.row:first-child>.row{width:100%}#gSel{width:100%;max-width:100%;min-width:0}
+}
 .glg{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:12px;color:var(--muted)}
 .glg i{display:inline-block;width:18px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}.glg i.dia{width:10px;height:10px;background:var(--hi);transform:rotate(45deg)}
 </style>
@@ -221,7 +260,7 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
-const VERSIONE='1.2.0';
+const VERSIONE='1.2.1';
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
  utenti:{admin:{pw:'admin',ruolo:'admin',nome:'Admin'},marco:{pw:'demo',ruolo:'persona',nome:'Marco Rossi'}},
  persone:['Marco Rossi','Giulia Bianchi','Luca Ferrero'],
@@ -283,8 +322,8 @@ function vCommesse(){
  <div class="muted" style="font-size:12px;margin-bottom:8px">Ordinate per priorità</div><div class="list">${[...S.commesse].sort((a,b)=>a.prio-b.prio).map((x,i,arr)=>`<div class="crow"><span class="cprio">${i+1}</span><button class="${x.id===S.selC?'sel':''}" data-c="${x.id}"><span class="code">${x.id}</span><span class="cn">${esc(x.nome)}</span>${prog(x)}</button><div class="prio"><button data-cup="${x.id}" ${i===0?'disabled':''} aria-label="Sposta su">▲</button><button data-cdn="${x.id}" ${i===arr.length-1?'disabled':''} aria-label="Sposta giù">▼</button></div></div>`).join('')}</div></aside>
  <section class="panel">${c?`<div class="row" style="justify-content:space-between"><div><div class="mono" style="color:var(--accent)">${c.id}</div><h2>${esc(c.nome)}</h2><div class="muted">${esc(c.cliente)}${c.master?' · da masterplan '+esc(c.master):''}</div></div></div>
  <div class="resp"><div class="rh">Responsabili</div><div class="rgrid">${S.ruoli.map(r=>`<label class="rcell"><span>${esc(r)}</span><select data-resp="${esc(r)}"><option value="">—</option>${S.persone.map(p=>`<option ${(c.resp||{})[r]===p?'selected':''}>${esc(p)}</option>`).join('')}</select></label>`).join('')||'<span class="muted">Nessun ruolo: aggiungili in Impostazioni.</span>'}</div></div>
- <div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Attività</th><th>Persona</th><th>Inizio</th><th>Fine</th><th>Condizioni</th><th>Stato</th><th></th></tr></thead><tbody>
- ${c.att.map(a=>`<tr class="${a.sum?'csum':''}"><td style="padding-left:${6+(a.liv||0)*18}px"><input data-f="nome" data-id="${a.id}" value="${esc(a.nome)}">${!a.attiva&&a.manca?`<div class="muted" style="font-size:12px;margin-top:3px">Manca: <input data-f="manca" data-id="${a.id}" value="${esc(a.manca)}"></div>`:''}</td>
+ <div class="tablewrap" style="margin-top:12px"><table class="ctab"><thead><tr><th>Attività</th><th>Persona</th><th>Inizio</th><th>Fine</th><th>Condizioni</th><th>Stato</th><th></th></tr></thead><tbody>
+ ${c.att.map(a=>`<tr class="${a.sum?'csum':''}" style="--lv:${a.liv||0}"><td style="padding-left:${6+(a.liv||0)*18}px"><input data-f="nome" data-id="${a.id}" value="${esc(a.nome)}">${!a.attiva&&a.manca?`<div class="muted" style="font-size:12px;margin-top:3px">Manca: <input data-f="manca" data-id="${a.id}" value="${esc(a.manca)}"></div>`:''}</td>
  <td><select data-f="pers" data-id="${a.id}" ${a.sum?'disabled':''}><option value="" ${S.persone.includes(a.pers)?'':'selected'}>— non assegnata —</option>${S.persone.map(p=>`<option ${p===a.pers?'selected':''}>${p}</option>`).join('')}</select></td>
  <td><input type="date" data-f="ini" data-id="${a.id}" value="${a.ini}" ${a.sum?'disabled':''}></td><td><input type="date" data-f="fin" data-id="${a.id}" value="${a.fin}" ${a.sum?'disabled':''}></td>
  <td><select data-f="attiva" data-id="${a.id}"><option value="1" ${a.attiva?'selected':''}>Attiva</option><option value="0" ${!a.attiva?'selected':''}>Non attiva</option></select></td>
@@ -334,12 +373,12 @@ function vPersone(){
 function vOre(){
  const rows=S.commesse.map(c=>{const LA=c.att.filter(a=>!a.sum),tb=LA.reduce((s,a)=>s+(a.bud||0),0),tc=LA.reduce((s,a)=>s+(a.cons||0),0);
  return`<tr><td colspan="6" style="background:var(--bg);font-weight:600"><span class="mono" style="color:var(--accent)">${c.id}</span> ${esc(c.nome)}</td></tr>
- ${c.att.map(a=>{const d=a.bud!=null&&a.cons!=null?a.bud-a.cons:null;return`<tr class="${a.sum?'csum':''}"><td style="padding-left:${6+(a.liv||0)*16}px;${a.sum?'font-weight:700':''}">${esc(a.nome)}</td><td>${esc(a.pers)}</td><td>${statoPill(a)}</td>
+ ${c.att.map(a=>{const d=a.bud!=null&&a.cons!=null?a.bud-a.cons:null;return`<tr class="${a.sum?'csum':''}" style="--lv:${a.liv||0}"><td style="padding-left:${6+(a.liv||0)*16}px;${a.sum?'font-weight:700':''}">${esc(a.nome)}</td><td>${esc(a.pers)}</td><td>${statoPill(a)}</td>
  <td><input class="num" type="number" min="0" step="0.5" data-f="bud" data-id="${a.id}" value="${a.bud??''}" placeholder="—" ${a.sum||!can('edit')?'disabled':''}></td>
  <td><input class="num" type="number" min="0" step="0.5" data-f="cons" data-id="${a.id}" value="${a.cons??''}" placeholder="—" ${a.sum||!can('edit')?'disabled':''}></td>
  <td class="mono ${d==null?'':d<0?'diff-neg':'diff-pos'}" style="text-align:right">${d==null?'':(d>0?'+':'')+d}</td></tr>`}).join('')}
  <tr><td colspan="3" class="muted" style="text-align:right">Totale commessa</td><td class="mono" style="text-align:right">${tb} h</td><td class="mono" style="text-align:right">${tc} h</td><td class="mono ${tb-tc<0?'diff-neg':'diff-pos'}" style="text-align:right">${tb-tc>0?'+':''}${tb-tc}</td></tr>`}).join('');
- $('#view').innerHTML=`<section class="panel"><h2 style="margin-bottom:10px">Budget e consuntivo ore</h2><div class="tablewrap"><table>
+ $('#view').innerHTML=`<section class="panel"><h2 style="margin-bottom:10px">Budget e consuntivo ore</h2><div class="tablewrap"><table class="otab">
  <thead><tr><th>Attività</th><th>Persona</th><th>Stato</th><th style="text-align:right">Budget h</th><th style="text-align:right">Consuntivo h</th><th style="text-align:right">Scost.</th></tr></thead><tbody>${rows}</tbody></table></div>
  <div class="note">Campi liberi: lascia vuoto ciò che non è ancora noto. Scostamento positivo = ore residue.</div></section>`;
  bindAttInputs();
@@ -532,13 +571,22 @@ function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');cons
   });
   body=`<div class="gwrap"><div class="gantt" style="grid-template-columns:var(--gnw) repeat(${n},var(--gdw))">${out}</div></div>
   <div class="glg"><span><i class="b-ok"></i>Attiva</span><span><i class="b-off"></i>Non attiva</span><span><i class="b-run"></i>In corso</span><span><i class="b-done"></i>Conclusa</span><span><i class="dia"></i>Gate</span></div>`}
- $('#view').innerHTML=`<section class="panel"><div class="row" style="justify-content:space-between;margin-bottom:14px"><div class="row"><h2>Gantt</h2>
+ if(!S.gView)S.gView=window.innerWidth<700?'lista':'diagramma';
+ if(S.gView==='lista'){body=cs.map(c=>{const ev=S.eventi.filter(e=>e.comm===c.id).sort((a,b)=>a.data.localeCompare(b.data));
+  return`<div class="gl"><div class="glh"><span class="code">${c.id}</span><span class="cn">${esc(c.nome)}</span>${AD?`<button class="gadd" data-gadd="${c.id}">+ Attività</button>`:''}</div>
+  ${c.att.map((a,ia)=>{const canIn=ia>0&&(a.liv||0)<=(c.att[ia-1].liv||0);return`<div class="gli ${a.sum?'gls':''}" style="--lv:${a.liv||0}">
+   ${ED?`<span class="garr"><button data-gmv="${c.id}|${a.id}|-1" ${a.liv?'':'disabled'} aria-label="Sali di livello">←</button><button data-gmv="${c.id}|${a.id}|1" ${canIn?'':'disabled'} aria-label="Rendi sottovoce">→</button></span>`:''}
+   <div class="glb" ${ED?`data-gedit="${c.id}|${a.id}"`:''}><div class="cn">${esc(a.nome)}</div><div class="glm"><span class="mono">${a.ini?fmt(a.ini)+' → '+fmt(a.fin):'senza date'}</span>${a.sum?'':`<span>${esc(a.pers||'non assegnata')}</span>`}</div></div>
+   ${a.sum?'':statoPill(a)}</div>`}).join('')||'<div class="muted" style="padding:8px 0">Nessuna attività.</div>'}
+  ${ev.map(e=>`<div class="gli glg2"><span class="gdia2"></span><div class="glb"><div class="cn">${esc(e.nome)}</div><div class="glm"><span class="mono">${fmt(e.data)}</span><span>gate</span></div></div></div>`).join('')}</div>`}).join('')}
+$('#view').innerHTML=`<section class="panel"><div class="row" style="justify-content:space-between;margin-bottom:14px"><div class="row"><h2>Gantt</h2><div class="seg"><button data-gv="lista" aria-pressed="${S.gView==='lista'}">Elenco</button><button data-gv="diagramma" aria-pressed="${S.gView==='diagramma'}">Diagramma</button></div>
  <select id="gSel"><option value="tutte">Tutte le commesse</option>${[...S.commesse].sort((a,b)=>a.prio-b.prio).map(c=>`<option value="${c.id}" ${S.gSel===c.id?'selected':''}>${c.id} · ${esc(c.nome)}</option>`).join('')}</select></div>
  <div class="row"><button class="btn" id="xPrj">Esporta Project</button><button class="btn" id="xPdf">Esporta PDF</button><button class="btn pri" id="xXls">Esporta Excel</button></div></div>${body}
  <div class="note" id="xNote">Esporta la commessa selezionata o tutte.</div></section>`;
  $('#gSel').onchange=e=>{S.gSel=e.target.value;render()};
  const w=$('.gwrap'),t=$('.gd.td');if(w&&t)w.scrollLeft=Math.max(0,t.offsetLeft-w.querySelector('.gh').offsetWidth-60);
  document.querySelectorAll('[data-gadd]').forEach(b=>b.onclick=()=>gForm(b.dataset.gadd));
+ document.querySelectorAll('[data-gv]').forEach(b=>b.onclick=()=>{S.gView=b.dataset.gv;render()});
  document.querySelectorAll('[data-gmv]').forEach(b=>b.onclick=e=>{e.stopPropagation();const [ci,ai,d]=b.dataset.gmv.split('|');cMove(S.commesse.find(c=>c.id===ci),ai,+d)});
  document.querySelectorAll('[data-gedit]').forEach(b=>b.onclick=()=>{const [ci,ai]=b.dataset.gedit.split('|');gForm(ci,ai)});
  $('#xXls').onclick=exportXls;$('#xPrj').onclick=exportPrjGantt;$('#xPdf').onclick=exportPdf;

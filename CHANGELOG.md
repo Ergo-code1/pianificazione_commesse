@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.1 — 2026-11-03
+- Smartphone: Gantt con vista Elenco (predefinita sul telefono), commesse e ore a schede senza scorrimento orizzontale, tab su due righe.
+
 ## 1.2.0 — 2026-11-03
 - Gantt: voci e sottovoci su più livelli (frecce ← →), voci calcolate dalle sottovoci, inserimento come sottovoce.
 - Impostazioni: permessi per persona (aggiunge attività, modifica/elimina attività, crea commesse e responsabili).
