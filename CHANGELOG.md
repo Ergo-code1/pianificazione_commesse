@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0 — 2026-11-03
+- Commesse: «Modifica intestazione» (codice, descrizione, cliente) ed eliminazione commessa.
+- Ore: budget e consuntivo per voci configurabili (Progetto meccanico, Progetto elettrico, Assemblaggio meccanico, Assemblaggio elettrico, Software, Robot, Gestione), gestibili in Impostazioni; foglio Ore nell'export Excel.
+- Eventi: campi del nuovo gate non più sovrapposti.
+- Smartphone: Gantt diagramma leggibile (nomi su due righe, righe più alte), Ore senza caselle sovrapposte.
+
 ## 1.3.0 — 2026-11-03
 - Persone: descrizione commessa accanto a codice e date; riordino tenendo premuto e trascinando (numerazione automatica); «Annulla avvio» per tornare a non avviata.
 - Commesse: righe senza sovrapposizioni (stato e azioni sotto il nome), pulsante ◆ per inviare la riga agli eventi, pulsante ⛓ per dettagli e attivazione automatica.
