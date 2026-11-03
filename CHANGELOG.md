@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.8.1 — 2026-11-03
+- Accessi: una persona rimossa e poi aggiunta di nuovo viene riattivata con lo stesso account (stessa password di prima).
+
 ## 1.8.0 — 2026-11-03
 - Gantt diagramma: banda mesi/giorni fissa in alto e titolo commessa sempre visibile durante lo scorrimento; scorrimento per almeno un anno.
 - Esporta…: scelta di formato (PDF, Excel, Project), commesse, persona, periodo e contenuti (diagramma, attività, gate, ore per voce). PDF su più pagine.

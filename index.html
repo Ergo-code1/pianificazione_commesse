@@ -305,7 +305,7 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='1.8.0';
+const VERSIONE='1.8.1';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -867,7 +867,7 @@ const FB_DOM='ergoplan-ergotech.it',fem=u=>u+'@'+FB_DOM,fpw=p=>'ep#'+p;
 const app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app),ref=doc(db,'app','stato');
 const secApp=initializeApp(cfg,'sec'),sa=getAuth(secApp);setPersistence(sa,inMemoryPersistence).catch(()=>{});
 try{auth.languageCode='it'}catch(e){}
-const KEYS=['voci','master','persone','ruoli','commesse','eventi','utenti','nextId','admOk'];
+const KEYS=['ex','voci','master','persone','ruoli','commesse','eventi','utenti','nextId','admOk'];
 let last='',unsub=null,timer=null,remote=false;
 const pack=()=>JSON.stringify(Object.fromEntries(KEYS.map(k=>[k,S[k]??null])));
 function save(){clearTimeout(timer);timer=setTimeout(()=>{if(!S.user)return;const d=pack();if(d===last)return;last=d;
@@ -887,12 +887,13 @@ window.FB={msg:'',key:null,
  async setPw(p){await updatePassword(auth.currentUser,fpw(p));if(FB.key==='admin')S.admOk=1;if(S.utenti[FB.key])S.utenti[FB.key].must=false;save()},
  async linkEmail(e){await verifyBeforeUpdateEmail(auth.currentUser,e);S.utenti[FB.key].email=e;save()},
  err:e=>({'auth/invalid-credential':'Nome utente o password errati.','auth/wrong-password':'Nome utente o password errati.','auth/user-not-found':'Nome utente o password errati.','auth/invalid-email':'Nome utente non valido.','auth/too-many-requests':'Troppi tentativi: riprova tra qualche minuto.','auth/network-request-failed':'Connessione assente.','auth/email-already-in-use':'Email già usata da un altro account.','permission-denied':'Permesso negato dalle regole del database.'}[e&&e.code]||(e&&e.message)||String(e)),
- async creaAccesso(nome){const u=uname(nome);let uid;
+ async creaAccesso(nome){const u=uname(nome);let uid,must=true;const old=(S.ex||{})[u];
   try{uid=(await createUserWithEmailAndPassword(sa,fem(u),fpw(PW0))).user.uid}
-  catch(e){if(e.code==='auth/email-already-in-use'){try{uid=(await signInWithEmailAndPassword(sa,fem(u),fpw(PW0))).user.uid}catch(e2){throw new Error("L'utente "+u+" esiste già su Firebase con un'altra password: eliminalo dalla console (Authentication) e riprova.")}}else throw e}
+  catch(e){if(e.code==='auth/email-already-in-use'){try{uid=(await signInWithEmailAndPassword(sa,fem(u),fpw(PW0))).user.uid}catch(e2){if(old&&old.uid){uid=old.uid;must=false}else throw new Error("L'utente "+u+" esiste già su Firebase con un'altra password: eliminalo dalla console (Authentication → Users) e premi di nuovo Crea accesso.")}}else throw e}
   await signOut(sa).catch(()=>{});await setDoc(doc(db,'utenti',uid),{user:u});
-  S.utenti[u]={nome,ruolo:'persona',uid,must:true};toast('Accesso creato: utente '+u+', password 123')},
- async togliAccesso(u){const x=S.utenti[u];if(!x||u==='admin')return;if(x.uid)await deleteDoc(doc(db,'utenti',x.uid)).catch(()=>{});delete S.utenti[u]}
+  S.utenti[u]={nome,ruolo:old&&old.ruolo||'persona',perm:old&&old.perm||{},email:old&&old.email,uid,must};if(S.ex)delete S.ex[u];
+  toast(must?'Accesso creato: utente '+u+', password 123':'Accesso riattivato: '+u+' entra con la password che usava prima')},
+ async togliAccesso(u){const x=S.utenti[u];if(!x||u==='admin')return;if(x.uid)await deleteDoc(doc(db,'utenti',x.uid)).catch(()=>{});S.ex=S.ex||{};S.ex[u]={uid:x.uid,ruolo:x.ruolo,perm:x.perm,email:x.email};delete S.utenti[u]}
 };
 onAuthStateChanged(auth,user=>{
  if(!user){S.user=null;renderLogin();return}
