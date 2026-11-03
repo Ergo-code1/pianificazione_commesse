@@ -282,6 +282,10 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 .cdates{display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap}.cdates input{padding:4px 6px;font-size:12.5px;min-width:0;width:140px}
 .gper{min-width:0}
 @media(max-width:640px){.cdates input{width:calc(50% - 14px)}}
+.gcell[data-gr]{cursor:crosshair}.gcell[data-gr]:hover{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.gpv{align-self:center;height:20px;border-radius:6px;background:color-mix(in srgb,var(--hi) 70%,transparent);border:2px dashed var(--ink);z-index:4;pointer-events:none;font:600 10px var(--f-mono);color:var(--ink);display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:visible}
+.gantt{-webkit-user-select:none;user-select:none}.gbar{touch-action:pan-x pan-y}
+.pord{margin-bottom:12px}
 .glg{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:12px;color:var(--muted)}
 .glg i{display:inline-block;width:18px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}.glg i.dia{width:10px;height:10px;background:var(--hi);transform:rotate(45deg)}
 .instbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:55;display:flex;align-items:center;gap:10px;background:var(--surface);color:var(--fg);border:1px solid var(--hi);border-radius:16px;padding:10px 12px;box-shadow:var(--shadow);width:min(calc(100% - 24px),460px)}
@@ -295,7 +299,7 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='1.6.0';
+const VERSIONE='1.7.0';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -400,12 +404,13 @@ function bindAttInputs(){
 
 function vPersone(){
  const isAdm=S.user.ruolo==='admin';
- const lista=allAtt().filter(a=>a.pers===S.selP).sort((x,y)=>(x.stato==='conclusa')-(y.stato==='conclusa')||x.prio-y.prio);
+ S.pOrd=S.pOrd||'gantt';const gk=a=>{const cs=[...S.commesse].filter(c=>!c.chiusa).sort((x,y)=>x.prio-y.prio);return cs.indexOf(a._c)*10000+a._c.att.findIndex(x=>x.id===a.id)};
+ const lista=allAtt().filter(a=>a.pers===S.selP).sort((x,y)=>(x.stato==='conclusa')-(y.stato==='conclusa')||(S.pOrd==='gantt'?gk(x)-gk(y):x.prio-y.prio));
  $('#view').innerHTML=`<div class="grid2"><aside class="panel"><h3 style="margin-bottom:8px">Persone</h3><div class="list">
  ${S.persone.map(p=>{const n=allAtt().filter(a=>a.pers===p&&a.stato!=='conclusa').length;return`<button class="pbtn ${p===S.selP?'sel':''}" data-p="${esc(p)}" ${!isAdm&&p!==S.user.nome?'disabled':''}><span class="av">${ini(p)}</span><span style="min-width:0"><span class="cn">${esc(p)}</span><span class="muted" style="font-size:12px;display:block">${n} attività aperte</span></span></button>`}).join('')}</div></aside>
- <section class="panel"><h2>${esc(S.selP)}</h2><div class="muted" style="margin-bottom:12px">Ordinate per priorità · tieni premuto e trascina per riordinare (o usa le frecce)</div><div class="stack" id="plist">
+ <section class="panel"><h2>${esc(S.selP)}</h2><div class="row pord"><div class="seg"><button data-po="gantt" aria-pressed="${S.pOrd==='gantt'}">Come Gantt</button><button data-po="prio" aria-pressed="${S.pOrd==='prio'}">Priorità personale</button></div><span class="muted" style="font-size:12px">${S.pOrd==='gantt'?'Ordine di commessa e di pianificazione':'Tieni premuto e trascina per riordinare (o usa le frecce)'}</span></div><div class="stack" id="plist">
  ${lista.map(a=>`<div class="card ${a.stato==='conclusa'?'done':a.stato==='in corso'?'run':a.attiva?'att':''}" data-aid="${a.id}">
-  <div class="row" style="gap:6px"><div class="prio"><button data-up="${a.id}" aria-label="Aumenta priorità">▲</button><button data-dn="${a.id}" aria-label="Diminuisci priorità">▼</button></div><span class="prionum">${a.prio}</span></div>
+  <div class="row" style="gap:6px"><div class="prio" ${S.pOrd==='gantt'?'hidden':''}><button data-up="${a.id}" aria-label="Aumenta priorità">▲</button><button data-dn="${a.id}" aria-label="Diminuisci priorità">▼</button></div><span class="prionum">${S.pOrd==='gantt'?lista.indexOf(a)+1:a.prio}</span></div>
   <div style="min-width:0"><div style="font-weight:600">${esc(a.nome)}</div><div class="muted" style="font-size:12px"><span class="mono">${a._c.id}</span> ${esc(a._c.nome)} · ${a.ini?fmt(a.ini)+'–'+fmt(a.fin):'senza date'}${!a.attiva&&a.stato==='da fare'?` · manca: ${esc(a.manca)}`:''}</div>${can('edit')&&a.stato!=='conclusa'?`<div class="cdates"><input type="date" data-pd="${a.id}|ini" value="${a.ini||''}" aria-label="Inizio"><span class="muted">→</span><input type="date" data-pd="${a.id}|fin" value="${a.fin||''}" aria-label="Fine"></div>`:''}</div>
   <div class="row acts">${statoPill(a)}
    ${a.stato==='da fare'?`<button class="btn sm" data-st="in corso" data-id="${a.id}" ${a.attiva?'':'disabled title="Non attiva"'}>Avvia</button>`:''}
@@ -417,7 +422,8 @@ function vPersone(){
  document.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>{const a=findAtt(b.dataset.dn);a.prio++;render()});
  document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{findAtt(b.dataset.id).stato=b.dataset.st;render()});
  document.querySelectorAll('[data-pd]').forEach(el=>el.onchange=()=>{const [id,f]=el.dataset.pd.split('|'),a=findAtt(id);a[f]=el.value;if(a.ini&&a.fin&&a.fin<a.ini){if(f==='ini')a.fin=a.ini;else a.ini=a.fin}render()});
- const pl=$('#plist');if(pl&&window.Sortable&&lista.length>1)Sortable.create(pl,{animation:160,delay:280,delayOnTouchOnly:false,touchStartThreshold:6,filter:'button,input',preventOnFilter:false,ghostClass:'drag-ghost',chosenClass:'drag-chosen',
+ const pl=$('#plist');document.querySelectorAll('[data-po]').forEach(b=>b.onclick=()=>{S.pOrd=b.dataset.po;render()});
+ if(pl&&window.Sortable&&lista.length>1&&S.pOrd==='prio')Sortable.create(pl,{animation:160,delay:280,delayOnTouchOnly:false,touchStartThreshold:6,filter:'button,input',preventOnFilter:false,ghostClass:'drag-ghost',chosenClass:'drag-chosen',
   onEnd:()=>{[...pl.querySelectorAll('[data-aid]')].forEach((el,i)=>{const a=findAtt(el.dataset.aid);if(a)a.prio=i+1});render()}});
 }
 
@@ -617,16 +623,32 @@ function toastP(t){if(typeof toast==='function')return toast(t);let el=document.
 
 function visAtt(c){const P=S.gPer||'tutte';if(P==='tutte')return c.att;const A=c.att,keep=new Set();
  A.forEach((a,i)=>{if(a.sum)return;if(P==='__none'?!a.pers:a.pers===P){keep.add(a);for(let j=i-1,l=a.liv||0;j>=0&&l>0;j--)if((A[j].liv||0)<l){keep.add(A[j]);l=A[j].liv||0}}});return A.filter(a=>keep.has(a))}
-function gDrag(){if(!can('edit'))return;document.querySelectorAll('.gbar[data-gedit]:not(.gs)').forEach(bar=>{bar.insertAdjacentHTML('beforeend','<i class="grs"></i>');
- bar.addEventListener('pointerdown',ev=>{if(ev.pointerType!=='mouse'||ev.button!==0)return;ev.preventDefault();
-  const [ci,ai]=bar.dataset.gedit.split('|'),c=S.commesse.find(x=>x.id===ci),a=c&&c.att.find(x=>x.id==ai);if(!a)return;
-  const dw=(document.querySelector('.gd')||{getBoundingClientRect:()=>({width:30})}).getBoundingClientRect().width||30,rs=ev.target.classList.contains('grs'),x0=ev.clientX;let dd=0,moved=false;
-  bar.setPointerCapture(ev.pointerId);bar.classList.add('gdrag');
-  const mv=e=>{const dx=e.clientX-x0;if(Math.abs(dx)>3)moved=true;dd=Math.round(dx/dw);bar.style.transform=rs?'':`translateX(${dd*dw}px)`;if(rs)bar.style.marginRight=(-dd*dw)+'px';bar.title=rs?'Fine: '+fmt(addD(a.fin,dd)):fmt(addD(a.ini,dd))+' → '+fmt(addD(a.fin,dd))};
-  const up=()=>{bar.removeEventListener('pointermove',mv);bar.removeEventListener('pointerup',up);bar.classList.remove('gdrag');
-   if(!moved||!dd){bar.style.transform='';bar.style.marginRight='';if(moved)bar.dataset.nc=1;return}
-   if(rs){const f=addD(a.fin,dd);a.fin=f<a.ini?a.ini:f}else{a.ini=addD(a.ini,dd);a.fin=addD(a.fin,dd)}bar.dataset.nc=1;toastP(a.nome+': '+fmt(a.ini)+' → '+fmt(a.fin));render()};
-  bar.addEventListener('pointermove',mv);bar.addEventListener('pointerup',up)})})}
+function gDrag(){if(!can('edit'))return;const G=document.querySelector('.gantt');if(!G)return;
+ const dw=()=>(G.querySelector('.gd')||{getBoundingClientRect:()=>({width:30})}).getBoundingClientRect().width||30;
+ let act=null;G.addEventListener('touchmove',e=>{if(act)e.preventDefault()},{passive:false});
+ const find=(ci,ai)=>{const c=S.commesse.find(x=>x.id===ci);return c&&c.att.find(x=>x.id==ai)};
+ const arm=(ev,start)=>{if(ev.pointerType==='mouse'){if(ev.button!==0)return;ev.preventDefault();start();return}
+  const x0=ev.clientX,y0=ev.clientY,t=setTimeout(()=>{cl();try{navigator.vibrate&&navigator.vibrate(15)}catch(e){}start()},320);
+  const mv=e=>{if(Math.hypot(e.clientX-x0,e.clientY-y0)>8){clearTimeout(t);cl()}},cl=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',cl);removeEventListener('pointercancel',cl)};
+  addEventListener('pointermove',mv);addEventListener('pointerup',()=>clearTimeout(t),{once:true});addEventListener('pointercancel',()=>clearTimeout(t),{once:true})};
+ // sposta / allunga barre esistenti
+ G.querySelectorAll('.gbar[data-gedit]:not(.gs)').forEach(bar=>{bar.insertAdjacentHTML('beforeend','<i class="grs"></i>');
+  bar.addEventListener('pointerdown',ev=>{const rs=ev.target.classList.contains('grs'),x0=ev.clientX,pid=ev.pointerId;
+   arm(ev,()=>{const [ci,ai]=bar.dataset.gedit.split('|'),a=find(ci,ai);if(!a)return;const w=dw();let dd=0,moved=false;act=1;bar.classList.add('gdrag');
+    const mv=e=>{if(e.pointerId!==pid)return;const dx=e.clientX-x0;if(Math.abs(dx)>3)moved=true;dd=Math.round(dx/w);if(rs)bar.style.marginRight=(-dd*w)+'px';else bar.style.transform=`translateX(${dd*w}px)`};
+    const up=e=>{if(e.pointerId!==pid)return;removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);act=null;bar.classList.remove('gdrag');bar.dataset.nc=1;
+     if(!moved||!dd){bar.style.transform='';bar.style.marginRight='';return}
+     if(rs){const f=addD(a.fin,dd);a.fin=f<a.ini?a.ini:f}else{a.ini=addD(a.ini,dd);a.fin=addD(a.fin,dd)}toastP(a.nome+': '+fmt(a.ini)+' → '+fmt(a.fin));render()};
+    addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up)})})});
+ // disegna le date trascinando sulle celle della riga
+ G.querySelectorAll('.gcell[data-gr]').forEach(cell=>cell.addEventListener('pointerdown',ev=>{const pid=ev.pointerId;
+  arm(ev,()=>{const [ci,ai,i0]=cell.dataset.gr.split('|'),a=find(ci,ai);if(!a)return;const D=window._gDays||[],row=cell.style.gridRow;let i1=+i0;act=1;
+   const pv=document.createElement('div');pv.className='gpv';pv.style.gridRow=row;G.appendChild(pv);
+   const paint=()=>{const lo=Math.min(+i0,i1),hi=Math.max(+i0,i1);pv.style.gridColumn=`${lo+2}/${hi+3}`;pv.textContent=fmt(D[lo])+' → '+fmt(D[hi])};paint();
+   const mv=e=>{if(e.pointerId!==pid)return;const el=document.elementFromPoint(e.clientX,e.clientY),c2=el&&el.closest('.gcell[data-gr]');if(c2&&c2.style.gridRow===row){i1=+c2.dataset.gr.split('|')[2];paint()}};
+   const up=e=>{if(e.pointerId!==pid)return;removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);act=null;pv.remove();
+    const lo=Math.min(+i0,i1),hi=Math.max(+i0,i1);a.ini=D[lo];a.fin=D[hi];toastP(a.nome+': '+fmt(a.ini)+' → '+fmt(a.fin));render()};
+   addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up)})}))}
 function ini(p){return esc(p.split(' ').map(s=>s[0]||'').join('').slice(0,2).toUpperCase())}
 function prog(c){const LA=c.att.filter(a=>!a.sum),t=LA.length,d=LA.filter(a=>a.stato==='conclusa').length,pc=t?Math.round(d/t*100):0;return`<span class="pg"><span class="pgb"><i style="width:${pc}%"></i></span><span class="pgt">${d}/${t}</span></span>`}
 
@@ -635,17 +657,17 @@ function ganttData(){const cs=[...S.commesse].sort((a,b)=>a.prio-b.prio).filter(
  const rows=cs.flatMap(c=>visAtt(c).filter(a=>a.ini&&a.fin).map(a=>({...a,_c:c})));
  const ds=rows.flatMap(a=>[a.ini,a.fin]).concat(S.eventi.filter(e=>cs.some(c=>c.id===e.comm)).map(e=>e.data)).sort();
  return{cs,rows,start:ds[0],end:ds[ds.length-1]}}
-function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');const {cs,start,end}=ganttData();
+function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');let {cs,start,end}=ganttData();if(!start&&cs.some(c=>visAtt(c).length)){start=todayL();end=addD(start,30)}if(end)end=addD(end,21);
  let body=`<div class="muted">Nessuna attività con date. Aggiungine una:</div><div class="gempty">${cs.map(c=>`<button class="btn" data-gadd="${c.id}">+ ${c.id}</button>`).join('')}</div>`;
  if(start){const s0=toD(start),n=Math.round((toD(end)-s0)/DAY)+1,col=d=>Math.round((toD(d)-s0)/DAY)+2;
-  const days=[...Array(n)].map((_,i)=>new Date(+s0+i*DAY));
+  const days=[...Array(n)].map((_,i)=>new Date(+s0+i*DAY));window._gDays=days.map(isoL);
   const head=`<div class="gn gh">Attività</div>`+days.map((d,i)=>`<div class="gd ${[0,6].includes(d.getDay())?'we':''} ${isoL(d)===todayL()?'td':''}" style="grid-column:${i+2}"><b>${d.getDate()}</b><span>${'DLMMGVS'[d.getDay()]}</span></div>`).join('');
   const ms=[];days.forEach((d,i)=>{const k=d.getFullYear()+'-'+d.getMonth();if(!ms.length||ms[ms.length-1].k!==k)ms.push({k,d,s:i,n:1});else ms[ms.length-1].n++});
   let r=3,out=head.replace('class="gn gh"','class="gn gh" style="grid-row:1/3"')+ms.map(m=>`<div class="gm" style="grid-column:${m.s+2}/span ${m.n}">${m.n>=4?m.d.toLocaleDateString('it-IT',{month:'long',year:'numeric'}):m.n>=2?String(m.d.getMonth()+1).padStart(2,'0')+'/'+String(m.d.getFullYear()).slice(2):''}</div>`).join('');
   cs.forEach(c=>{out+=`<div class="gc" style="grid-row:${r};grid-column:1/-1"><span class="code">${c.id}</span> ${esc(c.nome)}${AD?`<button class="gadd" data-gadd="${c.id}">+ Attività</button>`:''}</div>`;r++;
    const AA=visAtt(c);AA.forEach(a=>{const ia=c.att.indexOf(a),canIn=ia>0&&(a.liv||0)<=(c.att[ia-1].liv||0);const k=a.sum?'gs':a.stato==='conclusa'?'b-done':a.stato==='in corso'?'b-run':a.attiva?'b-ok':'b-off';
     out+=`<div class="gn ${a.sum?'gsumn':''}" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};padding-left:${8+(a.liv||0)*14}px"><span class="gnr">${ED?`<span class="garr"><button data-gmv="${c.id}|${a.id}|-1" ${a.liv?'':'disabled'} title="Sali di livello" aria-label="Sali di livello">←</button><button data-gmv="${c.id}|${a.id}|1" ${canIn?'':'disabled'} title="Rendi sottovoce" aria-label="Rendi sottovoce">→</button></span>`:''}<span style="min-width:0"><span class="cn">${esc(a.nome)}</span><span class="muted">${a.sum?'voce':esc(a.pers||'non assegnata')}${a.ini?'':' · senza date'}${a.dip&&a.dip.length?' · ⛓ dopo '+a.dip.length:''}</span></span></span></div>`+
-    days.map((d,i)=>`<div class="gcell ${[0,6].includes(d.getDay())?'we':''}" style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+
+    days.map((d,i)=>`<div class="gcell ${[0,6].includes(d.getDay())?'we':''}" ${ED&&!a.sum?`data-gr="${c.id}|${a.id}|${i}"`:''} style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+
     (a.ini&&a.fin?`<div class="gbar ${k}" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};grid-column:${col(a.ini)}/${col(a.fin)+1}" title="${esc(a.nome)} · ${fmt(a.ini)}–${fmt(a.fin)}"></div>`:'');r++});
    S.eventi.filter(e=>e.comm===c.id).forEach(e=>{out+=`<div class="gn gev" style="grid-row:${r}"><span class="cn">◆ ${esc(e.nome)}</span><span class="muted">gate</span></div>`+days.map((d,i)=>`<div class="gcell ${[0,6].includes(d.getDay())?'we':''}" style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+`<div class="gdia" style="grid-row:${r};grid-column:${col(e.data)}" title="${esc(e.nome)} · ${fmt(e.data)}"></div>`;r++});
   });
@@ -663,7 +685,7 @@ $('#view').innerHTML=`<section class="panel"><div class="row" style="justify-con
  <select id="gSel"><option value="tutte">Tutte le commesse</option>${[...S.commesse].sort((a,b)=>a.prio-b.prio).map(c=>`<option value="${c.id}" ${S.gSel===c.id?'selected':''}>${c.id} · ${esc(c.nome)}${c.chiusa?' (chiusa)':''}</option>`).join('')}</select>
  <select id="gPer" class="gper" aria-label="Filtra per persona"><option value="tutte">Tutte le persone</option>${S.persone.map(p=>`<option ${S.gPer===p?'selected':''}>${esc(p)}</option>`).join('')}<option value="__none" ${S.gPer==='__none'?'selected':''}>Non assegnate</option></select></div>
  <div class="row"><button class="btn" id="xPrj">Esporta Project</button><button class="btn" id="xPdf">Esporta PDF</button><button class="btn pri" id="xXls">Esporta Excel</button></div></div>${body}
- <div class="note" id="xNote">Esporta la commessa selezionata o tutte.</div></section>`;
+ <div class="note">Nel diagramma: trascina su una riga per impostare le date (sul telefono tieni premuto, poi trascina); trascina una barra per spostarla, dal bordo destro per allungarla.</div><div class="note" id="xNote">Esporta la commessa selezionata o tutte.</div></section>`;
  $('#gSel').onchange=e=>{S.gSel=e.target.value;render()};
  $('#gPer').onchange=e=>{S.gPer=e.target.value;render()};
  gDrag();
