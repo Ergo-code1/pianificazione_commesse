@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0 — 2026-11-03
+- Persone: descrizione commessa accanto a codice e date; riordino tenendo premuto e trascinando (numerazione automatica); «Annulla avvio» per tornare a non avviata.
+- Commesse: righe senza sovrapposizioni (stato e azioni sotto il nome), pulsante ◆ per inviare la riga agli eventi, pulsante ⛓ per dettagli e attivazione automatica.
+- Attivazione automatica: una riga si attiva da sola quando sono concluse le righe da cui dipende (esportata anche in Project come collegamento).
+- Gantt: mostra anche le attività senza date.
+- Eventi: impaginazione rifatta. Ore: colonne budget, consuntivo e scostamento allineate.
+
 ## 1.2.4 — 2026-11-03
 - Pulsante «Installa Ergo Plan» nell'app (Android/Chrome) e istruzioni per iPhone.
 
