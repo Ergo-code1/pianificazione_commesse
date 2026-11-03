@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0 — 2026-11-03
+- Gantt: voci e sottovoci su più livelli (frecce ← →), voci calcolate dalle sottovoci, inserimento come sottovoce.
+- Impostazioni: permessi per persona (aggiunge attività, modifica/elimina attività, crea commesse e responsabili).
+
 ## 1.1.0 — 2026-11-03
 - Gantt: aggiunta e modifica delle attività direttamente dal diagramma (+ Attività su ogni commessa, clic su nome o barra per modificare); le attività finiscono nella commessa.
 
