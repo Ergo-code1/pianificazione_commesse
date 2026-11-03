@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.7.1 — 2026-11-03
+- Persone: ordine «Per date (Gantt)» per data di inizio, poi di fine (senza date in fondo).
+
 ## 1.7.0 — 2026-11-03
 - Persone: ordine «Come Gantt» (commessa per priorità, poi ordine di pianificazione) oppure «Priorità personale» con trascinamento.
 - Gantt diagramma: date impostabili trascinando sulla riga (anche per attività senza date); barre spostabili e allungabili anche da telefono con pressione prolungata; diagramma esteso di 3 settimane oltre l'ultima data.
