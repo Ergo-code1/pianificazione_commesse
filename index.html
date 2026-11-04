@@ -310,7 +310,7 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.0.0';
+const VERSIONE='2.1.0';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -350,7 +350,7 @@ function render(){
  S.commesse.forEach(cCalc);
  if(!S.user){renderLogin();return}
  const isAdm=S.user.ruolo==='admin';
- const tabs=[['commesse','Commesse'],['persone','Persone'],['gantt','Gantt'],['ore','Ore'],['eventi','Eventi'],...(isAdm?[['master','Masterplan'],['imp','Impostazioni']]:[])];
+ const tabs=[['commesse','Commesse'],['persone','Persone'],['gantt','Gantt'],['ore','Ore'],['eventi','Eventi'],...(isAdm?[['master','Masterplan'],['imp','Impostazioni']]:isResp()?[['imp','Persone ente']]:[])];
  $('#app').innerHTML=`<header class="top"><div><h1>Ergo Plan <span class="rev">v${VERSIONE}</span></h1><div class="muted">Dati condivisi</div></div>
  <div class="row">${isAdm_()?enteSel():''}<span class="muted">${esc(S.user.nome)} (${isAdm_()?'admin':isResp()?'resp. '+esc(myEnte()):myEnte()?esc(myEnte()):S.user.ruolo})</span><button class="btn sm" id="acct">Il mio account</button><button class="btn sm" id="logout">Esci</button></div></header>
  <nav class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${S.tab===k}" data-tab="${k}">${l}</button>`).join('')}</nav>
@@ -630,7 +630,7 @@ A.forEach((a,i)=>{a.liv=Math.max(0,Math.min(+a.liv||0,i?A[i-1].liv+1:0));a.sum=f
   if(ch.length){a.sum=true;const d=ch.filter(x=>x.ini&&x.fin);a.ini=d.length?d.map(x=>x.ini).sort()[0]:'';a.fin=d.length?d.map(x=>x.fin).sort().pop():'';
    const b=ch.filter(x=>x.bud!=null),k=ch.filter(x=>x.cons!=null);a.bud=b.length?b.reduce((s,x)=>s+x.bud,0):null;a.cons=k.length?k.reduce((s,x)=>s+x.cons,0):null;
    a.stato=ch.every(x=>x.stato==='conclusa')?'conclusa':ch.some(x=>x.stato!=='da fare')?'in corso':'da fare';a.attiva=ch.some(x=>x.attiva);a.pers=''}}return c}
-function permHtml(u){const x=S.utenti[u];if(!x)return'';if(x.ruolo==='admin')return'<div class="perm muted">Amministratore: può fare tutto</div>';const p=x.perm||{};
+function permHtml(u){const x=S.utenti[u];if(!x)return'';if(!isAdm_()&&(x.nome===S.user.nome||((S.pInfo||{})[x.nome]||{}).resp))return'';if(x.ruolo==='admin')return'<div class="perm muted">Amministratore: può fare tutto</div>';const p=x.perm||{};
  return`<div class="perm">${[['add','Aggiunge attività'],['edit','Modifica ed elimina attività'],['commesse','Crea commesse e responsabili']].map(([k,l])=>`<label><input type="checkbox" data-perm="${esc(u)}|${k}" ${p[k]?'checked':''}> ${l}</label>`).join('')}</div>`}
 document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.perm){const [u,k]=t.dataset.perm.split('|');if(!S.utenti[u])return;(S.utenti[u].perm||(S.utenti[u].perm={}))[k]=t.checked;render()}});
 function toastP(t){if(typeof toast==='function')return toast(t);let el=document.getElementById('toastP');if(!el){el=document.createElement('div');el.id='toastP';el.className='toastp';document.body.appendChild(el)}el.textContent=t;el.hidden=false;clearTimeout(el._t);el._t=setTimeout(()=>el.hidden=true,3000)}
@@ -683,8 +683,8 @@ const enteOpts=(cur,none)=>`${none?`<option value="" ${!cur?'selected':''}>${non
 try{const v=localStorage.getItem('ep-admEnte');if(v!=null)S.admEnte=v}catch(e){}
 document.addEventListener('change',e=>{const t=e.target;if(!t||!t.dataset)return;
  if(t.id==='admEnte'){S.admEnte=t.value;try{localStorage.setItem('ep-admEnte',t.value)}catch(_){}S.selC=null;S.gSel='tutte';S.selM=null;render();return}
- if(t.dataset.pe!=null){S.pInfo=S.pInfo||{};const p=t.dataset.pe,i=S.pInfo[p]||(S.pInfo[p]={});i.ente=t.value;if(!t.value)i.resp=false;render()}
- else if(t.dataset.pr!=null){S.pInfo=S.pInfo||{};const p=t.dataset.pr,i=S.pInfo[p]||(S.pInfo[p]={});i.resp=t.checked;render()}});
+ if(t.dataset.pe!=null){S.pInfo=S.pInfo||{};const p=t.dataset.pe,i=S.pInfo[p]||(S.pInfo[p]={});i.ente=t.value;if(!t.value)i.resp=false;window.FB&&FB.syncResp&&FB.syncResp(p);render()}
+ else if(t.dataset.pr!=null){S.pInfo=S.pInfo||{};const p=t.dataset.pr,i=S.pInfo[p]||(S.pInfo[p]={});i.resp=t.checked;window.FB&&FB.syncResp&&FB.syncResp(p);render()}});
 function ini(p){return esc(p.split(' ').map(s=>s[0]||'').join('').slice(0,2).toUpperCase())}
 function prog(c){const LA=c.att.filter(a=>!a.sum),t=LA.length,d=LA.filter(a=>a.stato==='conclusa').length,pc=t?Math.round(d/t*100):0;return`<span class="pg"><span class="pgb"><i style="width:${pc}%"></i></span><span class="pgt">${d}/${t}</span></span>`}
 
@@ -841,20 +841,20 @@ function accountSheet(){const me=S.utenti[FB.key]||{};sheet(`<h2>Il mio account<
  $('#ano').onclick=closeSheet;$('#apw').onclick=()=>pwSheet(false);
  $('#aok').onclick=async()=>{const e=$('#ae').value.trim();if(!e.includes('@'))return $('#ax').textContent='Scrivi un indirizzo email valido.';
   try{await FB.linkEmail(e);$('#ax').textContent='Ti abbiamo inviato un link a '+e+': aprilo per confermare.'}catch(er){$('#ax').textContent=er.code==='auth/requires-recent-login'?'Esci e rientra, poi riprova.':FB.err(er)}}}
-function vImp(){
+function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  const us=Object.entries(S.utenti);
  $('#view').innerHTML=`<div class="grid2"><aside class="panel"><h3 style="margin-bottom:10px">Nuova persona</h3><div class="stack">
  <input id="nNome" placeholder="Nome e cognome"><label class="chkl" style="color:var(--onink)"><input type="checkbox" id="nAcc" checked> Crea accesso all'app</label>
  <div class="muted" style="font-size:11px">Nome utente: prime 3 lettere del nome + prime 3 del cognome. Password iniziale <span class="mono">123</span>, da cambiare al primo accesso.</div>
  <div class="err" id="nErr"></div><button class="btn pri" id="nAdd">Aggiungi persona</button></div></aside>
- <section class="panel"><h2 style="margin-bottom:12px">Persone e accessi</h2><div class="stack">
+ <section class="panel"><h2 style="margin-bottom:12px">${A?'Persone e accessi':'Persone di '+esc(myEnte())}</h2><div class="stack">
  ${visPers().map(p=>{const e=us.find(([k,v])=>v.nome===p),n=allAtt().filter(a=>a.pers===p).length;
-  const acc=e?`<span class="mono">${esc(e[0])}</span> · <select data-ruolo="${esc(e[0])}"><option value="persona" ${e[1].ruolo!=='admin'?'selected':''}>Persona</option><option value="admin" ${e[1].ruolo==='admin'?'selected':''}>Amministratore</option></select> ${e[1].must?'<span class="pill p-warn">Primo accesso da fare</span>':'<span class="pill p-ok">Attivo</span>'}${e[1].email?' · '+esc(e[1].email):''}${permHtml(e[0])}`:'senza accesso';
-  return`<div class="irow"><span class="av">${ini(p)}</span><div style="min-width:0"><div class="cn">${esc(p)}</div><div class="muted" style="font-size:12px">${acc} · ${n} attività</div>${enteCtl(p)}</div>
-  ${S.delP===p?`<div class="row"><span class="muted" style="font-size:12px">Le sue attività restano non assegnate.</span><button class="btn sm pri" data-rm="${esc(p)}">Conferma</button><button class="btn sm" data-no>Annulla</button></div>`:
+  const acc=e?`<span class="mono">${esc(e[0])}</span> · ${A?`<select data-ruolo="${esc(e[0])}"><option value="persona" ${e[1].ruolo!=='admin'?'selected':''}>Persona</option><option value="admin" ${e[1].ruolo==='admin'?'selected':''}>Amministratore</option></select>`:(e[1].ruolo==='admin'?'amministratore':pR(p)?'responsabile ente':'persona')} ${e[1].must?'<span class="pill p-warn">Primo accesso da fare</span>':'<span class="pill p-ok">Attivo</span>'}${e[1].email?' · '+esc(e[1].email):''}${permHtml(e[0])}`:'senza accesso';
+  return`<div class="irow"><span class="av">${ini(p)}</span><div style="min-width:0"><div class="cn">${esc(p)}</div><div class="muted" style="font-size:12px">${acc} · ${n} attività</div>${A?enteCtl(p):''}</div>
+  ${!A&&(p===S.user.nome||pR(p)||(e&&e[1].ruolo==='admin'))?'<span></span>':S.delP===p?`<div class="row"><span class="muted" style="font-size:12px">Le sue attività restano non assegnate.</span><button class="btn sm pri" data-rm="${esc(p)}">Conferma</button><button class="btn sm" data-no>Annulla</button></div>`:
   `<div class="row">${e?`<button class="btn sm" data-rs="${esc(e[0])}">Reimposta password</button><button class="btn sm" data-ra="${esc(e[0])}">Togli accesso</button>`:`<button class="btn sm pri" data-mk="${esc(p)}">Crea accesso</button>`}<button class="btn sm" data-ask="${esc(p)}">Rimuovi</button></div>`}</div>`}).join('')}
  </div>
- <h2 style="margin:22px 0 4px" id="entiSec">Enti / reparti</h2><div class="muted" style="font-size:12px;margin-bottom:10px">Ogni persona appartiene a un ente (lo scegli qui sopra) e vede solo le attività del suo ente. Il responsabile di ente aggiunge e modifica le attività del suo ente. Le attività senza ente le vede solo l'amministratore.</div><div class="stack">
+ ${A?`<h2 style="margin:22px 0 4px" id="entiSec">Enti / reparti</h2><div class="muted" style="font-size:12px;margin-bottom:10px">Ogni persona appartiene a un ente (lo scegli qui sopra) e vede solo le attività del suo ente. Il responsabile di ente aggiunge e modifica le attività del suo ente. Le attività senza ente le vede solo l'amministratore.</div><div class="stack">
  ${S.enti.map((v,i)=>`<div class="irow rrow2"><span class="av">${i+1}</span><input data-enn="${i}" value="${esc(v)}" aria-label="Nome ente">${S.delE===i?`<div class="row"><button class="btn sm pri" data-endel="${i}">Conferma</button><button class="btn sm" data-enno>Annulla</button></div>`:`<div class="row"><span class="muted" style="font-size:12px">${(n=>n===1?"1 persona":n+" persone")(S.persone.filter(p=>pEnte(p)===v).length)}</span><button class="btn sm" data-enask="${i}">Elimina</button></div>`}</div>`).join('')}
  <div class="row"><input id="enNew" placeholder="Nuovo ente (es. Officina)" style="flex:1"><button class="btn pri" id="enAdd">Aggiungi ente</button></div></div>
  <h2 style="margin:22px 0 4px">Ruoli responsabili</h2><div class="muted" style="font-size:12px;margin-bottom:10px">Le voci compaiono in ogni commessa.</div><div class="stack">
@@ -862,7 +862,7 @@ function vImp(){
  <div class="row"><input id="rNew" placeholder="Nuovo ruolo (es. Pneumatica)" style="flex:1"><button class="btn pri" id="rAdd">Aggiungi ruolo</button></div></div>
  <h2 style="margin:22px 0 4px" id="vociSec">Voci ore</h2><div class="muted" style="font-size:12px;margin-bottom:10px">Le voci su cui imposti budget e consuntivo di ogni commessa (tab Ore).</div><div class="stack">
  ${S.voci.map((v,i)=>`<div class="irow rrow2"><span class="av">${i+1}</span><input data-vn="${i}" value="${esc(v)}" aria-label="Nome voce">${S.delV===i?`<div class="row"><button class="btn sm pri" data-vdel="${i}">Conferma</button><button class="btn sm" data-vno>Annulla</button></div>`:`<div class="row"><button class="btn sm" data-vmv="${i}|-1" ${i?'':'disabled'} aria-label="Su">▲</button><button class="btn sm" data-vmv="${i}|1" ${i<S.voci.length-1?'':'disabled'} aria-label="Giù">▼</button><button class="btn sm" data-vask="${i}">Elimina</button></div>`}</div>`).join('')}
- <div class="row"><input id="vNew" placeholder="Nuova voce (es. Collaudo)" style="flex:1"><button class="btn pri" id="vAdd">Aggiungi voce</button></div></div></section></div>`;
+ <div class="row"><input id="vNew" placeholder="Nuova voce (es. Collaudo)" style="flex:1"><button class="btn pri" id="vAdd">Aggiungi voce</button></div></div>`:''}</section></div>`;
  const busy=(b,p)=>{b.disabled=true;p.catch(e=>toast(FB.err(e))).finally(()=>render())};
  $('#nAdd').onclick=e=>{const nome=$('#nNome').value.trim();if(!nome)return $('#nErr').textContent='Inserisci nome e cognome.';if(S.persone.includes(nome))return $('#nErr').textContent='Questa persona esiste già.';
   S.persone.push(nome);if(newEnte()){S.pInfo=S.pInfo||{};S.pInfo[nome]={ente:newEnte()}}if($('#nAcc').checked)busy(e.target,FB.creaAccesso(nome));else render()};
@@ -876,6 +876,7 @@ function vImp(){
  document.querySelectorAll('[data-no]').forEach(b=>b.onclick=()=>{S.delP=null;render()});
  document.querySelectorAll('[data-rm]').forEach(b=>b.onclick=async()=>{const p=b.dataset.rm;for(const k in S.utenti)if(S.utenti[k].nome===p&&k!=='admin')await FB.togliAccesso(k).catch(()=>{});
   S.persone=S.persone.filter(x=>x!==p);S.commesse.forEach(c=>c.att.forEach(a=>{if(a.pers===p)a.pers=''}));if(S.selP===p)S.selP=S.persone[0];S.delP=null;render()});
+ if(!A)return;
  document.querySelectorAll('[data-rn]').forEach(inp=>inp.onchange=()=>{const i=+inp.dataset.rn,o=S.ruoli[i],n=inp.value.trim();if(!n||S.ruoli.includes(n)){inp.value=o;return}
   S.ruoli[i]=n;S.commesse.forEach(c=>{if(c.resp&&o in c.resp){c.resp[n]=c.resp[o];delete c.resp[o]}})});
  document.querySelectorAll('[data-rask]').forEach(b=>b.onclick=()=>{S.delR=+b.dataset.rask;render()});
@@ -932,6 +933,8 @@ window.FB={msg:'',key:null,
   await signOut(sa).catch(()=>{});await setDoc(doc(db,'utenti',uid),{user:u});
   S.utenti[u]={nome,ruolo:old&&old.ruolo||'persona',perm:old&&old.perm||{},email:old&&old.email,uid,must};if(S.ex)delete S.ex[u];
   toast(must?'Accesso creato: utente '+u+', password 123':'Accesso riattivato: '+u+' entra con la password che usava prima')},
+ async syncResp(p){const e=Object.entries(S.utenti).find(([k,v])=>v.nome===p);if(!e||!e[1].uid||e[0]==='admin')return;
+  await setDoc(doc(db,'utenti',e[1].uid),{user:e[0],resp:!!((S.pInfo||{})[p]||{}).resp},{merge:true}).catch(er=>toast('Permesso responsabile non salvato: '+FB.err(er)))},
  async togliAccesso(u){const x=S.utenti[u];if(!x||u==='admin')return;if(x.uid)await deleteDoc(doc(db,'utenti',x.uid)).catch(()=>{});S.ex=S.ex||{};S.ex[u]={uid:x.uid,ruolo:x.ruolo,perm:x.perm,email:x.email};delete S.utenti[u]}
 };
 onAuthStateChanged(auth,user=>{
@@ -951,6 +954,7 @@ onAuthStateChanged(auth,user=>{
   if(!S.persone.includes(S.selP))S.selP=S.persone[0];
   if(!first&&document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))return;
   remote=true;_render();remote=false;
+  if(first&&e[0]==='admin')Object.keys(S.pInfo||{}).forEach(x=>FB.syncResp(x));
   if(first&&(e[1].must||(e[0]==='admin'&&!S.admOk)))pwSheet(true);
  },er=>{FB.msg='Accesso al database negato: '+FB.err(er);FB.logout()});
 });
