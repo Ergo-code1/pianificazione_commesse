@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.1.1 — 2026-11-04
+- Eventi: il gate creato da un'attività mantiene la descrizione dell'attività, senza aggiungere «Fine».
+
 ## 2.1.0 — 2026-11-04
 - Responsabile di ente: nuovo tab «Persone ente» per aggiungere persone al proprio ente, creare/togliere accessi, reimpostare password, impostare i permessi e rimuovere persone (non sé stesso, altri responsabili o amministratori).
 - Il flag «Responsabile ente» viene salvato anche su Firebase per le regole di sicurezza (richiede le nuove regole Firestore).

@@ -310,7 +310,7 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.1.0';
+const VERSIONE='2.1.1';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -400,7 +400,7 @@ function vCommesse(){
  $('#cDelNo')&&($('#cDelNo').onclick=()=>{S.delC=null;render()});
  $('#cDel2')&&($('#cDel2').onclick=()=>{S.commesse=S.commesse.filter(x=>x!==c);S.eventi=S.eventi.filter(e=>e.comm!==c.id);S.commesse.filter(x=>!x.chiusa).sort((a,b)=>a.prio-b.prio).forEach((x,i)=>x.prio=i+1);S.delC=null;S.selC=null;toastP('Commessa eliminata');render()});
  $('#togC')&&($('#togC').onclick=()=>{S.showC=!S.showC;render()});
- document.querySelectorAll('[data-toev]').forEach(b=>b.onclick=()=>{const a=findAtt(b.dataset.toev);S.eventi.push({id:S.nextId++,nome:'Fine '+a.nome,data:a.fin||todayL(),comm:c.id,rif:a.id});toastP('Aggiunto agli eventi: Fine '+a.nome);render()});
+ document.querySelectorAll('[data-toev]').forEach(b=>b.onclick=()=>{const a=findAtt(b.dataset.toev);S.eventi.push({id:S.nextId++,nome:a.nome,data:a.fin||todayL(),comm:c.id,rif:a.id});toastP('Aggiunto agli eventi: '+a.nome);render()});
  document.querySelectorAll('[data-gf]').forEach(b=>b.onclick=()=>{const [ci,ai]=b.dataset.gf.split('|');gForm(ci,ai)});
  const sec=document.querySelectorAll('#view .panel')[1];
  if(sec&&!can('edit'))sec.querySelectorAll('table input,table select,[data-del],[data-gf]').forEach(x=>x.disabled=true);
@@ -477,7 +477,7 @@ function vEventi(){
  if(S.editE===e.id)return gateEdit(e);return`<div class="gate"><div class="date">${fmt(e.data)}<div class="muted" style="font-size:11px">${gg>=0?'tra '+gg+' gg':'scaduto'}</div></div>
  <div style="min-width:0"><div style="font-weight:600">${esc(e.nome)}</div><div class="muted" style="font-size:12px"><span class="mono">${e.comm||''}</span>${a?' · da pianificazione: '+esc(a.nome)+' '+statoPill(a):' · gate libero'}</div></div>
  <div class="row"><button class="btn sm" data-eed="${e.id}">Modifica</button><button class="btn sm" data-edel="${e.id}" aria-label="Elimina">✕</button></div></div>`}).join('')}</section></div>`;
- $('#eSel').onchange=()=>{const a=findAtt($('#eSel').value);if(a){$('#eNome').value='Fine '+a.nome;$('#eData').value=a.fin}};
+ $('#eSel').onchange=()=>{const a=findAtt($('#eSel').value);if(a){$('#eNome').value=a.nome;$('#eData').value=a.fin}};
  $('#eAdd').onclick=()=>{const n=$('#eNome').value.trim(),d=$('#eData').value;if(!n||!d)return;const rif=$('#eSel').value||null;
   const a=rif?findAtt(rif):null;const c=a?S.commesse.find(c=>c.att.includes(a)):null;
   S.eventi.push({id:S.nextId++,nome:n,data:d,comm:c?.id||'',ente:c?c.ente||'':newEnte(),rif:rif?+rif:null});render()};
