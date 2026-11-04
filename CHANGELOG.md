@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.0 — 2026-11-04
+- Ambienti separati per ente: ogni commessa appartiene a un ente; chi fa parte di un ente vede solo commesse, attività, persone ed eventi del suo ente.
+- Il responsabile di ente crea e gestisce le commesse e le attività del suo ente.
+- Amministratore: tendina «Ente» in testata per passare da un ente all'altro (o vedere tutti); in «Modifica intestazione» sposta una commessa di ente.
+- Masterplan: ente del modello (o per tutti gli enti) al posto dell'ente per riga.
+
 ## 1.9.0 — 2026-11-04
 - Enti / reparti: l'amministratore crea gli enti (Impostazioni → Enti / reparti) e assegna ogni persona a un ente.
 - Ogni persona vede solo le attività del proprio ente (Commesse, Persone, Gantt, Eventi, esportazioni); l'amministratore vede tutto.
