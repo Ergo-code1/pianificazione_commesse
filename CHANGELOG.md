@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.9.0 — 2026-11-04
+- Enti / reparti: l'amministratore crea gli enti (Impostazioni → Enti / reparti) e assegna ogni persona a un ente.
+- Ogni persona vede solo le attività del proprio ente (Commesse, Persone, Gantt, Eventi, esportazioni); l'amministratore vede tutto.
+- Responsabile di ente: aggiunge e modifica le attività del suo ente e vede le persone del suo ente.
+- Le attività hanno un ente (scelto nella scheda o preso dalla persona assegnata); ente anche nelle righe del masterplan, nell'importazione Excel e nell'export.
+
 ## 1.8.1 — 2026-11-03
 - Accessi: una persona rimossa e poi aggiunta di nuovo viene riattivata con lo stesso account (stessa password di prima).
 
