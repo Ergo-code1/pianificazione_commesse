@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.0 — 2026-11-12
+- Commesse: nuovo pulsante «Archivia» che sposta la commessa (con i suoi eventi) nell'archivio dell'anno; «Elimina» la cancella definitivamente.
+- Archivio per anno nella colonna Commesse: consultazione, ripristino o eliminazione definitiva.
+- Backup notturno automatico di Firestore (GitHub Actions, conservato 30 giorni) con ripristino manuale.
+
 ## 2.1.1 — 2026-11-04
 - Eventi: il gate creato da un'attività mantiene la descrizione dell'attività, senza aggiungere «Fine».
 

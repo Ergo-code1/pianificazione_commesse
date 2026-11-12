@@ -310,7 +310,7 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.1.1';
+const VERSIONE='2.2.0';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -331,6 +331,7 @@ const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
   {id:'C-24-034',prio:2,nome:'Scuola media – rinnovo CPI',cliente:'Comune di Pinerolo',att:[
    {id:5,nome:'Verifica impianti',pers:'Luca Ferrero',ini:'2026-11-05',fin:'2026-11-08',attiva:true,stato:'da fare',prio:1,bud:10,cons:null},
    {id:6,nome:'Asseverazione',pers:'Marco Rossi',ini:'2026-11-20',fin:'2026-11-24',attiva:true,stato:'da fare',prio:3,bud:6,cons:null}]}],
+ archivio:{},
  eventi:[
   {id:1,nome:'Consegna tavole al cliente',data:'2026-11-18',comm:'C-24-031',rif:3},
   {id:2,nome:'Deposito SCIA ai VVF',data:'2026-11-25',comm:'C-24-031',rif:null},
@@ -375,8 +376,8 @@ function vCommesse(){
  const c=S.commesse.find(x=>x.id===S.selC&&cVis(x))||S.commesse.find(x=>!x.chiusa&&cVis(x));S.selC=c?.id;
  $('#view').innerHTML=`<div class="grid2"><aside class="panel"><div class="row" style="justify-content:space-between;margin-bottom:8px"><h3>Commesse</h3><button class="btn sm" id="newC">+ Nuova</button></div>
  <div class="muted" style="font-size:12px;margin-bottom:8px">Ordinate per priorità</div><div class="list">${[...S.commesse].filter(x=>!x.chiusa&&cVis(x)).sort((a,b)=>a.prio-b.prio).map((x,i,arr)=>`<div class="crow"><span class="cprio">${i+1}</span><button class="${x.id===S.selC?'sel':''}" data-c="${x.id}"><span class="code">${x.id}</span><span class="cn">${esc(x.nome)}</span>${prog(x)}</button><div class="prio"><button data-cup="${x.id}" ${i===0?'disabled':''} aria-label="Sposta su">▲</button><button data-cdn="${x.id}" ${i===arr.length-1?'disabled':''} aria-label="Sposta giù">▼</button></div></div>`).join('')}</div>
- ${(()=>{const ch=S.commesse.filter(x=>x.chiusa&&cVis(x));if(!ch.length)return'';return`<div class="cclosed"><button class="btn sm" id="togC">${S.showC?'Nascondi':'Mostra'} commesse chiuse (${ch.length})</button>${S.showC?`<div class="list" style="margin-top:8px">${ch.map(x=>`<button class="${x.id===S.selC?'sel':''}" data-c="${x.id}"><span class="code">${x.id}</span><span class="cn">${esc(x.nome)}</span><span class="muted" style="font-size:11px">chiusa il ${fmt(x.chiusaIl)}</span></button>`).join('')}</div>`:''}</div>`})()}</aside>
- <section class="panel">${c?`<div class="row" style="justify-content:space-between"><div class="chead" style="width:100%"><div><div class="mono" style="color:var(--accent)">${c.id}</div><h2>${esc(c.nome)}${isAdm_()&&curEnte()==='*'?`<span class="ebadge">${esc(c.ente||'senza ente')}</span>`:''}${c.chiusa?' <span class="pill p-done" style="vertical-align:3px">Chiusa</span>':''}</h2><div class="muted">${esc(c.cliente)}${c.master?' · da masterplan '+esc(c.master):''}</div></div>${can('commesse')?`<div class="row"><button class="btn sm" id="cHead">Modifica intestazione</button><button class="btn sm ${c.chiusa?'':'pri'}" id="cClose">${c.chiusa?'Riapri commessa':'Chiudi commessa'}</button>${S.delC===c.id?'<button class="btn sm pri" id="cDel2">Conferma eliminazione</button><button class="btn sm" id="cDelNo">Annulla</button>':'<button class="btn sm" id="cDel">Elimina</button>'}</div>`:''}</div></div>
+ ${(()=>{const ch=S.commesse.filter(x=>x.chiusa&&cVis(x));if(!ch.length)return'';return`<div class="cclosed"><button class="btn sm" id="togC">${S.showC?'Nascondi':'Mostra'} commesse chiuse (${ch.length})</button>${S.showC?`<div class="list" style="margin-top:8px">${ch.map(x=>`<button class="${x.id===S.selC?'sel':''}" data-c="${x.id}"><span class="code">${x.id}</span><span class="cn">${esc(x.nome)}</span><span class="muted" style="font-size:11px">chiusa il ${fmt(x.chiusaIl)}</span></button>`).join('')}</div>`:''}</div>`})()}${arcSide()}</aside>
+ <section class="panel">${c?`<div class="row" style="justify-content:space-between"><div class="chead" style="width:100%"><div><div class="mono" style="color:var(--accent)">${c.id}</div><h2>${esc(c.nome)}${isAdm_()&&curEnte()==='*'?`<span class="ebadge">${esc(c.ente||'senza ente')}</span>`:''}${c.chiusa?' <span class="pill p-done" style="vertical-align:3px">Chiusa</span>':''}</h2><div class="muted">${esc(c.cliente)}${c.master?' · da masterplan '+esc(c.master):''}</div></div>${can('commesse')?`<div class="row"><button class="btn sm" id="cHead">Modifica intestazione</button><button class="btn sm ${c.chiusa?'':'pri'}" id="cClose">${c.chiusa?'Riapri commessa':'Chiudi commessa'}</button>${S.delC===c.id?'<button class="btn sm pri" id="cDel2">Conferma eliminazione definitiva</button><button class="btn sm" id="cDelNo">Annulla</button>':'<button class="btn sm" id="cArc">Archivia</button><button class="btn sm" id="cDel">Elimina</button>'}</div>`:''}</div></div>
  <div class="resp"><div class="rh">Responsabili</div><div class="rgrid">${S.ruoli.map(r=>`<label class="rcell"><span>${esc(r)}</span><select data-resp="${esc(r)}"><option value="">—</option>${persOpts((c.resp||{})[r]).map(p=>`<option ${(c.resp||{})[r]===p?'selected':''}>${esc(p)}</option>`).join('')}</select></label>`).join('')||'<span class="muted">Nessun ruolo: aggiungili in Impostazioni.</span>'}</div></div>
  <div class="tablewrap" style="margin-top:12px"><table class="ctab"><thead><tr><th>Attività</th><th>Persona</th><th>Inizio</th><th>Fine</th><th>Condizioni</th></tr></thead><tbody>
  ${c.att.map(a=>`<tr class="${a.sum?'csum':''}" style="--lv:${a.liv||0}"><td style="padding-left:${6+(a.liv||0)*18}px"><input data-f="nome" data-id="${a.id}" value="${esc(a.nome)}"><div class="rmeta"><span class="row" style="gap:6px">${a.sum?'':statoPill(a)}</span><div class="racts">${a.sum?'':`<button class="btn sm" data-gf="${c.id}|${a.id}" title="Dettagli e attivazione automatica" aria-label="Dettagli">⛓</button>`}${S.eventi.some(e=>e.rif===a.id)?'<button class="btn sm" disabled title="Già negli eventi" aria-label="Già negli eventi">✓</button>':`<button class="btn sm" data-toev="${a.id}" title="Invia a eventi" aria-label="Invia a eventi">◆</button>`}<button class="btn sm" data-del="${a.id}" aria-label="Elimina">✕</button></div></div>${!a.attiva&&a.manca?`<div class="muted manca" style="font-size:12px;margin-top:3px">Manca: <input data-f="manca" data-id="${a.id}" value="${esc(a.manca)}"></div>`:''}</td>
@@ -400,6 +401,8 @@ function vCommesse(){
  $('#cDelNo')&&($('#cDelNo').onclick=()=>{S.delC=null;render()});
  $('#cDel2')&&($('#cDel2').onclick=()=>{S.commesse=S.commesse.filter(x=>x!==c);S.eventi=S.eventi.filter(e=>e.comm!==c.id);S.commesse.filter(x=>!x.chiusa).sort((a,b)=>a.prio-b.prio).forEach((x,i)=>x.prio=i+1);S.delC=null;S.selC=null;toastP('Commessa eliminata');render()});
  $('#togC')&&($('#togC').onclick=()=>{S.showC=!S.showC;render()});
+ $('#cArc')&&($('#cArc').onclick=()=>arcPut(c));
+ arcBind();
  document.querySelectorAll('[data-toev]').forEach(b=>b.onclick=()=>{const a=findAtt(b.dataset.toev);S.eventi.push({id:S.nextId++,nome:a.nome,data:a.fin||todayL(),comm:c.id,rif:a.id});toastP('Aggiunto agli eventi: '+a.nome);render()});
  document.querySelectorAll('[data-gf]').forEach(b=>b.onclick=()=>{const [ci,ai]=b.dataset.gf.split('|');gForm(ci,ai)});
  const sec=document.querySelectorAll('#view .panel')[1];
@@ -616,6 +619,17 @@ function gForm(cid,aid){if(!(aid?can('edit'):can('add')))return;const c=S.commes
    if(pid){const pi=c.att.findIndex(x=>x.id==pid);na.liv=(c.att[pi].liv||0)+1;c.att.splice(pi+1+cSub(c,pi).length,0,na)}else c.att.push(na)}
   close();render()}}
 const can=p=>!!S.user&&(S.user.ruolo==='admin'||!!(S.user.perm||{})[p]||(['add','edit','commesse'].includes(p)&&isResp()));
+function arcList(y){return((S.archivio||{})[y]||[]).filter(x=>cVis(x))}
+function arcPut(c){const y=todayL().slice(0,4);S.archivio=S.archivio||{};(S.archivio[y]=S.archivio[y]||[]).push({...c,archiviataIl:todayL(),eventi:S.eventi.filter(e=>e.comm===c.id)});
+ S.commesse=S.commesse.filter(x=>x!==c);S.eventi=S.eventi.filter(e=>e.comm!==c.id);S.commesse.filter(x=>!x.chiusa).sort((a,b)=>a.prio-b.prio).forEach((x,i)=>x.prio=i+1);S.selC=null;S.arcY=y;toastP('Commessa archiviata nel '+y);render()}
+function arcSide(){const A=S.archivio||{},ys=Object.keys(A).filter(y=>arcList(y).length).sort().reverse();if(!ys.length)return'';const y=ys.includes(S.arcY)?S.arcY:ys[0];
+ return`<div class="cclosed"><button class="btn sm" id="togA">${S.showA?'Nascondi':'Mostra'} archivio</button>${S.showA?`<div class="row" style="margin-top:8px"><select id="arcY">${ys.map(v=>`<option ${v===y?'selected':''}>${v}</option>`).join('')}</select><span class="muted" style="font-size:12px">${arcList(y).length} commesse</span></div><div class="list" style="margin-top:8px">${arcList(y).map(x=>`<div class="crow" style="display:block"><div><span class="code">${x.id}</span> <span class="cn">${esc(x.nome)}</span></div><div class="muted" style="font-size:11px">${esc(x.cliente)} · archiviata il ${fmt(x.archiviataIl)}/${y}</div>${can('commesse')?`<div class="row" style="margin-top:4px"><button class="btn sm" data-arest="${y}|${x.id}">Ripristina</button>${S.delA===x.id?`<button class="btn sm pri" data-adel2="${y}|${x.id}">Conferma eliminazione definitiva</button><button class="btn sm" data-adelno>Annulla</button>`:`<button class="btn sm" data-adel="${x.id}">Elimina</button>`}</div>`:''}</div>`).join('')}</div>`:''}</div>`}
+function arcBind(){$('#togA')&&($('#togA').onclick=()=>{S.showA=!S.showA;render()});$('#arcY')&&($('#arcY').onchange=e=>{S.arcY=e.target.value;render()});
+ const take=v=>{const [y,id]=v.split('|'),L=S.archivio[y],i=L.findIndex(x=>x.id===id),x=L.splice(i,1)[0];if(!L.length)delete S.archivio[y];return x};
+ document.querySelectorAll('[data-arest]').forEach(b=>b.onclick=()=>{const x=take(b.dataset.arest),ev=x.eventi||[];delete x.eventi;delete x.archiviataIl;x.prio=S.commesse.filter(c=>!c.chiusa).length+1;S.commesse.push(x);S.eventi.push(...ev);S.selC=x.id;toastP('Commessa ripristinata');render()});
+ document.querySelectorAll('[data-adel]').forEach(b=>b.onclick=()=>{S.delA=b.dataset.adel;render()});
+ document.querySelectorAll('[data-adelno]').forEach(b=>b.onclick=()=>{S.delA=null;render()});
+ document.querySelectorAll('[data-adel2]').forEach(b=>b.onclick=()=>{take(b.dataset.adel2);S.delA=null;toastP('Commessa eliminata definitivamente');render()})}
 function cSub(c,i){const A=c.att,r=[];for(let j=i+1;j<A.length&&(A[j].liv||0)>(A[i].liv||0);j++)r.push(A[j]);return r}
 function cMove(c,id,d){const i=c.att.findIndex(x=>x.id==id),a=c.att[i];if(i<0)return;const L=a.liv||0;
  if(d>0&&!(i>0&&L<=(c.att[i-1].liv||0)))return;if(d<0&&!L)return;cSub(c,i).forEach(x=>x.liv=(x.liv||0)+d);a.liv=L+d;render()}
@@ -907,7 +921,7 @@ const FB_DOM='ergoplan-ergotech.it',fem=u=>u+'@'+FB_DOM,fpw=p=>'ep#'+p;
 const app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app),ref=doc(db,'app','stato');
 const secApp=initializeApp(cfg,'sec'),sa=getAuth(secApp);setPersistence(sa,inMemoryPersistence).catch(()=>{});
 try{auth.languageCode='it'}catch(e){}
-const KEYS=['ex','enti','pInfo','voci','master','persone','ruoli','commesse','eventi','utenti','nextId','admOk'];
+const KEYS=['archivio','ex','enti','pInfo','voci','master','persone','ruoli','commesse','eventi','utenti','nextId','admOk'];
 let last='',unsub=null,timer=null,remote=false;
 const pack=()=>JSON.stringify(Object.fromEntries(KEYS.map(k=>[k,S[k]??null])));
 function save(){clearTimeout(timer);timer=setTimeout(()=>{if(!S.user)return;const d=pack();if(d===last)return;last=d;
