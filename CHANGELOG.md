@@ -1,8 +1,10 @@
 # Changelog
 
+## 2.2.1 — 2026-11-12
+- Archiviazione della singola attività (pulsante 🗄 sulla riga) invece dell'intera commessa; ✕ elimina definitivamente con conferma.
+- «Attività archiviate» per anno nella colonna Commesse: ripristino nella sua commessa o eliminazione definitiva.
+
 ## 2.2.0 — 2026-11-12
-- Commesse: nuovo pulsante «Archivia» che sposta la commessa (con i suoi eventi) nell'archivio dell'anno; «Elimina» la cancella definitivamente.
-- Archivio per anno nella colonna Commesse: consultazione, ripristino o eliminazione definitiva.
 - Backup notturno automatico di Firestore (GitHub Actions, conservato 30 giorni) con ripristino manuale.
 
 ## 2.1.1 — 2026-11-04
