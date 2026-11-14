@@ -301,6 +301,38 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 .glg i{display:inline-block;width:18px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}.glg i.dia{width:10px;height:10px;background:var(--hi);transform:rotate(45deg)}
 .instbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:55;display:flex;align-items:center;gap:10px;background:var(--surface);color:var(--fg);border:1px solid var(--hi);border-radius:16px;padding:10px 12px;box-shadow:var(--shadow);width:min(calc(100% - 24px),460px)}
 .instbar img{width:40px;height:40px;border-radius:10px;flex:none}.instbar span{flex:1;min-width:0;font-size:13px}.instbar small{color:var(--muted)}
+/* Area manutenzione */
+.mn-sub{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;margin-bottom:14px}
+.mn-sub button{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 14px;cursor:pointer;font-weight:600;color:var(--muted)}
+.mn-sub button[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--onink)}
+.mn .panel{margin-bottom:12px}
+.mn-f .evf label{color:var(--muted)}
+.mn-wide{grid-column:span 2}
+.mn-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.mn-kpi{background:var(--surface);border:1px solid var(--line);border-top:4px solid;border-radius:8px;padding:12px;display:grid;gap:4px;text-align:left;cursor:pointer;font:inherit;color:inherit}
+.mn-kpi[aria-pressed="true"]{outline:2px solid var(--fg)}
+.mn-kpi b{font-family:var(--f-disp);font-size:26px}
+.mn-ovl{position:fixed;inset:0;background:rgb(0 0 0/.5);display:grid;place-items:start center;z-index:45;padding:24px 12px;overflow:auto}
+.mn-box{background:var(--surface);color:var(--fg);border-radius:14px;padding:20px;width:min(100%,680px);box-shadow:var(--shadow);display:grid;gap:12px}
+.mn-box .evf input,.mn-box .evf select,.mn-box textarea{width:100%}
+.mn-box textarea{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;box-sizing:border-box}
+.mn-step{border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;gap:8px}
+.mn-chk{display:flex!important;gap:10px;align-items:flex-start;font-size:14px!important;color:var(--fg)!important}
+.mn-chk input{width:22px!important;height:22px;flex:none;margin:0;accent-color:var(--ok)}
+.mn-ph{padding-left:32px}.mn-th{position:relative;display:inline-block}.mn-th img{width:72px;height:72px;object-fit:cover;border-radius:6px;display:block}
+.mn-th button{position:absolute;top:2px;right:2px;padding:0 5px}
+.mn-srow{border-bottom:1px solid var(--line);padding:4px 0}
+.mn-doc{width:100%;height:70vh;border:0;border-radius:6px;background:#fff}
+.mn-toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--onink);padding:10px 18px;border-radius:99px;z-index:60;font-size:13px;max-width:90vw}
+@media(max-width:700px){
+ .mn-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.mn-wide{grid-column:auto}
+ .mn-t table,.mn-t thead,.mn-t tbody,.mn-t tr,.mn-t td{display:block;width:100%}
+ .mn-t thead{display:none}.mn-t tr{border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin-bottom:8px}
+ .mn-t td{border:0;display:flex;gap:10px;justify-content:space-between;align-items:center;text-align:right;padding:4px 0;overflow-wrap:anywhere}
+ .mn-t td::before{content:attr(data-label);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;flex:none;max-width:40%}
+ .mn-t td[data-label=""]::before{display:none}.mn-t td select{max-width:60%}.mn-t td .btn{width:100%;padding:10px}
+ .mn-ovl{padding:0}.mn-box{border-radius:0;min-height:100%;width:100%}
+}
 </style>
 </head><body>
 <div class="wrap" id="app"><div class="login"><h1>Ergo Plan</h1><div class="muted">Caricamento…</div></div></div>
@@ -310,7 +342,7 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.2.1';
+const VERSIONE='2.3.0';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -351,14 +383,14 @@ function render(){
  S.commesse.forEach(cCalc);
  if(!S.user){renderLogin();return}
  const isAdm=S.user.ruolo==='admin';
- const tabs=[['commesse','Commesse'],['persone','Persone'],['gantt','Gantt'],['ore','Ore'],['eventi','Eventi'],...(isAdm?[['master','Masterplan'],['imp','Impostazioni']]:isResp()?[['imp','Persone ente']]:[])];
+ const tabs=[['commesse','Commesse'],['persone','Persone'],['gantt','Gantt'],['ore','Ore'],['eventi','Eventi'],['manut','Manutenzione'],...(isAdm?[['master','Masterplan'],['imp','Impostazioni']]:isResp()?[['imp','Persone ente']]:[])];
  $('#app').innerHTML=`<header class="top"><div><h1>Ergo Plan <span class="rev">v${VERSIONE}</span></h1><div class="muted">Dati condivisi</div></div>
  <div class="row">${isAdm_()?enteSel():''}<span class="muted">${esc(S.user.nome)} (${isAdm_()?'admin':isResp()?'resp. '+esc(myEnte()):myEnte()?esc(myEnte()):S.user.ruolo})</span><button class="btn sm" id="acct">Il mio account</button><button class="btn sm" id="logout">Esci</button></div></header>
  <nav class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${S.tab===k}" data-tab="${k}">${l}</button>`).join('')}</nav>
  <main id="view"></main>`;
  $('#logout').onclick=()=>FB.logout();$('#acct').onclick=()=>accountSheet();
  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;render()});
- ({commesse:vCommesse,persone:vPersone,gantt:vGantt,master:vMaster,ore:vOre,eventi:vEventi,imp:vImp})[S.tab]();
+ ({commesse:vCommesse,persone:vPersone,gantt:vGantt,master:vMaster,ore:vOre,eventi:vEventi,imp:vImp,manut:vManut})[S.tab]();
 }
 
 function renderLogin(){
@@ -646,7 +678,7 @@ A.forEach((a,i)=>{a.liv=Math.max(0,Math.min(+a.liv||0,i?A[i-1].liv+1:0));a.sum=f
    const b=ch.filter(x=>x.bud!=null),k=ch.filter(x=>x.cons!=null);a.bud=b.length?b.reduce((s,x)=>s+x.bud,0):null;a.cons=k.length?k.reduce((s,x)=>s+x.cons,0):null;
    a.stato=ch.every(x=>x.stato==='conclusa')?'conclusa':ch.some(x=>x.stato!=='da fare')?'in corso':'da fare';a.attiva=ch.some(x=>x.attiva);a.pers=''}}return c}
 function permHtml(u){const x=S.utenti[u];if(!x)return'';if(!isAdm_()&&(x.nome===S.user.nome||((S.pInfo||{})[x.nome]||{}).resp))return'';if(x.ruolo==='admin')return'<div class="perm muted">Amministratore: può fare tutto</div>';const p=x.perm||{};
- return`<div class="perm">${[['add','Aggiunge attività'],['edit','Modifica ed elimina attività'],['commesse','Crea commesse e responsabili']].map(([k,l])=>`<label><input type="checkbox" data-perm="${esc(u)}|${k}" ${p[k]?'checked':''}> ${l}</label>`).join('')}</div>`}
+ return`<div class="perm">${[['add','Aggiunge attività'],['edit','Modifica ed elimina attività'],['commesse','Crea commesse e responsabili'],['manut','Responsabile manutenzione']].map(([k,l])=>`<label><input type="checkbox" data-perm="${esc(u)}|${k}" ${p[k]?'checked':''}> ${l}</label>`).join('')}</div>`}
 document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.perm){const [u,k]=t.dataset.perm.split('|');if(!S.utenti[u])return;(S.utenti[u].perm||(S.utenti[u].perm={}))[k]=t.checked;render()}});
 function toastP(t){if(typeof toast==='function')return toast(t);let el=document.getElementById('toastP');if(!el){el=document.createElement('div');el.id='toastP';el.className='toastp';document.body.appendChild(el)}el.textContent=t;el.hidden=false;clearTimeout(el._t);el._t=setTimeout(()=>el.hidden=true,3000)}
 
@@ -913,10 +945,11 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
+<script src="manutenzione.js?v=2.3.0"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,doc,onSnapshot,setDoc,deleteDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,doc,onSnapshot,setDoc,deleteDoc,getDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const cfg={apiKey:"AIzaSyAbscB5amw2TAfWWvrHk1Mt3cxY9UgbPhM",authDomain:"pianificazione-2cb19.firebaseapp.com",projectId:"pianificazione-2cb19",storageBucket:"pianificazione-2cb19.firebasestorage.app",messagingSenderId:"453354724899",appId:"1:453354724899:web:f382d27638cf1059275b96"};
 const FB_DOM='ergoplan-ergotech.it',fem=u=>u+'@'+FB_DOM,fpw=p=>'ep#'+p;
 const app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app),ref=doc(db,'app','stato');
@@ -937,7 +970,7 @@ window.FB={msg:'',key:null,
   await setPersistence(auth,rem?browserLocalPersistence:browserSessionPersistence).catch(()=>{});
   try{try{await signInWithEmailAndPassword(auth,em,fpw(pw))}catch(e0){if(pw.length>=6&&e0.code!=='auth/too-many-requests')await signInWithEmailAndPassword(auth,em,pw);else throw e0}}
   catch(e){if(raw==='admin'&&pw===PW0&&e.code!=='auth/too-many-requests')await createUserWithEmailAndPassword(auth,fem('admin'),fpw(PW0));else throw e}},
- logout(){unsub&&unsub();unsub=null;S.user=null;FB.key=null;closeSheet();signOut(auth)},
+ logout(){unsub&&unsub();window.FBM&&FBM.stop();unsub=null;S.user=null;FB.key=null;closeSheet();signOut(auth)},
  reset:e=>sendPasswordResetEmail(auth,e).catch(()=>{}),
  async setPw(p){await updatePassword(auth.currentUser,fpw(p));if(FB.key==='admin')S.admOk=1;if(S.utenti[FB.key])S.utenti[FB.key].must=false;save()},
  async linkEmail(e){await verifyBeforeUpdateEmail(auth.currentUser,e);S.utenti[FB.key].email=e;save()},
@@ -952,6 +985,15 @@ window.FB={msg:'',key:null,
   await setDoc(doc(db,'utenti',e[1].uid),{user:e[0],resp:!!((S.pInfo||{})[p]||{}).resp},{merge:true}).catch(er=>toast('Permesso responsabile non salvato: '+FB.err(er)))},
  async togliAccesso(u){const x=S.utenti[u];if(!x||u==='admin')return;if(x.uid)await deleteDoc(doc(db,'utenti',x.uid)).catch(()=>{});S.ex=S.ex||{};S.ex[u]={uid:x.uid,ruolo:x.ruolo,perm:x.perm,email:x.email};delete S.utenti[u]}
 };
+window.FBM={_u:null,
+ listen(cb,er){this.stop();this._u=onSnapshot(doc(db,'app','manut'),sn=>cb(sn.exists()?sn.data():null),e=>{this._u=null;er(e)})},
+ stop(){this._u&&this._u();this._u=null},
+ save:d=>setDoc(doc(db,'app','manut'),d),
+ getY:async y=>{const sn=await getDoc(doc(db,'manutStorico',String(y)));return sn.exists()?(sn.data().att||[]):[]},
+ saveY:(y,arr)=>setDoc(doc(db,'manutStorico',String(y)),{att:arr}),
+ putBlob:(c,id,o)=>setDoc(doc(db,c,id),o),
+ getBlob:async(c,id)=>{const sn=await getDoc(doc(db,c,id));return sn.exists()?sn.data():null},
+ delBlob:(c,id)=>deleteDoc(doc(db,c,id))};
 onAuthStateChanged(auth,user=>{
  if(!user){S.user=null;renderLogin();return}
  const un=user.email.endsWith('@'+FB_DOM)?user.email.split('@')[0]:null;

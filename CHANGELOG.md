@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.3.0 — 2026-11-14
+- Nuovo tab «Manutenzione»: impianti con componenti, configuratore dei tipi di componente con procedure standard, procedure (codice, frequenza a calendario / da ultima chiusura / a evento, passi con foto obbligatoria, documento allegato).
+- Scadenziario automatico: alla chiusura di un'attività viene generata la successiva; eventi registrabili per le procedure «a evento».
+- Situazione impianti (scaduti, in scadenza, attesa evento, in regola), attività assegnabili ai manutentori, «Le mie attività» con checklist e foto compresse.
+- Storico per anno con filtri, esportazione Excel e rapporto PDF della singola attività.
+- Nuovo permesso «Responsabile manutenzione» (Impostazioni → persone). Dati su Firestore in app/manut, manutStorico, manutFoto, manutDoc (richiede le regole aggiornate).
+
 ## 2.2.1 — 2026-11-12
 - Archiviazione della singola attività (pulsante 🗄 sulla riga) invece dell'intera commessa; ✕ elimina definitivamente con conferma.
 - «Attività archiviate» per anno nella colonna Commesse: ripristino nella sua commessa o eliminazione definitiva.
