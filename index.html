@@ -330,6 +330,22 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 .mn-note{font-style:italic}
 .mn-r{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
 .mn-man{max-width:200px}
+.mn-dash{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px;align-items:start}
+.mn-calw{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}
+.mn-calh{display:flex;gap:8px;align-items:center;margin-bottom:10px}.mn-calh h3{flex:1;text-transform:capitalize;text-align:center}
+.mn-wd,.mn-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.mn-wd{margin-bottom:4px}.mn-wd span{font-size:11px;color:var(--muted);text-align:center;text-transform:uppercase}
+.mn-day{min-height:84px;border:1px solid var(--line);border-radius:8px;padding:4px;display:flex;flex-direction:column;gap:3px;cursor:pointer;background:var(--bg);min-width:0}
+.mn-day:hover{border-color:var(--fg)}.mn-day.out{opacity:.45}.mn-day.today{border:2px solid var(--accent)}
+.mn-dn{font-size:12px;font-weight:600}
+.mn-chip{border:0;border-left:3px solid var(--c);background:color-mix(in srgb,var(--c) 14%,var(--surface));color:var(--fg);border-radius:4px;padding:2px 5px;font-size:11px;text-align:left;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:block;width:100%;font-family:inherit}
+.mn-chip span{color:var(--muted)}
+.mn-agenda{display:none}
+.mn-day.drop{border:2px dashed var(--info);background:color-mix(in srgb,var(--info) 10%,var(--bg))}.mn-chip[draggable=true]{cursor:grab}
+.mn-nd{opacity:.75}.mn-due{color:var(--accent);font-weight:600}
+.mn-info{background:color-mix(in srgb,var(--info) 12%,var(--surface));border-left:4px solid var(--info);padding:10px 12px;border-radius:8px;font-size:13px}
+@media(max-width:1000px){.mn-dash{grid-template-columns:1fr}}
+@media(max-width:700px){.mn-cal{display:none}.mn-agenda{display:grid;gap:10px}.mn-ag{display:grid;gap:4px}.mn-chip{font-size:13px;padding:6px 8px}}
 .mn-grp{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--surface);display:grid;gap:8px}
 .mn-gh{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:space-between;align-items:center}
 .mn-gh h3{font-size:16px}.mn-grp .mn-it{background:var(--bg)}
@@ -366,7 +382,7 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.4.0';
+const VERSIONE='2.5.0';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -971,7 +987,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.4.0"></script>
+<script src="manutenzione.js?v=2.5.0"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
