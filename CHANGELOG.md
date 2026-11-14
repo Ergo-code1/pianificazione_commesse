@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.5.0 — 2026-11-14
+- Manutenzione → Pianificazione: calendario mensile per pianificare le manutenzioni degli impianti (data e manutentore), con elenco degli impianti da pianificare e in scadenza.
+- In ogni manutenzione entrano solo le procedure scadute alla data scelta; si possono scegliere componenti interi o singole procedure.
+- Le procedure ricordano l'ultima esecuzione: la successiva viene richiesta solo quando è passato l'intervallo (o dopo un evento registrato).
+- Impianti mai manutenuti restano «da pianificare» fino alla prima manutenzione.
+- Manutenzioni spostabili trascinandole nel calendario o cambiando la data.
+- Le procedure del tipo di componente valgono per tutti i componenti di quel tipo: aggiungerne o toglierne una aggiorna tutti gli impianti.
+
 ## 2.4.0 — 2026-11-14
 - Manutenzione: nuova grafica a schede, senza scorrimento orizzontale; sezioni con titolo e spiegazione.
 - «Persone» rinominata «Attività assegnate»: le manutenzioni assegnate a una persona compaiono lì, raggruppate per impianto, e si eseguono da lì.
