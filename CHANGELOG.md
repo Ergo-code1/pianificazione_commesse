@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.4.0 — 2026-11-14
+- Manutenzione: nuova grafica a schede, senza scorrimento orizzontale; sezioni con titolo e spiegazione.
+- «Persone» rinominata «Attività assegnate»: le manutenzioni assegnate a una persona compaiono lì, raggruppate per impianto, e si eseguono da lì.
+- Assegnazione di una singola attività o di tutte le attività di un impianto.
+- Impostazioni: per ogni persona si scelgono le sezioni visibili.
+
 ## 2.3.0 — 2026-11-14
 - Nuovo tab «Manutenzione»: impianti con componenti, configuratore dei tipi di componente con procedure standard, procedure (codice, frequenza a calendario / da ultima chiusura / a evento, passi con foto obbligatoria, documento allegato).
 - Scadenziario automatico: alla chiusura di un'attività viene generata la successiva; eventi registrabili per le procedure «a evento».
