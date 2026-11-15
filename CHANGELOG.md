@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.7.1 — 2026-11-15
+- Manutenzione → Registro: cronologia di tutti gli eventi delle attività (pianificata, assegnata, spostata, completata, tolta, riaperta…); cronologia anche dentro ogni attività.
+- Le attività scadute non vengono più tolte in automatico: restano sulla persona come «in ritardo · non conclusa»; il responsabile le sposta o le toglie («Togli e ripianifica»).
+- Le attività tolte in automatico dalla versione precedente vengono rimesse sulle persone per oggi.
+- Pianificazione: riquadri, calendario, pianificate e fatte per mese, poi l'elenco.
+
 ## 2.7.0 — 2026-11-15
 - Ogni reparto (ente) è un ambiente a sé: una scheda per reparto, con le sezioni scelte in Impostazioni → Enti / reparti (Commesse, Attività assegnate, Gantt, Ore, Eventi, Masterplan, sezioni di manutenzione).
 - Commesse, Masterplan e attività restano nel loro reparto; in «Attività assegnate» si vedono solo persone e attività del reparto.
