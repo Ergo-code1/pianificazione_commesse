@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.7.0 — 2026-11-15
+- Ogni reparto (ente) è un ambiente a sé: una scheda per reparto, con le sezioni scelte in Impostazioni → Enti / reparti (Commesse, Attività assegnate, Gantt, Ore, Eventi, Masterplan, sezioni di manutenzione).
+- Commesse, Masterplan e attività restano nel loro reparto; in «Attività assegnate» si vedono solo persone e attività del reparto.
+- «Responsabile anche dei reparti»: una persona può gestire più reparti; spunta separata per le impostazioni della manutenzione.
+- Persone e accessi: riquadro «Ruolo e permessi» ordinato, filtro per reparto e ricerca per nome.
+
 ## 2.6.0 — 2026-11-15
 - Menu a tre aree: Ingegneria (Commesse, Attività assegnate, Gantt, Ore, Eventi), Manutenzione (Pianificazione, Attività assegnate, Impianti, Ricambi, Storico), Impostazioni (Persone e accessi, Masterplan, Impianti, Categorie, Tipi componente, Procedure).
 - Ogni persona ha un'area; l'amministratore può aggiungere sezioni dell'altra area. Responsabile ingegneria e responsabile manutenzione (anche entrambi); facoltà di aggiungere attività a persone scelte.
