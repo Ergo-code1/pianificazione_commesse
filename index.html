@@ -472,12 +472,13 @@ const AREE={ing:['Ingegneria',SEZ_ING.map(k=>[k,lab(k)])],man:['Manutenzione',SE
 function groups(){const A=isAdm_(),o=[];if(!S.user)return o;const pm=S.user.perm||{},mR=can('manut'),iR=!!pm.ing;
  if(A){S.enti.forEach(e=>o.push({id:'e:'+e,ente:e,l:e,t:repSez(e).map(k=>[k,lab(k)])}));if(!S.enti.length)o.push({id:'e:',ente:'*',l:'Lavoro',t:SEZ_ING.map(k=>[k,lab(k)])})}
  else{const me=myEnte(),own=repSez(me),ex=new Set();
-  Object.keys(pm.vis||{}).forEach(k=>ex.add(k));if(mR)SEZ_MAN.forEach(k=>ex.add(k));if(iR)SEZ_ING.forEach(k=>ex.add(k));
+  Object.keys(pm.vis||{}).forEach(k=>ex.add(k));if(mR)SEZ_MAN.forEach(k=>ex.add(k));
   o.push({id:'e:'+me,ente:me,l:me||'Il mio lavoro',t:own.map(k=>[k,lab(k)])});
-  let more=[...ex].filter(k=>!own.includes(k)&&SEZL[k]);S.enti.filter(e=>e!==me).forEach(e=>{const ks=repSez(e).filter(k=>more.includes(k));if(ks.length){o.push({id:'v:'+e,l:e,t:ks.map(k=>[k,lab(k)])});more=more.filter(k=>!ks.includes(k))}});
+  altE().filter(e=>e!==me).forEach(e=>o.push({id:'e:'+e,ente:e,l:e,t:repSez(e).map(k=>[k,lab(k)])}));
+  let more=[...ex].filter(k=>!own.includes(k)&&SEZL[k]);S.enti.filter(e=>e!==me&&!altE().includes(e)).forEach(e=>{const ks=repSez(e).filter(k=>more.includes(k));if(ks.length){o.push({id:'v:'+e,ente:e,l:e,t:ks.map(k=>[k,lab(k)])});more=more.filter(k=>!ks.includes(k))}});
   if(more.length)o.push({id:'x',l:'Altre sezioni',t:SEZ.filter(([k])=>more.includes(k)).map(([k])=>[k,lab(k)])})}
  const anyM=S.enti.some(e=>repSez(e).includes('master'));
- const st=[['imp',A?'Persone e accessi':'Persone ente'],['master','Masterplan'],['cimp','Impianti'],['ccat','Categorie impianti'],['ctipi','Tipi componente'],['cproc','Procedure']].filter(([k])=>A?(k!=='master'||!anyM):(k==='imp'&&isResp())||(k==='master'&&iR)||(['cimp','ccat','ctipi','cproc'].includes(k)&&mR));
+ const st=[['imp',A?'Persone e accessi':'Persone ente'],['master','Masterplan'],['cimp','Impianti'],['ccat','Categorie impianti'],['ctipi','Tipi componente'],['cproc','Procedure']].filter(([k])=>A?(k!=='master'||!anyM):(k==='imp'&&isResp())||(['cimp','ccat','ctipi','cproc'].includes(k)&&mR));
  if(st.length)o.push({id:'set',l:'Impostazioni',t:st});
  return o}
 function render(){
@@ -485,13 +486,13 @@ function render(){
  if(!S.user){renderLogin();return}
  const isAdm=S.user.ruolo==='admin';
  const GR=groups();let cg=GR.find(g=>g.id===S.grp&&g.t.some(t=>t[0]===S.tab))||GR.find(g=>g.id===S.grp)||GR.find(g=>g.t.some(t=>t[0]===S.tab))||GR[0];
- if(cg&&!cg.t.some(t=>t[0]===S.tab))S.tab=cg.t[0][0];S.grp=cg&&cg.id;if(cg&&isAdm_()){const want=cg.ente!=null?cg.ente:'*';if(S.admEnte!==want)S.admEnte=want}
+ if(cg&&!cg.t.some(t=>t[0]===S.tab))S.tab=cg.t[0][0];S.grp=cg&&cg.id;if(cg&&isAdm_()){const want=cg.ente!=null?cg.ente:'*';if(S.admEnte!==want)S.admEnte=want}else if(cg)S.curE=cg.ente!=null?cg.ente:null;
  $('#app').innerHTML=`<header class="top"><div><h1>Ergo Plan <span class="rev">v${VERSIONE}</span></h1><div class="muted">Dati condivisi</div></div>
  <div class="row"><span class="muted">${esc(S.user.nome)} (${isAdm_()?'admin':isResp()?'resp. '+esc(myEnte()):myEnte()?esc(myEnte()):S.user.ruolo})</span><button class="btn sm" id="acct">Il mio account</button><button class="btn sm" id="logout">Esci</button></div></header>
  <nav class="tabs" role="tablist">${GR.map(g=>`<button role="tab" aria-selected="${g===cg}" data-grp="${esc(g.id)}">${esc(g.l)}</button>`).join('')}</nav>
  ${cg&&cg.t.length>1?`<nav class="subtabs" aria-label="Sezioni ${esc(cg.l)}">${cg.t.map(([k,l])=>`<button aria-current="${S.tab===k?'page':'false'}" data-tab="${k}">${l}</button>`).join('')}</nav>`:''}
  <main id="view"></main>`;
- document.querySelectorAll('[data-grp]').forEach(b=>b.onclick=()=>{const g=GR.find(x=>x.id===b.dataset.grp);if(!g)return;S.grp=g.id;S.tab=(g.t.find(t=>t[0]===(S.lastT||{})[g.id])||g.t[0])[0];if(isAdm_())S.admEnte=g.ente!=null?g.ente:'*';render()});
+ document.querySelectorAll('[data-grp]').forEach(b=>b.onclick=()=>{const g=GR.find(x=>x.id===b.dataset.grp);if(!g)return;S.grp=g.id;S.tab=(g.t.find(t=>t[0]===(S.lastT||{})[g.id])||g.t[0])[0];if(isAdm_())S.admEnte=g.ente!=null?g.ente:'*';else S.curE=g.ente!=null?g.ente:null;render()});
  $('#logout').onclick=()=>FB.logout();$('#acct').onclick=()=>accountSheet();
  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;(S.lastT=S.lastT||{})[cg.id]=S.tab;render()});
  setTimeout(()=>{if(S._fq){S._fq=0;const f=document.getElementById('pfQ');if(f){f.focus();f.setSelectionRange(f.value.length,f.value.length)}}},0);
@@ -684,7 +685,7 @@ function vMaster(){
  $('#mPrj').onclick=()=>exportPrjMaster(m);
  document.querySelectorAll('[data-mdel]').forEach(b=>b.onclick=()=>{m.att.splice(+b.dataset.mdel,1);render()});
  $('#mAdd').onclick=()=>{const end=m.att.length?Math.max(...m.att.map(a=>a.off+a.dur)):0;m.att.push({nome:'Nuova attività',off:end,dur:5,ore:null});render()};
- $('#mDup').onclick=()=>{const id=S.nextId++;S.master.push({id,nome:m.nome+' (copia)',att:m.att.map(a=>({...a}))});S.selM=id;render()};
+ $('#mDup').onclick=()=>{const id=S.nextId++;S.master.push({id,nome:m.nome+' (copia)',ente:m.ente||'',att:m.att.map(a=>({...a}))});S.selM=id;render()};
  $('#mDel')&&($('#mDel').onclick=()=>{S.delM=m.id;render()});
  $('#mDelNo')&&($('#mDelNo').onclick=()=>{S.delM=null;render()});
  $('#mDelOk')&&($('#mDelOk').onclick=()=>{S.master=S.master.filter(x=>x!==m);S.delM=null;S.selM=null;render()});
@@ -755,7 +756,7 @@ function gForm(cid,aid){if(!(aid?can('edit'):can('add')))return;const c=S.commes
   if(a)Object.assign(a,v);else{const na={id:S.nextId++,liv:0,stato:'da fare',prio:9,cons:null,...v},pid=$('#gfPos').value;
    if(pid){const pi=c.att.findIndex(x=>x.id==pid);na.liv=(c.att[pi].liv||0)+1;c.att.splice(pi+1+cSub(c,pi).length,0,na)}else c.att.push(na)}
   close();render()}}
-const can=p=>!!S.user&&(S.user.ruolo==='admin'||!!(S.user.perm||{})[p]||(['add','edit','commesse'].includes(p)&&(isResp()||!!(S.user.perm||{}).ing))||(p==='add'&&Object.keys((S.user.perm||{}).addFor||{}).length>0));
+const can=p=>!!S.user&&(S.user.ruolo==='admin'||!!(S.user.perm||{})[p]||(['add','edit','commesse'].includes(p)&&((isResp()&&curEnte()===myEnte())||altE().includes(curEnte())))||(p==='add'&&Object.keys((S.user.perm||{}).addFor||{}).length>0));
 function arcList(y){return((S.archivio||{})[y]||[]).filter(x=>cVis(x))}
 function arcPut(c,aid){const i=c.att.findIndex(a=>a.id==aid);if(i<0)return;const A=c.att.splice(i,1+cSub(c,i).length),ids=new Set(A.map(a=>a.id)),y=todayL().slice(0,4);
  S.archivio=S.archivio||{};(S.archivio[y]=S.archivio[y]||[]).push({id:'A'+A[0].id,comm:c.id,commNome:c.nome,cliente:c.cliente,ente:c.ente,att:A,eventi:S.eventi.filter(e=>ids.has(e.rif)),archiviataIl:todayL()});
@@ -786,18 +787,19 @@ function permHtml(u){const x=S.utenti[u];if(!x)return'';if(!isAdm_()&&(x.nome===
  const cb=(k,l)=>`<label><input type="checkbox" data-perm="${esc(u)}|${k}" ${p[k]?'checked':''}> ${l}</label>`;
  const af=S.persone.filter(n=>n!==x.nome),nAf=af.filter(n=>(p.addFor||{})[n]).length;
  const own=repSez(pEnte(x.nome)),other=SEZ.filter(([k])=>!own.includes(k)),nV=other.filter(([k])=>(p.vis||{})[k]).length;
- return`<div class="pgrp"><b>Responsabile anche di</b><div class="perm">${cb('ing','Commesse e Masterplan (tutti i reparti)')}${cb('manut','Manutenzione e sue impostazioni')}</div></div>
+ return`<div class="pgrp"><b>Responsabile anche dei reparti</b><div class="perm">${S.enti.filter(e=>e!==pEnte(x.nome)).map(e=>`<label><input type="checkbox" data-respof="${esc(u)}|${esc(e)}" ${(p.respOf||{})[e]?'checked':''}> ${esc(e)}</label>`).join('')||'<span class="muted">nessun altro reparto</span>'}</div><div class="perm">${cb('manut','Impostazioni della manutenzione (impianti, procedure)')}</div></div>
  <div class="pgrp"><b>Può</b><div class="perm">${cb('add','aggiungere attività a tutti')}${cb('edit','modificare ed eliminare attività')}${cb('commesse','creare commesse')}</div></div>
  <details class="pgrp" ${dk(x.nome+'|af')}><summary><b>Può aggiungere attività anche a</b> <span class="muted">${nAf?nAf+' persone':'nessuno'}</span></summary><div class="perm pcols">${af.map(n=>`<label><input type="checkbox" data-addfor="${esc(u)}|${esc(n)}" ${(p.addFor||{})[n]?'checked':''}> ${esc(n)}</label>`).join('')}</div></details>
  <details class="pgrp" ${dk(x.nome+'|vis')}><summary><b>Vede anche</b> <span class="muted">${nV?nV+' sezioni di altri reparti':'solo il suo reparto'}</span></summary><div class="perm">${other.map(([k,l])=>`<label><input type="checkbox" data-vis="${esc(u)}|${k}" ${(p.vis||{})[k]?'checked':''}> ${l}</label>`).join('')}</div></details>`}
 const pfOk=p=>{const PF=S.pf||{};const e=pEnte(p);return(!PF.e||(PF.e==='__no'?!e:e===PF.e))&&(!PF.q||p.toLowerCase().includes(PF.q.toLowerCase()))};
 const OPEN=new Set();const dk=k=>`data-pk="${esc(k)}" ${OPEN.has(k)?'open':''} ontoggle="this.open?OPEN.add(this.dataset.pk):OPEN.delete(this.dataset.pk)"`;
 function pBox(p,e,A){const i=(S.pInfo||{})[p]||{},ar=pArea(p);
- const sum=[i.ente?i.ente:'senza reparto',i.resp?'resp. reparto':'',e&&e[1].perm&&e[1].perm.ing?'resp. ingegneria':'',e&&e[1].perm&&e[1].perm.manut?'resp. manutenzione':''].filter(Boolean).join(' · ');
+ const sum=[i.ente?i.ente:'senza reparto',i.resp?'resp. reparto':'',e&&e[1].perm&&e[1].perm.respOf&&Object.keys(e[1].perm.respOf).length?'resp. anche di '+Object.keys(e[1].perm.respOf).join(', '):'',e&&e[1].perm&&e[1].perm.manut?'impost. manutenzione':''].filter(Boolean).join(' · ');
  return`<details class="pbox" ${dk(p)}><summary>Ruolo e permessi <span class="muted">· ${esc(sum)}</span></summary>
  ${A?`<div class="pgrp"><b>Reparto</b><div class="muted" style="font-size:12px">La persona vede l'ambiente del suo reparto.</div><div class="evf"><label>Reparto<select data-pe="${esc(p)}"><option value="">— nessuno —</option>${S.enti.map(x=>`<option ${i.ente===x?'selected':''}>${esc(x)}</option>`).join('')}</select></label></div><label class="chkl" style="margin-top:6px"><input type="checkbox" data-pr="${esc(p)}" ${i.resp?'checked':''} ${i.ente?'':'disabled'}> Responsabile del reparto (gestisce le persone del suo reparto)</label></div>`:''}
  ${e?permHtml(e[0]):'<div class="pgrp muted">Senza accesso all\'app: crea l\'accesso per dare i permessi.</div>'}</details>`}
 document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.rsz){const [e,k]=t.dataset.rsz.split('|');S.repSez=S.repSez||{};const cur=[...repSez(e)];const nx=t.checked?[...cur,k]:cur.filter(x=>x!==k);S.repSez[e]=SEZ.map(x=>x[0]).filter(x=>nx.includes(x));render()}
+ if(t&&t.dataset&&t.dataset.respof){const [u,e]=t.dataset.respof.split('|');const x=S.utenti[u];if(!x)return;const pm=x.perm||(x.perm={});const h=pm.respOf||(pm.respOf={});if(t.checked)h[e]=true;else delete h[e];render()}
  if(t&&t.dataset&&t.dataset.addfor){const [u,n]=t.dataset.addfor.split('|');const x=S.utenti[u];if(!x)return;const pm=x.perm||(x.perm={});const h=pm.addFor||(pm.addFor={});if(t.checked)h[n]=true;else delete h[n];render()}
  if(t&&t.dataset&&t.dataset.vis){const [u,k]=t.dataset.vis.split('|');const x=S.utenti[u];if(!x)return;const pm=x.perm||(x.perm={});const h=pm.vis||(pm.vis={});if(t.checked)h[k]=true;else delete h[k];render()}
  if(t&&t.dataset&&t.dataset.area){const p=t.dataset.area;S.pInfo=S.pInfo||{};(S.pInfo[p]=S.pInfo[p]||{}).area=t.value;render()}});
@@ -839,7 +841,8 @@ const isAdm_=()=>!!S.user&&S.user.ruolo==='admin';
 const isResp=()=>!!S.user&&!isAdm_()&&!!pEnte(S.user.nome)&&!!((S.pInfo||{})[S.user.nome]||{}).resp;
 const myEnte=()=>S.user&&!isAdm_()?pEnte(S.user.nome):'';
 // ente corrente: per l'admin quello scelto nella tendina ('*' = tutti, '' = senza ente), per gli altri il proprio
-const curEnte=()=>isAdm_()?(S.admEnte??'*'):myEnte();
+const altE=()=>{const pm=(S.user&&S.user.perm)||{};return Object.keys(pm.respOf||{}).filter(e=>S.enti.includes(e))};
+const curEnte=()=>isAdm_()?(S.admEnte??'*'):(S.curE!=null&&S.curE!==myEnte()&&(altE().includes(S.curE)||Object.keys((S.user.perm||{}).vis||{}).length)?S.curE:myEnte());
 const inEnte=e=>curEnte()==='*'||(e||'')===curEnte();
 const cVis=c=>inEnte(c.ente);
 const evVis=e=>{const c=e.comm&&S.commesse.find(x=>x.id===e.comm);return c?cVis(c):inEnte(e.ente)};
@@ -1059,7 +1062,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  document.querySelectorAll('[data-vno]').forEach(b=>b.onclick=()=>{S.delV=null;render()});
  document.querySelectorAll('[data-vdel]').forEach(b=>b.onclick=()=>{const v=S.voci[+b.dataset.vdel];S.voci.splice(+b.dataset.vdel,1);S.commesse.forEach(c=>c.ore&&delete c.ore[v]);S.delV=null;render()});
  $('#vAdd').onclick=()=>{const n=$('#vNew').value.trim();if(n&&!S.voci.includes(n)){S.voci.push(n);render()}};
- const enMap=(o,n)=>{if(S.repSez&&S.repSez[o]){if(n)S.repSez[n]=S.repSez[o];delete S.repSez[o]}Object.values(S.pInfo||{}).forEach(i=>{if(i.ente===o){i.ente=n;if(!n)i.resp=false}});S.commesse.forEach(c=>c.att.forEach(a=>{if(a.ente===o)a.ente=n}));S.master.forEach(m=>m.att.forEach(a=>{if(a.ente===o)a.ente=n}))};
+ const enMap=(o,n)=>{if(S.repSez&&S.repSez[o]){if(n)S.repSez[n]=S.repSez[o];delete S.repSez[o]}Object.values(S.pInfo||{}).forEach(i=>{if(i.ente===o){i.ente=n;if(!n)i.resp=false}});S.commesse.forEach(c=>c.att.forEach(a=>{if(a.ente===o)a.ente=n}));S.master.forEach(m=>{if(m.ente===o)m.ente=n;m.att.forEach(a=>{if(a.ente===o)a.ente=n})});S.commesse.forEach(c=>{if(c.ente===o)c.ente=n});S.eventi.forEach(v=>{if(v.ente===o)v.ente=n});Object.values(S.utenti||{}).forEach(u=>{const r=u.perm&&u.perm.respOf;if(r&&r[o]){delete r[o];if(n)r[n]=true}})};
  document.querySelectorAll('[data-enn]').forEach(inp=>inp.onchange=()=>{const i=+inp.dataset.enn,o=S.enti[i],n=inp.value.trim();if(!n||S.enti.includes(n)){inp.value=o;return}S.enti[i]=n;enMap(o,n);render()});
  document.querySelectorAll('[data-enask]').forEach(b=>b.onclick=()=>{S.delE=+b.dataset.enask;render()});
  document.querySelectorAll('[data-enno]').forEach(b=>b.onclick=()=>{S.delE=null;render()});
