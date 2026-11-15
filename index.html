@@ -302,6 +302,7 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 .instbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:55;display:flex;align-items:center;gap:10px;background:var(--surface);color:var(--fg);border:1px solid var(--hi);border-radius:16px;padding:10px 12px;box-shadow:var(--shadow);width:min(calc(100% - 24px),460px)}
 .instbar img{width:40px;height:40px;border-radius:10px;flex:none}.instbar span{flex:1;min-width:0;font-size:13px}.instbar small{color:var(--muted)}
 /* Permessi persona */
+.pfbar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:12px}.pfbar label{display:grid;gap:4px;font-size:12px;color:var(--muted)}.pfq{flex:1 1 220px}.pfq input{width:100%}
 .pbox{margin-top:8px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
 .pbox>summary{cursor:pointer;padding:9px 12px;font-weight:600;font-size:13px;list-style:none}.pbox>summary::before{content:'▸ ';color:var(--muted)}.pbox[open]>summary::before{content:'▾ '}
 .pbox[open]>summary{border-bottom:1px solid var(--line)}
@@ -483,6 +484,7 @@ function render(){
  document.querySelectorAll('[data-grp]').forEach(b=>b.onclick=()=>{const l=G[b.dataset.grp];if(l&&l[0]){S.tab=(l.find(t=>t[0]===S['last_'+b.dataset.grp])||l[0])[0]};render()});
  $('#logout').onclick=()=>FB.logout();$('#acct').onclick=()=>accountSheet();
  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;S['last_'+cg]=S.tab;render()});
+ setTimeout(()=>{if(S._fq){S._fq=0;const f=document.getElementById('pfQ');if(f){f.focus();f.setSelectionRange(f.value.length,f.value.length)}}},0);
  (({commesse:vCommesse,persone:vPersone,gantt:vGantt,master:vMaster,ore:vOre,eventi:vEventi,imp:vImp})[S.tab]||vManut)();
 }
 
@@ -778,6 +780,7 @@ function permHtml(u){const x=S.utenti[u];if(!x)return'';if(!isAdm_()&&(x.nome===
  <div class="pgrp"><b>Può</b><div class="perm">${cb('add','aggiungere attività a tutti')}${cb('edit','modificare ed eliminare attività')}${cb('commesse','creare commesse')}</div></div>
  <details class="pgrp" ${dk(x.nome+'|af')}><summary><b>Può aggiungere attività anche a</b> <span class="muted">${nAf?nAf+' persone':'nessuno'}</span></summary><div class="perm pcols">${af.map(n=>`<label><input type="checkbox" data-addfor="${esc(u)}|${esc(n)}" ${(p.addFor||{})[n]?'checked':''}> ${esc(n)}</label>`).join('')}</div></details>
  <details class="pgrp" ${dk(x.nome+'|vis')}><summary><b>Vede anche</b> <span class="muted">${nV?nV+' sezioni di '+AREE[pArea(x.nome)==='man'?'ing':'man'][0]:'solo la sua area'}</span></summary><div class="perm">${other.map(([k,l])=>`<label><input type="checkbox" data-vis="${esc(u)}|${k}" ${(p.vis||{})[k]?'checked':''}> ${l}</label>`).join('')}</div></details>`}
+const pfOk=p=>{const PF=S.pf||{};const e=pEnte(p);return(!PF.e||(PF.e==='__no'?!e:e===PF.e))&&(!PF.q||p.toLowerCase().includes(PF.q.toLowerCase()))};
 const OPEN=new Set();const dk=k=>`data-pk="${esc(k)}" ${OPEN.has(k)?'open':''} ontoggle="this.open?OPEN.add(this.dataset.pk):OPEN.delete(this.dataset.pk)"`;
 function pBox(p,e,A){const i=(S.pInfo||{})[p]||{},ar=pArea(p);
  const sum=[AREE[ar][0],i.ente?'reparto '+i.ente:'',i.resp?'resp. reparto':'',e&&e[1].perm&&e[1].perm.ing?'resp. ingegneria':'',e&&e[1].perm&&e[1].perm.manut?'resp. manutenzione':''].filter(Boolean).join(' · ');
@@ -1002,8 +1005,8 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  <input id="nNome" placeholder="Nome e cognome"><label class="chkl" style="color:var(--onink)"><input type="checkbox" id="nAcc" checked> Crea accesso all'app</label>
  <div class="muted" style="font-size:11px">Nome utente: prime 3 lettere del nome + prime 3 del cognome. Password iniziale <span class="mono">123</span>, da cambiare al primo accesso.</div>
  <div class="err" id="nErr"></div><button class="btn pri" id="nAdd">Aggiungi persona</button></div></aside>
- <section class="panel"><h2 style="margin-bottom:12px">${A?'Persone e accessi':'Persone di '+esc(myEnte())}</h2><div class="stack">
- ${visPers().map(p=>{const e=us.find(([k,v])=>v.nome===p),n=allAtt().filter(a=>a.pers===p).length;
+ <section class="panel"><h2 style="margin-bottom:12px">${A?'Persone e accessi':'Persone di '+esc(myEnte())}</h2>${(()=>{const PF=S.pf||(S.pf={e:'',q:''});const tot=visPers().length,vis=visPers().filter(pfOk).length;return `<div class="pfbar">${A&&S.enti.length?`<label>Reparto<select onchange="S.pf.e=this.value;render()"><option value="">Tutti</option>${S.enti.map(x=>`<option ${PF.e===x?'selected':''}>${esc(x)}</option>`).join('')}<option value="__no" ${PF.e==='__no'?'selected':''}>Senza reparto</option></select></label>`:''}<label class="pfq">Cerca nome<input id="pfQ" type="search" value="${esc(PF.q)}" placeholder="Nome o cognome…" oninput="S.pf.q=this.value;S._fq=1;render()"></label>${PF.e||PF.q?`<button class="btn sm" onclick="S.pf={e:'',q:''};render()">Azzera</button>`:''}<span class="muted" style="font-size:12px">${vis===tot?tot+' persone':vis+' di '+tot+' persone'}</span></div>`})()}<div class="stack">
+ ${visPers().filter(pfOk).map(p=>{const e=us.find(([k,v])=>v.nome===p),n=allAtt().filter(a=>a.pers===p).length;
   const acc=e?`<span class="mono">${esc(e[0])}</span> · ${A?`<select data-ruolo="${esc(e[0])}"><option value="persona" ${e[1].ruolo!=='admin'?'selected':''}>Persona</option><option value="admin" ${e[1].ruolo==='admin'?'selected':''}>Amministratore</option></select>`:(e[1].ruolo==='admin'?'amministratore':pR(p)?'responsabile ente':'persona')} ${e[1].must?'<span class="pill p-warn">Primo accesso da fare</span>':'<span class="pill p-ok">Attivo</span>'}${e[1].email?' · '+esc(e[1].email):''}`:'senza accesso';
   return`<div class="irow"><span class="av">${ini(p)}</span><div style="min-width:0"><div class="cn">${esc(p)}</div><div class="muted" style="font-size:12px">${acc} · ${n} attività</div>${(A||(e&&permHtml(e[0])))?pBox(p,e,A):''}</div>
   ${!A&&(p===S.user.nome||pR(p)||(e&&e[1].ruolo==='admin'))?'<span></span>':S.delP===p?`<div class="row"><span class="muted" style="font-size:12px">Le sue attività restano non assegnate.</span><button class="btn sm pri" data-rm="${esc(p)}">Conferma</button><button class="btn sm" data-no>Annulla</button></div>`:
