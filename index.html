@@ -301,6 +301,15 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 .glg i{display:inline-block;width:18px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}.glg i.dia{width:10px;height:10px;background:var(--hi);transform:rotate(45deg)}
 .instbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:55;display:flex;align-items:center;gap:10px;background:var(--surface);color:var(--fg);border:1px solid var(--hi);border-radius:16px;padding:10px 12px;box-shadow:var(--shadow);width:min(calc(100% - 24px),460px)}
 .instbar img{width:40px;height:40px;border-radius:10px;flex:none}.instbar span{flex:1;min-width:0;font-size:13px}.instbar small{color:var(--muted)}
+/* Permessi persona */
+.pbox{margin-top:8px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.pbox>summary{cursor:pointer;padding:9px 12px;font-weight:600;font-size:13px;list-style:none}.pbox>summary::before{content:'▸ ';color:var(--muted)}.pbox[open]>summary::before{content:'▾ '}
+.pbox[open]>summary{border-bottom:1px solid var(--line)}
+.pgrp{padding:10px 12px;border-bottom:1px solid var(--line);display:grid;gap:6px;font-size:13px}.pbox>.pgrp:last-child{border-bottom:0}
+.pgrp>b,.pgrp summary b{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before{content:'▸ ';color:var(--muted)}details.pgrp[open]>summary::before{content:'▾ '}
+.pcols{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:4px 12px}
+.pbox .evf label{color:var(--muted)}
 /* Sottosezioni */
 .subtabs{display:flex;flex-wrap:wrap;gap:6px;margin:-6px 0 18px}
 .subtabs button{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:7px 14px;cursor:pointer;font-weight:600;color:var(--fg);font-size:13px}
@@ -413,7 +422,7 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.6.0';
+const VERSIONE='2.6.1';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -451,7 +460,7 @@ function statoPill(a){
  return a.attiva?'<span class="pill p-ok">Attiva</span>':'<span class="pill p-off">Non attiva</span>';}
 
 const AREE={ing:['Ingegneria',[['commesse','Commesse'],['persone','Attività assegnate'],['gantt','Gantt'],['ore','Ore'],['eventi','Eventi']]],man:['Manutenzione',[['manut','Pianificazione'],['mpers','Attività assegnate'],['mimp','Impianti'],['mric','Ricambi'],['msto','Storico']]],set:['Impostazioni',[['imp','Persone e accessi'],['master','Masterplan'],['cimp','Impianti'],['ccat','Categorie impianti'],['ctipi','Tipi componente'],['cproc','Procedure']]]};
-const pArea=p=>((S.pInfo||{})[p]||{}).area||'ing';
+const pArea=p=>{const i=(S.pInfo||{})[p]||{};return i.area||(/manut/i.test(i.ente||'')?'man':'ing')};
 function leafs(){const A=isAdm_(),o={};if(!S.user)return{ing:[],man:[],set:[]};
  const ar=pArea(S.user.nome),vis=(S.user.perm||{}).vis||{},mR=can('manut');
  const iR=!!(S.user.perm||{}).ing;
@@ -761,8 +770,20 @@ A.forEach((a,i)=>{a.liv=Math.max(0,Math.min(+a.liv||0,i?A[i-1].liv+1:0));a.sum=f
   if(ch.length){a.sum=true;const d=ch.filter(x=>x.ini&&x.fin);a.ini=d.length?d.map(x=>x.ini).sort()[0]:'';a.fin=d.length?d.map(x=>x.fin).sort().pop():'';
    const b=ch.filter(x=>x.bud!=null),k=ch.filter(x=>x.cons!=null);a.bud=b.length?b.reduce((s,x)=>s+x.bud,0):null;a.cons=k.length?k.reduce((s,x)=>s+x.cons,0):null;
    a.stato=ch.every(x=>x.stato==='conclusa')?'conclusa':ch.some(x=>x.stato!=='da fare')?'in corso':'da fare';a.attiva=ch.some(x=>x.attiva);a.pers=''}}return c}
-function permHtml(u){const x=S.utenti[u];if(!x)return'';if(!isAdm_()&&(x.nome===S.user.nome||((S.pInfo||{})[x.nome]||{}).resp))return'';if(x.ruolo==='admin')return'<div class="perm muted">Amministratore: può fare tutto</div>';const p=x.perm||{};
- return`<div class="perm">${[['ing','Responsabile ingegneria'],['manut','Responsabile manutenzione'],['add','Aggiunge attività a tutti'],['edit','Modifica ed elimina attività'],['commesse','Crea commesse']].map(([k,l])=>`<label><input type="checkbox" data-perm="${esc(u)}|${k}" ${p[k]?'checked':''}> ${l}</label>`).join('')}</div><div class="perm"><span class="muted">Può aggiungere attività a:</span>${S.persone.filter(n=>n!==x.nome).map(n=>`<label><input type="checkbox" data-addfor="${esc(u)}|${esc(n)}" ${(p.addFor||{})[n]?'checked':''}> ${esc(n)}</label>`).join('')}</div><div class="perm"><span class="muted">Vede anche (altra area):</span>${[...AREE.ing[1],...AREE.man[1]].filter(([k])=>!AREE[pArea(x.nome)][1].some(t=>t[0]===k)).map(([k,l])=>`<label><input type="checkbox" data-vis="${esc(u)}|${k}" ${(p.vis||{})[k]?'checked':''}> ${l}</label>`).join('')}</div>`}
+function permHtml(u){const x=S.utenti[u];if(!x)return'';if(!isAdm_()&&(x.nome===S.user.nome||((S.pInfo||{})[x.nome]||{}).resp))return'';if(x.ruolo==='admin')return'<div class="pgrp muted">Amministratore: può fare tutto.</div>';const p=x.perm||{};
+ const cb=(k,l)=>`<label><input type="checkbox" data-perm="${esc(u)}|${k}" ${p[k]?'checked':''}> ${l}</label>`;
+ const af=S.persone.filter(n=>n!==x.nome),nAf=af.filter(n=>(p.addFor||{})[n]).length;
+ const other=[...AREE.ing[1],...AREE.man[1]].filter(([k])=>!AREE[pArea(x.nome)][1].some(t=>t[0]===k)),nV=other.filter(([k])=>(p.vis||{})[k]).length;
+ return`<div class="pgrp"><b>Responsabile di</b><div class="perm">${cb('ing','Ingegneria')}${cb('manut','Manutenzione')}</div></div>
+ <div class="pgrp"><b>Può</b><div class="perm">${cb('add','aggiungere attività a tutti')}${cb('edit','modificare ed eliminare attività')}${cb('commesse','creare commesse')}</div></div>
+ <details class="pgrp" ${dk(x.nome+'|af')}><summary><b>Può aggiungere attività anche a</b> <span class="muted">${nAf?nAf+' persone':'nessuno'}</span></summary><div class="perm pcols">${af.map(n=>`<label><input type="checkbox" data-addfor="${esc(u)}|${esc(n)}" ${(p.addFor||{})[n]?'checked':''}> ${esc(n)}</label>`).join('')}</div></details>
+ <details class="pgrp" ${dk(x.nome+'|vis')}><summary><b>Vede anche</b> <span class="muted">${nV?nV+' sezioni di '+AREE[pArea(x.nome)==='man'?'ing':'man'][0]:'solo la sua area'}</span></summary><div class="perm">${other.map(([k,l])=>`<label><input type="checkbox" data-vis="${esc(u)}|${k}" ${(p.vis||{})[k]?'checked':''}> ${l}</label>`).join('')}</div></details>`}
+const OPEN=new Set();const dk=k=>`data-pk="${esc(k)}" ${OPEN.has(k)?'open':''} ontoggle="this.open?OPEN.add(this.dataset.pk):OPEN.delete(this.dataset.pk)"`;
+function pBox(p,e,A){const i=(S.pInfo||{})[p]||{},ar=pArea(p);
+ const sum=[AREE[ar][0],i.ente?'reparto '+i.ente:'',i.resp?'resp. reparto':'',e&&e[1].perm&&e[1].perm.ing?'resp. ingegneria':'',e&&e[1].perm&&e[1].perm.manut?'resp. manutenzione':''].filter(Boolean).join(' · ');
+ return`<details class="pbox" ${dk(p)}><summary>Ruolo e permessi <span class="muted">· ${esc(sum)}</span></summary>
+ ${A?`<div class="pgrp"><b>Dove lavora</b><div class="evf"><label>Area dell'app<select data-area="${esc(p)}"><option value="ing" ${ar!=='man'?'selected':''}>Ingegneria</option><option value="man" ${ar==='man'?'selected':''}>Manutenzione</option></select></label><label>Reparto (ente)<select data-pe="${esc(p)}"><option value="">— nessuno —</option>${S.enti.map(x=>`<option ${i.ente===x?'selected':''}>${esc(x)}</option>`).join('')}</select></label></div><label class="chkl" style="margin-top:6px"><input type="checkbox" data-pr="${esc(p)}" ${i.resp?'checked':''} ${i.ente?'':'disabled'}> Responsabile del reparto (gestisce le persone del suo reparto)</label></div>`:''}
+ ${e?permHtml(e[0]):'<div class="pgrp muted">Senza accesso all\'app: crea l\'accesso per dare i permessi.</div>'}</details>`}
 document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.addfor){const [u,n]=t.dataset.addfor.split('|');const x=S.utenti[u];if(!x)return;const pm=x.perm||(x.perm={});const h=pm.addFor||(pm.addFor={});if(t.checked)h[n]=true;else delete h[n];render()}
  if(t&&t.dataset&&t.dataset.vis){const [u,k]=t.dataset.vis.split('|');const x=S.utenti[u];if(!x)return;const pm=x.perm||(x.perm={});const h=pm.vis||(pm.vis={});if(t.checked)h[k]=true;else delete h[k];render()}
  if(t&&t.dataset&&t.dataset.area){const p=t.dataset.area;S.pInfo=S.pInfo||{};(S.pInfo[p]=S.pInfo[p]||{}).area=t.value;render()}});
@@ -983,8 +1004,8 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  <div class="err" id="nErr"></div><button class="btn pri" id="nAdd">Aggiungi persona</button></div></aside>
  <section class="panel"><h2 style="margin-bottom:12px">${A?'Persone e accessi':'Persone di '+esc(myEnte())}</h2><div class="stack">
  ${visPers().map(p=>{const e=us.find(([k,v])=>v.nome===p),n=allAtt().filter(a=>a.pers===p).length;
-  const acc=e?`<span class="mono">${esc(e[0])}</span> · ${A?`<select data-ruolo="${esc(e[0])}"><option value="persona" ${e[1].ruolo!=='admin'?'selected':''}>Persona</option><option value="admin" ${e[1].ruolo==='admin'?'selected':''}>Amministratore</option></select>`:(e[1].ruolo==='admin'?'amministratore':pR(p)?'responsabile ente':'persona')} ${e[1].must?'<span class="pill p-warn">Primo accesso da fare</span>':'<span class="pill p-ok">Attivo</span>'}${e[1].email?' · '+esc(e[1].email):''}${permHtml(e[0])}`:'senza accesso';
-  return`<div class="irow"><span class="av">${ini(p)}</span><div style="min-width:0"><div class="cn">${esc(p)}</div><div class="muted" style="font-size:12px">${acc} · ${n} attività</div>${A?enteCtl(p)+`<label class="muted" style="font-size:12px;display:inline-flex;gap:6px;align-items:center;margin-top:4px">Area <select data-area="${esc(p)}"><option value="ing" ${pArea(p)!=='man'?'selected':''}>Ingegneria</option><option value="man" ${pArea(p)==='man'?'selected':''}>Manutenzione</option></select></label>`:''}</div>
+  const acc=e?`<span class="mono">${esc(e[0])}</span> · ${A?`<select data-ruolo="${esc(e[0])}"><option value="persona" ${e[1].ruolo!=='admin'?'selected':''}>Persona</option><option value="admin" ${e[1].ruolo==='admin'?'selected':''}>Amministratore</option></select>`:(e[1].ruolo==='admin'?'amministratore':pR(p)?'responsabile ente':'persona')} ${e[1].must?'<span class="pill p-warn">Primo accesso da fare</span>':'<span class="pill p-ok">Attivo</span>'}${e[1].email?' · '+esc(e[1].email):''}`:'senza accesso';
+  return`<div class="irow"><span class="av">${ini(p)}</span><div style="min-width:0"><div class="cn">${esc(p)}</div><div class="muted" style="font-size:12px">${acc} · ${n} attività</div>${(A||(e&&permHtml(e[0])))?pBox(p,e,A):''}</div>
   ${!A&&(p===S.user.nome||pR(p)||(e&&e[1].ruolo==='admin'))?'<span></span>':S.delP===p?`<div class="row"><span class="muted" style="font-size:12px">Le sue attività restano non assegnate.</span><button class="btn sm pri" data-rm="${esc(p)}">Conferma</button><button class="btn sm" data-no>Annulla</button></div>`:
   `<div class="row">${e?`<button class="btn sm" data-rs="${esc(e[0])}">Reimposta password</button><button class="btn sm" data-ra="${esc(e[0])}">Togli accesso</button>`:`<button class="btn sm pri" data-mk="${esc(p)}">Crea accesso</button>`}<button class="btn sm" data-ask="${esc(p)}">Rimuovi</button></div>`}</div>`}).join('')}
  </div>
@@ -1032,7 +1053,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.6.0"></script>
+<script src="manutenzione.js?v=2.6.1"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
