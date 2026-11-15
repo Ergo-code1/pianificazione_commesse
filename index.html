@@ -301,6 +301,13 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 .glg i{display:inline-block;width:18px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}.glg i.dia{width:10px;height:10px;background:var(--hi);transform:rotate(45deg)}
 .instbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:55;display:flex;align-items:center;gap:10px;background:var(--surface);color:var(--fg);border:1px solid var(--hi);border-radius:16px;padding:10px 12px;box-shadow:var(--shadow);width:min(calc(100% - 24px),460px)}
 .instbar img{width:40px;height:40px;border-radius:10px;flex:none}.instbar span{flex:1;min-width:0;font-size:13px}.instbar small{color:var(--muted)}
+/* Sottosezioni */
+.subtabs{display:flex;flex-wrap:wrap;gap:6px;margin:-6px 0 18px}
+.subtabs button{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:7px 14px;cursor:pointer;font-weight:600;color:var(--fg);font-size:13px}
+.subtabs button:hover{border-color:var(--fg)}
+.subtabs button[aria-current="page"]{background:var(--ink);border-color:var(--ink);color:var(--onink)}
+.psel{display:none;width:100%;margin-bottom:12px;font-size:15px;padding:10px}
+@media(max-width:760px){.pside{display:none}.psel{display:block}}
 /* Area manutenzione */
 .mnt{display:block}
 .mn-sub{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
@@ -341,6 +348,21 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 .mn-chip{border:0;border-left:3px solid var(--c);background:color-mix(in srgb,var(--c) 14%,var(--surface));color:var(--fg);border-radius:4px;padding:2px 5px;font-size:11px;text-align:left;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:block;width:100%;font-family:inherit}
 .mn-chip span{color:var(--muted)}
 .mn-agenda{display:none}
+.mn-yr{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.mn-mo{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;display:grid;gap:2px;text-align:left;cursor:pointer;font:inherit;color:var(--fg)}
+.mn-mo:hover{border-color:var(--fg)}.mn-mo b{font-family:var(--f-disp);font-size:15px}
+.mn-mo span{font-size:12px;color:var(--muted)}.mn-mo span.p{color:var(--info);font-weight:600}.mn-mo span.f{color:var(--ok);font-weight:600}
+.mn-mo.cur{border-color:var(--accent)}.mn-mo.sel{outline:2px solid var(--ink);outline-offset:1px;background:var(--surface)}.mn-mo.past{opacity:.8}
+.mn-imps{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:10px}
+.mn-ib{background:var(--surface);border:1px solid var(--line);border-top:5px solid var(--c);border-radius:12px;padding:12px 14px;display:grid;gap:4px;text-align:left;cursor:pointer;font:inherit;color:var(--fg)}
+.mn-ib:hover{border-color:var(--fg);border-top-color:var(--c)}
+.mn-ibh{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.mn-ibh b{font-family:var(--f-disp);font-size:16px}
+.mn-ibr{display:flex;justify-content:space-between;gap:8px;font-size:13px;border-top:1px solid var(--line);padding-top:4px}.mn-ibr>span:first-child{color:var(--muted)}
+.mn-det{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.mn-det .panel{margin:0;display:grid;gap:10px;align-content:start}
+.mn-det .mn-it{background:var(--bg)}
+.mn-notes{display:grid;gap:8px}.mn-nt{background:var(--bg);border-left:3px solid var(--info);border-radius:6px;padding:8px 10px}
+.mn-seg{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}.mn-seg button{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 12px;cursor:pointer;font-weight:600;color:var(--fg);font-size:13px}.mn-seg button[aria-current=page]{background:var(--ink);color:var(--onink);border-color:var(--ink)}
+@media(max-width:700px){.mn-yr{grid-template-columns:repeat(3,minmax(0,1fr))}.mn-det{grid-template-columns:1fr}.mn-mo{padding:8px}}
 .mn-day.drop{border:2px dashed var(--info);background:color-mix(in srgb,var(--info) 10%,var(--bg))}.mn-chip[draggable=true]{cursor:grab}
 .mn-nd{opacity:.75}.mn-due{color:var(--accent);font-weight:600}
 .mn-info{background:color-mix(in srgb,var(--info) 12%,var(--surface));border-left:4px solid var(--info);padding:10px 12px;border-radius:8px;font-size:13px}
@@ -382,7 +404,7 @@ tr.csum td{background:var(--soft)}tr.csum input[data-f="nome"]{font-weight:700}t
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.5.0';
+const VERSIONE='2.6.0';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -419,19 +441,30 @@ function statoPill(a){
  if(a.stato==='in corso')return'<span class="pill p-run">In corso</span>';
  return a.attiva?'<span class="pill p-ok">Attiva</span>':'<span class="pill p-off">Non attiva</span>';}
 
+const AREE={ing:['Ingegneria',[['commesse','Commesse'],['persone','Attività assegnate'],['gantt','Gantt'],['ore','Ore'],['eventi','Eventi']]],man:['Manutenzione',[['manut','Pianificazione'],['mpers','Attività assegnate'],['mimp','Impianti'],['mric','Ricambi'],['msto','Storico']]],set:['Impostazioni',[['imp','Persone e accessi'],['master','Masterplan'],['cimp','Impianti'],['ctipi','Tipi componente'],['cproc','Procedure']]]};
+const pArea=p=>((S.pInfo||{})[p]||{}).area||'ing';
+function leafs(){const A=isAdm_(),o={};if(!S.user)return{ing:[],man:[],set:[]};
+ const ar=pArea(S.user.nome),vis=(S.user.perm||{}).vis||{},mR=can('manut');
+ o.ing=AREE.ing[1].filter(([k])=>A||ar==='ing'||vis[k]);
+ o.man=AREE.man[1].filter(([k])=>A||mR||vis[k]||(ar==='man'&&['mpers','mimp','mric'].includes(k)));
+ o.set=AREE.set[1].filter(([k])=>A||(k==='imp'&&isResp())||(['cimp','ctipi','cproc'].includes(k)&&mR)).map(([k,l])=>[k,k==='imp'&&!A?'Persone ente':l]);
+ return o}
 function render(){
  S.commesse.forEach(cCalc);
  if(!S.user){renderLogin();return}
  const isAdm=S.user.ruolo==='admin';
- const tabs=[['commesse','Commesse'],['persone','Attività assegnate'],['gantt','Gantt'],['ore','Ore'],['eventi','Eventi'],['manut','Manutenzione'],...(isAdm?[['master','Masterplan'],['imp','Impostazioni']]:isResp()?[['imp','Persone ente']]:[])];
- const hid=isAdm?{}:((S.user.perm||{}).hide||{}),tabsV=tabs.filter(([k])=>!hid[k]);if(!tabsV.some(t=>t[0]===S.tab)&&tabsV.length)S.tab=tabsV[0][0];
+ const G=leafs(),grp=Object.keys(AREE).filter(g=>G[g].length);
+ const all=grp.flatMap(g=>G[g]);if(!all.some(t=>t[0]===S.tab)&&all.length)S.tab=all[0][0];
+ const cg=grp.find(g=>G[g].some(t=>t[0]===S.tab))||grp[0];
  $('#app').innerHTML=`<header class="top"><div><h1>Ergo Plan <span class="rev">v${VERSIONE}</span></h1><div class="muted">Dati condivisi</div></div>
  <div class="row">${isAdm_()?enteSel():''}<span class="muted">${esc(S.user.nome)} (${isAdm_()?'admin':isResp()?'resp. '+esc(myEnte()):myEnte()?esc(myEnte()):S.user.ruolo})</span><button class="btn sm" id="acct">Il mio account</button><button class="btn sm" id="logout">Esci</button></div></header>
- <nav class="tabs" role="tablist">${tabsV.map(([k,l])=>`<button role="tab" aria-selected="${S.tab===k}" data-tab="${k}">${l}</button>`).join('')}</nav>
+ <nav class="tabs" role="tablist">${grp.map(g=>`<button role="tab" aria-selected="${g===cg}" data-grp="${g}">${AREE[g][0]}</button>`).join('')}</nav>
+ ${G[cg]&&G[cg].length>1?`<nav class="subtabs" aria-label="Sezioni ${AREE[cg][0]}">${G[cg].map(([k,l])=>`<button aria-current="${S.tab===k?'page':'false'}" data-tab="${k}">${l}</button>`).join('')}</nav>`:''}
  <main id="view"></main>`;
+ document.querySelectorAll('[data-grp]').forEach(b=>b.onclick=()=>{const l=G[b.dataset.grp];if(l&&l[0]){S.tab=(l.find(t=>t[0]===S['last_'+b.dataset.grp])||l[0])[0]};render()});
  $('#logout').onclick=()=>FB.logout();$('#acct').onclick=()=>accountSheet();
- document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;render()});
- ({commesse:vCommesse,persone:vPersone,gantt:vGantt,master:vMaster,ore:vOre,eventi:vEventi,imp:vImp,manut:vManut})[S.tab]();
+ document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;S['last_'+cg]=S.tab;render()});
+ (({commesse:vCommesse,persone:vPersone,gantt:vGantt,master:vMaster,ore:vOre,eventi:vEventi,imp:vImp})[S.tab]||vManut)();
 }
 
 function renderLogin(){
@@ -492,12 +525,12 @@ function bindAttInputs(){
 }
 
 function vPersone(){
- const isAdm=S.user.ruolo==='admin';
+ const isAdm=S.user.ruolo==='admin';const solo=!isAdm&&!isResp();const PL=solo?[S.user.nome]:visPers().filter(p=>pArea(p)!=='man');if(!PL.includes(S.selP))S.selP=solo?S.user.nome:(PL[0]||S.user.nome);
  S.pOrd=S.pOrd||'gantt';const gk=a=>{const cs=[...S.commesse].filter(c=>!c.chiusa).sort((x,y)=>x.prio-y.prio);return cs.indexOf(a._c)*10000+a._c.att.findIndex(x=>x.id===a.id)};
  const lista=allAtt().filter(a=>a.pers===S.selP).sort((x,y)=>(x.stato==='conclusa')-(y.stato==='conclusa')||(S.pOrd==='gantt'?(x.ini?0:1)-(y.ini?0:1)||(x.ini||'').localeCompare(y.ini||'')||(x.fin||'').localeCompare(y.fin||'')||gk(x)-gk(y):x.prio-y.prio));
- $('#view').innerHTML=`<div class="grid2"><aside class="panel"><h3 style="margin-bottom:8px">Persone</h3><div class="list">
- ${visPers().map(p=>{const n=allAtt().filter(a=>a.pers===p&&a.stato!=='conclusa').length+(window.MNP?MNP.count(p):0);return`<button class="pbtn ${p===S.selP?'sel':''}" data-p="${esc(p)}" ${!isAdm&&!isResp()&&p!==S.user.nome?'disabled':''}><span class="av">${ini(p)}</span><span style="min-width:0"><span class="cn">${esc(p)}</span><span class="muted" style="font-size:12px;display:block">${pEnte(p)?esc(pEnte(p))+' · ':''}${n} attività aperte</span></span></button>`}).join('')}</div></aside>
- <section class="panel"><h2>${esc(S.selP)}</h2><div class="row pord"><div class="seg"><button data-po="gantt" aria-pressed="${S.pOrd==='gantt'}">Per date (Gantt)</button><button data-po="prio" aria-pressed="${S.pOrd==='prio'}">Priorità personale</button></div><span class="muted" style="font-size:12px">${S.pOrd==='gantt'?'Ordinate per data di inizio, poi di fine':'Tieni premuto e trascina per riordinare (o usa le frecce)'}</span></div><div class="stack" id="plist">
+ $('#view').innerHTML=`<div class="${solo?'':'grid2'}">${solo?'':`<aside class="panel pside"><h3 style="margin-bottom:8px">Persone</h3><div class="list">
+ ${PL.map(p=>{const n=allAtt().filter(a=>a.pers===p&&a.stato!=='conclusa').length+(window.MNP?MNP.count(p):0);return`<button class="pbtn ${p===S.selP?'sel':''}" data-p="${esc(p)}" ${!isAdm&&!isResp()&&p!==S.user.nome?'disabled':''}><span class="av">${ini(p)}</span><span style="min-width:0"><span class="cn">${esc(p)}</span><span class="muted" style="font-size:12px;display:block">${pEnte(p)?esc(pEnte(p))+' · ':''}${n} attività aperte</span></span></button>`}).join('')}</div></aside>`}
+ <section class="panel">${solo?'':`<select class="psel" aria-label="Persona" onchange="S.selP=this.value;render()">${PL.map(p=>`<option ${p===S.selP?'selected':''}>${esc(p)}</option>`).join('')}</select>`}<h2>${esc(S.selP)}</h2><div class="row pord"><div class="seg"><button data-po="gantt" aria-pressed="${S.pOrd==='gantt'}">Per date (Gantt)</button><button data-po="prio" aria-pressed="${S.pOrd==='prio'}">Priorità personale</button></div><span class="muted" style="font-size:12px">${S.pOrd==='gantt'?'Ordinate per data di inizio, poi di fine':'Tieni premuto e trascina per riordinare (o usa le frecce)'}</span></div><div class="stack" id="plist">
  ${lista.map(a=>`<div class="card ${a.stato==='conclusa'?'done':a.stato==='in corso'?'run':a.attiva?'att':''}" data-aid="${a.id}">
   <div class="row" style="gap:6px"><div class="prio" ${S.pOrd==='gantt'?'hidden':''}><button data-up="${a.id}" aria-label="Aumenta priorità">▲</button><button data-dn="${a.id}" aria-label="Diminuisci priorità">▼</button></div><span class="prionum">${S.pOrd==='gantt'?lista.indexOf(a)+1:a.prio}</span></div>
   <div style="min-width:0"><div style="font-weight:600">${esc(a.nome)}</div><div class="muted" style="font-size:12px"><span class="mono">${a._c.id}</span> ${esc(a._c.nome)} · ${a.ini?fmt(a.ini)+'–'+fmt(a.fin):'senza date'}${!a.attiva&&a.stato==='da fare'?` · manca: ${esc(a.manca)}`:''}</div>${can('edit')&&a.stato!=='conclusa'?`<div class="cdates"><input type="date" data-pd="${a.id}|ini" value="${a.ini||''}" aria-label="Inizio"><span class="muted">→</span><input type="date" data-pd="${a.id}|fin" value="${a.fin||''}" aria-label="Fine"></div>`:''}</div>
@@ -719,8 +752,9 @@ A.forEach((a,i)=>{a.liv=Math.max(0,Math.min(+a.liv||0,i?A[i-1].liv+1:0));a.sum=f
    const b=ch.filter(x=>x.bud!=null),k=ch.filter(x=>x.cons!=null);a.bud=b.length?b.reduce((s,x)=>s+x.bud,0):null;a.cons=k.length?k.reduce((s,x)=>s+x.cons,0):null;
    a.stato=ch.every(x=>x.stato==='conclusa')?'conclusa':ch.some(x=>x.stato!=='da fare')?'in corso':'da fare';a.attiva=ch.some(x=>x.attiva);a.pers=''}}return c}
 function permHtml(u){const x=S.utenti[u];if(!x)return'';if(!isAdm_()&&(x.nome===S.user.nome||((S.pInfo||{})[x.nome]||{}).resp))return'';if(x.ruolo==='admin')return'<div class="perm muted">Amministratore: può fare tutto</div>';const p=x.perm||{};
- return`<div class="perm">${[['add','Aggiunge attività'],['edit','Modifica ed elimina attività'],['commesse','Crea commesse e responsabili'],['manut','Responsabile manutenzione']].map(([k,l])=>`<label><input type="checkbox" data-perm="${esc(u)}|${k}" ${p[k]?'checked':''}> ${l}</label>`).join('')}</div><div class="perm"><span class="muted">Sezioni visibili:</span>${[['commesse','Commesse'],['persone','Attività assegnate'],['gantt','Gantt'],['ore','Ore'],['eventi','Eventi'],['manut','Manutenzione']].map(([k,l])=>`<label><input type="checkbox" data-tabv="${esc(u)}|${k}" ${(p.hide||{})[k]?'':'checked'}> ${l}</label>`).join('')}</div>`}
-document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.tabv){const [u,k]=t.dataset.tabv.split('|');const x=S.utenti[u];if(!x)return;const pm=x.perm||(x.perm={});const h=pm.hide||(pm.hide={});if(t.checked)delete h[k];else h[k]=true;render()}});
+ return`<div class="perm">${[['add','Aggiunge attività'],['edit','Modifica ed elimina attività'],['commesse','Crea commesse e responsabili'],['manut','Responsabile manutenzione']].map(([k,l])=>`<label><input type="checkbox" data-perm="${esc(u)}|${k}" ${p[k]?'checked':''}> ${l}</label>`).join('')}</div><div class="perm"><span class="muted">Vede anche (altra area):</span>${[...AREE.ing[1],...AREE.man[1]].filter(([k])=>!AREE[pArea(x.nome)][1].some(t=>t[0]===k)).map(([k,l])=>`<label><input type="checkbox" data-vis="${esc(u)}|${k}" ${(p.vis||{})[k]?'checked':''}> ${l}</label>`).join('')}</div>`}
+document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.vis){const [u,k]=t.dataset.vis.split('|');const x=S.utenti[u];if(!x)return;const pm=x.perm||(x.perm={});const h=pm.vis||(pm.vis={});if(t.checked)h[k]=true;else delete h[k];render()}
+ if(t&&t.dataset&&t.dataset.area){const p=t.dataset.area;S.pInfo=S.pInfo||{};(S.pInfo[p]=S.pInfo[p]||{}).area=t.value;render()}});
 document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.perm){const [u,k]=t.dataset.perm.split('|');if(!S.utenti[u])return;(S.utenti[u].perm||(S.utenti[u].perm={}))[k]=t.checked;render()}});
 function toastP(t){if(typeof toast==='function')return toast(t);let el=document.getElementById('toastP');if(!el){el=document.createElement('div');el.id='toastP';el.className='toastp';document.body.appendChild(el)}el.textContent=t;el.hidden=false;clearTimeout(el._t);el._t=setTimeout(()=>el.hidden=true,3000)}
 
@@ -939,7 +973,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  <section class="panel"><h2 style="margin-bottom:12px">${A?'Persone e accessi':'Persone di '+esc(myEnte())}</h2><div class="stack">
  ${visPers().map(p=>{const e=us.find(([k,v])=>v.nome===p),n=allAtt().filter(a=>a.pers===p).length;
   const acc=e?`<span class="mono">${esc(e[0])}</span> · ${A?`<select data-ruolo="${esc(e[0])}"><option value="persona" ${e[1].ruolo!=='admin'?'selected':''}>Persona</option><option value="admin" ${e[1].ruolo==='admin'?'selected':''}>Amministratore</option></select>`:(e[1].ruolo==='admin'?'amministratore':pR(p)?'responsabile ente':'persona')} ${e[1].must?'<span class="pill p-warn">Primo accesso da fare</span>':'<span class="pill p-ok">Attivo</span>'}${e[1].email?' · '+esc(e[1].email):''}${permHtml(e[0])}`:'senza accesso';
-  return`<div class="irow"><span class="av">${ini(p)}</span><div style="min-width:0"><div class="cn">${esc(p)}</div><div class="muted" style="font-size:12px">${acc} · ${n} attività</div>${A?enteCtl(p):''}</div>
+  return`<div class="irow"><span class="av">${ini(p)}</span><div style="min-width:0"><div class="cn">${esc(p)}</div><div class="muted" style="font-size:12px">${acc} · ${n} attività</div>${A?enteCtl(p)+`<label class="muted" style="font-size:12px;display:inline-flex;gap:6px;align-items:center;margin-top:4px">Area <select data-area="${esc(p)}"><option value="ing" ${pArea(p)!=='man'?'selected':''}>Ingegneria</option><option value="man" ${pArea(p)==='man'?'selected':''}>Manutenzione</option></select></label>`:''}</div>
   ${!A&&(p===S.user.nome||pR(p)||(e&&e[1].ruolo==='admin'))?'<span></span>':S.delP===p?`<div class="row"><span class="muted" style="font-size:12px">Le sue attività restano non assegnate.</span><button class="btn sm pri" data-rm="${esc(p)}">Conferma</button><button class="btn sm" data-no>Annulla</button></div>`:
   `<div class="row">${e?`<button class="btn sm" data-rs="${esc(e[0])}">Reimposta password</button><button class="btn sm" data-ra="${esc(e[0])}">Togli accesso</button>`:`<button class="btn sm pri" data-mk="${esc(p)}">Crea accesso</button>`}<button class="btn sm" data-ask="${esc(p)}">Rimuovi</button></div>`}</div>`}).join('')}
  </div>
@@ -987,7 +1021,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.5.0"></script>
+<script src="manutenzione.js?v=2.6.0"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
