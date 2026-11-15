@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.6.0 — 2026-11-15
+- Menu a tre aree: Ingegneria (Commesse, Attività assegnate, Gantt, Ore, Eventi), Manutenzione (Pianificazione, Attività assegnate, Impianti, Ricambi, Storico), Impostazioni (Persone e accessi, Masterplan, Impianti, Categorie, Tipi componente, Procedure).
+- Ogni persona ha un'area; l'amministratore può aggiungere sezioni dell'altra area. Responsabile ingegneria e responsabile manutenzione (anche entrambi); facoltà di aggiungere attività a persone scelte.
+- Su telefono la persona vede subito le proprie attività; scelta persona con pulsanti.
+- Pianificazione: riquadri Da pianificare, Da ripianificare, In ritardo, Pianificate, Fatte; calendario; griglia dell'anno con pianificate e fatte (anche nella finestra di pianificazione).
+- Impianti a riquadri con ultima e prossima manutenzione; scheda con da fare, fatte, note e ricambi. Categorie impianti a livelli.
+- Ricambi segnalati durante le attività, elenco generale con «acquistato».
+- Attività preventive e altre attività (anche senza impianto).
+- Chiusura parziale (resta «da concludere» e segue lo scadenziario), attività non iniziate e scadute tornano da ripianificare, riapertura delle attività chiuse, nome del manutentore sulle attività.
+
 ## 2.5.0 — 2026-11-14
 - Manutenzione → Pianificazione: calendario mensile per pianificare le manutenzioni degli impianti (data e manutentore), con elenco degli impianti da pianificare e in scadenza.
 - In ogni manutenzione entrano solo le procedure scadute alla data scelta; si possono scegliere componenti interi o singole procedure.
