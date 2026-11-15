@@ -161,8 +161,8 @@ function visDett(id){const v=M.vis.find(x=>x.id===id);if(!v)return closeO();cons
  ${list(l.map(a=>{const p=P(a.proc);return item('var(--info)',`${e_(p.cod)} · ${e_(p.desc)}`,`<span>${e_(CMP(a))}</span><span>${a.ok.filter(Boolean).length}/${a.ok.length} passi</span>`,`<button class="btn pri" onclick="MNX.esegui('${a.id}')">Apri</button>`)}),'Tutte le attività sono state chiuse.')}
  <div class="row" style="justify-content:space-between">${isR()?`<button class="btn" onclick="MNX.visDel('${id}')">Annulla manutenzione</button>`:'<span></span>'}<button class="btn" onclick="MNX.close()">Chiudi</button></div>`)}
 
-function attList(l,man){return list(l.sort((a,b)=>a.due<b.due?-1:1).map(a=>{const i=IA(a),p=PA(a),st=status(a);
- return item(st[1],`${e_(p.cod)} · ${e_(p.desc)}`,`${dot(st[0]+' · '+fd(a.due),st[1])}${INOME(a)?`<span>${e_(INOME(a))}</span>`:''}${CMP(a)?`<span>${e_(CMP(a))}</span>`:''}${!man?'':''}`,`${man?manSel(a):''}<button class="btn pri" onclick="MNX.esegui('${a.id}')">Apri</button>`,`MNX.esegui('${a.id}')`)}),'Nessuna attività.')}
+function attList(l,man){return list(l.sort((a,b)=>a.due<b.due?-1:1).map(a=>{const i=IA(a),p=PA(a),st=status(a),nd=a.ok.filter(Boolean).length;
+ return item(st[1],`${e_(p.cod)} · ${e_(p.desc)}`,`${dot(st[0]+' · '+fd(a.due),st[1])}${nd?`<span class="mn-prog">${nd}/${a.ok.length} passi fatti</span>`:''}${INOME(a)?`<span>${e_(INOME(a))}</span>`:''}${CMP(a)?`<span>${e_(CMP(a))}</span>`:''}${!man?'':''}`,`${man?manSel(a):''}<button class="btn" onclick="MNX.esegui('${a.id}')">Apri</button>${isR()||a.man===me()?`<button class="btn pri mn-done" onclick="MNX.fatta('${a.id}')">✓ Fatta</button>`:''}`,`MNX.esegui('${a.id}')`)}),'Nessuna attività.')}
 const manSel=a=>`<select class="mn-man" aria-label="Manutentore" onchange="MNX.setMan('${a.id}',this.value)"><option value="">— Da assegnare —</option>${S.persone.map(p=>`<option ${a.man===p?'selected':''}>${e_(p)}</option>`).join('')}</select>`;
 function split(l,assign){const pr=l.filter(a=>!a.free),al=l.filter(a=>a.free);
  return (pr.length?`<h3 class="mn-sec">Attività preventive <span class="mn-n">${pr.length}</span></h3><div class="mn-list">${grouped(pr,assign)}</div>`:'')+(al.length?`<h3 class="mn-sec">Altre attività <span class="mn-n">${al.length}</span></h3>${attList(al,assign)}`:'')||'<div class="mn-empty muted">Nessuna attività.</div>'}
@@ -295,7 +295,7 @@ async function drawEx(){const a=M.att.find(x=>x.id===MN.ex);if(!a)return closeO(
  <div class="mn-step"><b>Ricambi</b>${M.ric.filter(r=>r.att===a.id).map(r=>`<div class="row" style="font-size:13px"><span style="flex:1">${e_(r.desc)}${r.qta?' × '+e_(r.qta):''} <span class="muted">· ${r.buy?'da acquistare':'necessario'}</span></span>${canDo?`<button class="btn sm" onclick="MNX.ricDel('${r.id}',1)" aria-label="Elimina">✕</button>`:''}</div>`).join('')||'<span class="muted" style="font-size:13px">Nessun ricambio indicato.</span>'}
  ${canDo?`<div class="evf"><label>Ricambio<input id="mnRD" placeholder="es. Cartuccia grasso, guarnizione…"></label><label>Quantità<input id="mnRQ" placeholder="1"></label><label class="mn-chk"><input type="checkbox" id="mnRB" checked> Da acquistare</label><button class="btn" onclick="MNX.ricAdd()">+ Aggiungi ricambio</button></div>`:''}</div>
  <div class="evf"><label>Note<textarea id="mnNote" rows="3" ${canDo?'':'disabled'} onchange="MNX.note(this.value)">${e_(a.note)}</textarea></label></div>
- <div class="row" style="justify-content:space-between"><span class="muted">${done}/${p.steps.length} passi completati</span><div class="row"><button class="btn" onclick="MNX.pdfOpen()">PDF</button><button class="btn" onclick="MNX.close()">Chiudi</button>${canDo?`<button class="btn pri" ${done<p.steps.length?'disabled':''} onclick="MNX.chiudi()">Chiudi attività</button>`:''}</div></div>`)}
+ <div class="row" style="justify-content:space-between"><span class="muted">${done}/${p.steps.length} passi completati</span><div class="row"><button class="btn" onclick="MNX.pdfOpen()">PDF</button><button class="btn" onclick="MNX.close()">Esci</button>${canDo?`<button class="btn pri mn-done" ${done<p.steps.length?'disabled title="Conferma prima tutti i passi"':''} onclick="MNX.chiudi()">✓ Attività completata</button>`:''}</div></div>`)}
 
 // ---------- foto ----------
 function compress(file){return new Promise((res,rej)=>{const r=new FileReader();r.onerror=rej;r.onload=()=>{const img=new Image();img.onerror=rej;img.onload=()=>{
@@ -347,6 +347,16 @@ window.MNX={
   let steps=g('mnLS').split('\n').map(x=>x.trim()).filter(Boolean).map(x=>({t:x,foto:false}));if(!steps.length)steps=[{t:'Lavoro eseguito',foto:false}];if(document.getElementById('mnLF').checked)steps.push({t:'Foto del lavoro eseguito',foto:true});
   const a={id:nid('a'),vis:null,ass:null,imp:g('mnLI')||null,comp:null,proc:null,free:{titolo:t,desc:g('mnLX'),steps},due:g('mnLD')||tdy(),man:g('mnLM')||null,ok:steps.map(()=>false),foto:steps.map(()=>[]),note:''};
   M.att.push(a);saveM();closeO();mt('Attività creata'+(a.man?' e assegnata a '+a.man:''))},
+ fatta(id){const a=M.att.find(x=>x.id===id);if(!a)return;const p=PA(a);MN.ex=id;
+  const manca=p.steps.map((s_,k)=>s_.foto&&!(a.foto[k]||[]).length?s_.t:null).filter(Boolean);
+  if(manca.length){drawEx();return mt('Manca la foto: '+manca.join(', '))}
+  const todo=p.steps.filter((s_,k)=>!a.ok[k]);
+  if(!todo.length)return MNX.chiudi();
+  ovl(`<div class="mn-oh"><h2>Attività completata?</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div><div><b>${e_(p.cod)} · ${e_(p.desc)}</b><div class="muted">${e_(INOME(a))}</div></div>
+  <div class="muted">Verranno confermati anche questi passi:</div><div class="mn-checks">${todo.map(x=>`<div class="mn-chk">✓ <span>${e_(x.t)}</span></div>`).join('')}</div>
+  <div class="evf"><label>Note (facoltative)<textarea id="mnQN" rows="2">${e_(a.note)}</textarea></label></div>
+  <div class="row" style="justify-content:space-between"><button class="btn" onclick="MNX.esegui('${id}')">Apri i dettagli</button><div class="row"><button class="btn" onclick="MNX.close()">Annulla</button><button class="btn pri mn-done" onclick="MNX.fattaOk()">✓ Conferma e chiudi</button></div></div>`)},
+ fattaOk(){const a=M.att.find(x=>x.id===MN.ex);a.ok=a.ok.map(()=>true);const n=document.getElementById('mnQN');if(n)a.note=n.value;MNX.chiudi()},
  meseSel(ym){MN.mese=ym;draw()},anno2(d){MN.anno2=String(+MN.anno2+d);draw()},
  async plMese(ym){const d=MN.pl.data.slice(8,10);const last=new Date(+ym.slice(0,4),+ym.slice(5,7),0).getDate();MN.pl.data=ym+'-'+String(Math.min(+d,last)).padStart(2,'0');MN.pl.sel=null;await storico(ym.slice(0,4));drawPlan()},
  async plAnno(d){MN.pl.data=String(+MN.pl.data.slice(0,4)+d)+MN.pl.data.slice(4);MN.pl.sel=null;await storico(MN.pl.data.slice(0,4));drawPlan()},
@@ -421,7 +431,7 @@ window.MNX={
   const c={...a,chiusa:tdy(),esec:me(),_imp:a.imp?i.cod+' '+i.nome:'',_cat:a.cat||null,_cmp:CMP(a),_pcod:a.free?'Attività':p.cod,_pdesc:p.desc,_free:a.free||null,_norma:p.norma,_steps:p.steps.map(x=>({t:x.t,foto:x.foto}))};const y=c.chiusa.slice(0,4);
   try{const arr=await storico(y);arr.push(c);await window.FBM.saveY(y,arr)}catch(er){return mt('Chiusura non salvata: '+FB.err(er))}
   M.att=M.att.filter(x=>x.id!==a.id);if(!(M.anni||[]).includes(y))(M.anni=M.anni||[]).push(y);
-  let msg='Attività chiusa';if(s){s.last=c.chiusa;if(p.tipo==='cal'){s.next=addM(s.next&&s.next<=c.chiusa?s.next:c.chiusa,p.int)}else if(p.tipo==='ultima'){s.next=addM(c.chiusa,p.int)}else{s.evt=false}msg+=p.tipo==='evento'?' · in attesa del prossimo evento':' · prossima richiesta dal '+fd(s.next)}
+  let msg='✓ Attività completata';if(s){s.last=c.chiusa;if(p.tipo==='cal'){s.next=addM(s.next&&s.next<=c.chiusa?s.next:c.chiusa,p.int)}else if(p.tipo==='ultima'){s.next=addM(c.chiusa,p.int)}else{s.evt=false}msg+=p.tipo==='evento'?' · in attesa del prossimo evento':' · prossima richiesta dal '+fd(s.next)}
   if(a.vis&&!M.att.some(x=>x.vis===a.vis))M.vis=M.vis.filter(v=>v.id!==a.vis);
   saveM();closeO();mt(msg)},
  pdfOpen(){const a=M.att.find(x=>x.id===MN.ex),p=PA(a),i=IA(a);pdf(a,p,a.imp?i.cod+' '+i.nome+(i.cli?' ('+i.cli+')':''):'—',CMP(a))},
