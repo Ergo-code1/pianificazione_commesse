@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.7.3 — 2026-11-15
+- Manutenzione: nei filtri e nelle scelte del manutentore compaiono solo le persone del reparto.
+
 ## 2.7.2 — 2026-11-15
 - Le attività di manutenzione completate restano nella lista della persona («Completate») finché il responsabile le toglie (singole o tutte); restano comunque nello storico.
 
