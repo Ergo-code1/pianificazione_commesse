@@ -212,8 +212,8 @@ async function vSto(){
  list(list_.map(a=>{const ok=a.ok.filter(Boolean).length;return item('var(--ok)',`${e_(a._pcod)} · ${e_(a._pdesc)}`,`<span><b>${fd(a.chiusa)}</b></span><span>${e_(a._imp)}${a._cmp?' › '+e_(a._cmp):''}</span><span>${e_(a.esec)}</span><span>${ok}/${a.ok.length} passi</span>${a.parziale?'<span style="color:var(--accent);font-weight:600">chiusa in parte</span>':''}${a.foto.flat().length?`<span>${a.foto.flat().length} foto</span>`:''}${a.note?`<span class="mn-note">«${e_(a.note)}»</span>`:''}`,`<button class="btn" onclick="MNX.pdf('${y}','${a.id}')">PDF</button>${isR()?`<button class="btn" onclick="MNX.riapri('${y}','${a.id}')">Riapri</button>`:''}`)}),'Nessun intervento con questi filtri.')}
 
 // --- Attività assegnate (manutenzione)
-function vPers(){const R=isR()||(typeof isAdm_==='function'&&isAdm_());
- const PL=R?[...new Set([...S.persone.filter(p=>typeof pArea==='function'&&pArea(p)==='man'),...M.att.map(a=>a.man).filter(Boolean)])]:[me()];
+function vPers(){const R=isR()||(typeof isAdm_==='function'&&isAdm_())||(typeof isResp==='function'&&isResp());
+ const PL=R?[...new Set([...S.persone.filter(p=>typeof repSez==='function'&&repSez(pEnte(p)).includes('mpers')),...M.att.map(a=>a.man).filter(Boolean)])]:[me()];
  if(R)PL.push('');
  if(!PL.includes(MN.pSel))MN.pSel=R?PL[0]:me();
  const l=M.att.filter(a=>a.due&&(a.man||'')===(MN.pSel||''));
