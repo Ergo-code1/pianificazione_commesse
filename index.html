@@ -445,9 +445,10 @@ const AREE={ing:['Ingegneria',[['commesse','Commesse'],['persone','Attività ass
 const pArea=p=>((S.pInfo||{})[p]||{}).area||'ing';
 function leafs(){const A=isAdm_(),o={};if(!S.user)return{ing:[],man:[],set:[]};
  const ar=pArea(S.user.nome),vis=(S.user.perm||{}).vis||{},mR=can('manut');
- o.ing=AREE.ing[1].filter(([k])=>A||ar==='ing'||vis[k]);
+ const iR=!!(S.user.perm||{}).ing;
+ o.ing=AREE.ing[1].filter(([k])=>A||iR||ar==='ing'||vis[k]);
  o.man=AREE.man[1].filter(([k])=>A||mR||vis[k]||(ar==='man'&&['mpers','mimp','mric'].includes(k)));
- o.set=AREE.set[1].filter(([k])=>A||(k==='imp'&&isResp())||(['cimp','ctipi','cproc'].includes(k)&&mR)).map(([k,l])=>[k,k==='imp'&&!A?'Persone ente':l]);
+ o.set=AREE.set[1].filter(([k])=>A||(k==='imp'&&isResp())||(k==='master'&&iR)||(['cimp','ctipi','cproc'].includes(k)&&mR)).map(([k,l])=>[k,k==='imp'&&!A?'Persone ente':l]);
  return o}
 function render(){
  S.commesse.forEach(cCalc);
@@ -724,7 +725,7 @@ function gForm(cid,aid){if(!(aid?can('edit'):can('add')))return;const c=S.commes
   if(a)Object.assign(a,v);else{const na={id:S.nextId++,liv:0,stato:'da fare',prio:9,cons:null,...v},pid=$('#gfPos').value;
    if(pid){const pi=c.att.findIndex(x=>x.id==pid);na.liv=(c.att[pi].liv||0)+1;c.att.splice(pi+1+cSub(c,pi).length,0,na)}else c.att.push(na)}
   close();render()}}
-const can=p=>!!S.user&&(S.user.ruolo==='admin'||!!(S.user.perm||{})[p]||(['add','edit','commesse'].includes(p)&&isResp()));
+const can=p=>!!S.user&&(S.user.ruolo==='admin'||!!(S.user.perm||{})[p]||(['add','edit','commesse'].includes(p)&&(isResp()||!!(S.user.perm||{}).ing))||(p==='add'&&Object.keys((S.user.perm||{}).addFor||{}).length>0));
 function arcList(y){return((S.archivio||{})[y]||[]).filter(x=>cVis(x))}
 function arcPut(c,aid){const i=c.att.findIndex(a=>a.id==aid);if(i<0)return;const A=c.att.splice(i,1+cSub(c,i).length),ids=new Set(A.map(a=>a.id)),y=todayL().slice(0,4);
  S.archivio=S.archivio||{};(S.archivio[y]=S.archivio[y]||[]).push({id:'A'+A[0].id,comm:c.id,commNome:c.nome,cliente:c.cliente,ente:c.ente,att:A,eventi:S.eventi.filter(e=>ids.has(e.rif)),archiviataIl:todayL()});
@@ -752,8 +753,9 @@ A.forEach((a,i)=>{a.liv=Math.max(0,Math.min(+a.liv||0,i?A[i-1].liv+1:0));a.sum=f
    const b=ch.filter(x=>x.bud!=null),k=ch.filter(x=>x.cons!=null);a.bud=b.length?b.reduce((s,x)=>s+x.bud,0):null;a.cons=k.length?k.reduce((s,x)=>s+x.cons,0):null;
    a.stato=ch.every(x=>x.stato==='conclusa')?'conclusa':ch.some(x=>x.stato!=='da fare')?'in corso':'da fare';a.attiva=ch.some(x=>x.attiva);a.pers=''}}return c}
 function permHtml(u){const x=S.utenti[u];if(!x)return'';if(!isAdm_()&&(x.nome===S.user.nome||((S.pInfo||{})[x.nome]||{}).resp))return'';if(x.ruolo==='admin')return'<div class="perm muted">Amministratore: può fare tutto</div>';const p=x.perm||{};
- return`<div class="perm">${[['add','Aggiunge attività'],['edit','Modifica ed elimina attività'],['commesse','Crea commesse e responsabili'],['manut','Responsabile manutenzione']].map(([k,l])=>`<label><input type="checkbox" data-perm="${esc(u)}|${k}" ${p[k]?'checked':''}> ${l}</label>`).join('')}</div><div class="perm"><span class="muted">Vede anche (altra area):</span>${[...AREE.ing[1],...AREE.man[1]].filter(([k])=>!AREE[pArea(x.nome)][1].some(t=>t[0]===k)).map(([k,l])=>`<label><input type="checkbox" data-vis="${esc(u)}|${k}" ${(p.vis||{})[k]?'checked':''}> ${l}</label>`).join('')}</div>`}
-document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.vis){const [u,k]=t.dataset.vis.split('|');const x=S.utenti[u];if(!x)return;const pm=x.perm||(x.perm={});const h=pm.vis||(pm.vis={});if(t.checked)h[k]=true;else delete h[k];render()}
+ return`<div class="perm">${[['ing','Responsabile ingegneria'],['manut','Responsabile manutenzione'],['add','Aggiunge attività a tutti'],['edit','Modifica ed elimina attività'],['commesse','Crea commesse']].map(([k,l])=>`<label><input type="checkbox" data-perm="${esc(u)}|${k}" ${p[k]?'checked':''}> ${l}</label>`).join('')}</div><div class="perm"><span class="muted">Può aggiungere attività a:</span>${S.persone.filter(n=>n!==x.nome).map(n=>`<label><input type="checkbox" data-addfor="${esc(u)}|${esc(n)}" ${(p.addFor||{})[n]?'checked':''}> ${esc(n)}</label>`).join('')}</div><div class="perm"><span class="muted">Vede anche (altra area):</span>${[...AREE.ing[1],...AREE.man[1]].filter(([k])=>!AREE[pArea(x.nome)][1].some(t=>t[0]===k)).map(([k,l])=>`<label><input type="checkbox" data-vis="${esc(u)}|${k}" ${(p.vis||{})[k]?'checked':''}> ${l}</label>`).join('')}</div>`}
+document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.addfor){const [u,n]=t.dataset.addfor.split('|');const x=S.utenti[u];if(!x)return;const pm=x.perm||(x.perm={});const h=pm.addFor||(pm.addFor={});if(t.checked)h[n]=true;else delete h[n];render()}
+ if(t&&t.dataset&&t.dataset.vis){const [u,k]=t.dataset.vis.split('|');const x=S.utenti[u];if(!x)return;const pm=x.perm||(x.perm={});const h=pm.vis||(pm.vis={});if(t.checked)h[k]=true;else delete h[k];render()}
  if(t&&t.dataset&&t.dataset.area){const p=t.dataset.area;S.pInfo=S.pInfo||{};(S.pInfo[p]=S.pInfo[p]||{}).area=t.value;render()}});
 document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.perm){const [u,k]=t.dataset.perm.split('|');if(!S.utenti[u])return;(S.utenti[u].perm||(S.utenti[u].perm={}))[k]=t.checked;render()}});
 function toastP(t){if(typeof toast==='function')return toast(t);let el=document.getElementById('toastP');if(!el){el=document.createElement('div');el.id='toastP';el.className='toastp';document.body.appendChild(el)}el.textContent=t;el.hidden=false;clearTimeout(el._t);el._t=setTimeout(()=>el.hidden=true,3000)}
@@ -798,7 +800,7 @@ const inEnte=e=>curEnte()==='*'||(e||'')===curEnte();
 const cVis=c=>inEnte(c.ente);
 const evVis=e=>{const c=e.comm&&S.commesse.find(x=>x.id===e.comm);return c?cVis(c):inEnte(e.ente)};
 const visPers=()=>S.persone.filter(p=>inEnte(pEnte(p))||(S.user&&p===S.user.nome));
-const persOpts=cur=>{const l=[...visPers()];if(cur&&!l.includes(cur))l.push(cur);return l};
+const persOpts=cur=>{const pm=(S.user&&S.user.perm)||{},full=isAdm_()||isResp()||pm.add||pm.ing;const l=full?[...visPers()]:[S.user.nome,...Object.keys(pm.addFor||{}).filter(x=>S.persone.includes(x))];if(cur&&!l.includes(cur))l.push(cur);return l};
 const newEnte=()=>curEnte()==='*'?'':curEnte();
 const enteSel=()=>{const noE=S.commesse.some(c=>!c.ente)||S.persone.some(p=>!pEnte(p));return`<label class="esel"><span>Ente</span><select id="admEnte" aria-label="Ente da visualizzare"><option value="*" ${curEnte()==='*'?'selected':''}>Tutti gli enti</option>${S.enti.map(e=>`<option ${curEnte()===e?'selected':''}>${esc(e)}</option>`).join('')}${noE?`<option value="" ${curEnte()===''?'selected':''}>Senza ente</option>`:''}</select></label>`};
 const enteCtl=p=>{const i=(S.pInfo||{})[p]||{};return`<div class="ectl"><select data-pe="${esc(p)}" aria-label="Ente di ${esc(p)}"><option value="">— nessun ente —</option>${S.enti.map(e=>`<option ${i.ente===e?'selected':''}>${esc(e)}</option>`).join('')}</select><label><input type="checkbox" data-pr="${esc(p)}" ${i.resp?'checked':''} ${i.ente?'':'disabled'}> Responsabile ente</label></div>`};
