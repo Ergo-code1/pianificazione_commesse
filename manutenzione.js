@@ -15,6 +15,8 @@ const nid=p=>p+(M.nextId++).toString(36)+Math.random().toString(36).slice(2,5);
 const TIPI={cal:'Ricorrente a calendario',ultima:'Da ultima chiusura',evento:'A evento'};
 const isR=()=>typeof can==='function'&&can('manut');
 const me=()=>S.user&&S.user.nome;
+// persone dell'ente corrente (in manutenzione solo quelle del reparto)
+const PERS=()=>typeof visPers==='function'?visPers():S.persone;
 const P=id=>M.proc.find(x=>x.id===id),I=id=>M.imp.find(x=>x.id===id),T=id=>M.tipi.find(x=>x.id===id);
 const PA0=a=>a&&a.free?{id:null,cod:'Attività',desc:a.free.titolo,norma:'',tipo:'libera',int:0,steps:a.free.steps||[],doc:null,_d:a.free.desc}:P(a.proc);
 const PA=a=>{const b=PA0(a);if(!b||!a||!a.sub)return b;return{...b,steps:b.steps.filter((x,k)=>a.sub.includes(k)),_sub:1}};
@@ -102,7 +104,7 @@ const list=(arr,empty)=>`<div class="mn-list">${arr.join('')||`<div class="mn-em
 const sel=(k,l,o)=>`<label class="mn-fs">${l}<select onchange="MNX.f('${k}',this.value)"><option value="">Tutti</option>${o.map(([v,t])=>`<option value="${e_(v)}" ${MN.f[k]===v?'selected':''}>${e_(t)}</option>`).join('')}</select></label>`;
 const fImp=()=>sel('imp','Impianto',M.imp.map(i=>[i.id,i.cod+' '+i.nome]));
 const fProc=()=>sel('proc','Procedura',M.proc.map(p=>[p.id,p.cod]));
-const fMan=(l='Manutentore',none=true)=>sel('man',l,S.persone.map(p=>[p,p]).concat(none?[['-','Da assegnare']]:[]));
+const fMan=(l='Manutentore',none=true)=>sel('man',l,PERS().map(p=>[p,p]).concat(none?[['-','Da assegnare']]:[]));
 const fStato=()=>sel('stato','Stato',[['r','In ritardo'],['g','Oggi'],['b','Pianificate']]);
 const fQ=()=>`<label class="mn-fq">Cerca<input id="mnQ" type="search" value="${e_(MN.f.q)}" placeholder="Impianto, componente, procedura…" oninput="MNX.q(this.value)"></label>`;
 const anyF=()=>Object.values(MN.f).some(Boolean);
@@ -171,7 +173,7 @@ function drawPlan(){const P_=MN.pl;const i=P_.imp&&I(P_.imp);const pv=i?planPrev
  <div><div class="mn-calh"><button class="btn sm" onclick="MNX.plAnno(-1)" aria-label="Anno precedente">‹</button><h3>${yy}${i?' · '+e_(i.cod):' · tutti gli impianti'}</h3><button class="btn sm" onclick="MNX.plAnno(1)" aria-label="Anno successivo">›</button></div>${yearGrid(yy,P_.imp||null,'plMese',P_.data.slice(0,7))}<div class="muted" style="font-size:12px;margin-top:4px">Tocca un mese per spostare lì la data, poi scegli il giorno.</div></div>
  <div class="evf"><label>Impianto<select onchange="MNX.pl('imp',this.value)"><option value="">— scegli —</option>${M.imp.map(x=>`<option value="${x.id}" ${x.id===P_.imp?'selected':''}>${e_(x.cod)} · ${e_(x.nome)}</option>`).join('')}</select></label>
  <label>Data<input type="date" value="${P_.data}" onchange="MNX.pl('data',this.value)"></label>
- <label>Manutentore<select onchange="MNX.pl('man',this.value,1)"><option value="">Da assegnare</option>${S.persone.map(p=>`<option ${P_.man===p?'selected':''}>${e_(p)}</option>`).join('')}</select></label></div>
+ <label>Manutentore<select onchange="MNX.pl('man',this.value,1)"><option value="">Da assegnare</option>${PERS().map(p=>`<option ${P_.man===p?'selected':''}>${e_(p)}</option>`).join('')}</select></label></div>
  ${i?`${first?'<div class="mn-info">Prima manutenzione di questo impianto: dopo averla pianificata, le procedure non scelte verranno richieste in base alla loro frequenza a partire da questa data.</div>':''}
  <div class="muted" style="font-size:13px">Scegli un componente intero o le singole procedure. Sono già spuntate quelle scadute a questa data; puoi aggiungere anche le altre.</div>
  ${blocks||'<div class="muted">Nessuna procedura disponibile: sono già tutte pianificate.</div>'}`:'<div class="muted">Scegli l\'impianto.</div>'}
@@ -179,20 +181,20 @@ function drawPlan(){const P_=MN.pl;const i=P_.imp&&I(P_.imp);const pv=i?planPrev
  document.querySelectorAll('#mnOvl [data-mixed]').forEach(x=>x.indeterminate=true)}
 function visDett(id){const v=M.vis.find(x=>x.id===id);if(!v)return closeO();const i=I(v.imp)||{cod:v.tit||'Attività',nome:''},l=M.att.filter(a=>a.vis===id);
  ovl(`<div class="mn-oh"><h2>Manutenzione ${e_(i.cod)} · ${e_(i.nome)}</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div>
- ${isR()?`<div class="evf"><label>Data<input type="date" value="${v.data}" onchange="MNX.visSet('${id}','data',this.value)"></label><label>Manutentore<select onchange="MNX.visSet('${id}','man',this.value)"><option value="">Da assegnare</option>${S.persone.map(p=>`<option ${v.man===p?'selected':''}>${e_(p)}</option>`).join('')}</select></label></div>`:`<div class="muted">${fd(v.data)} · ${e_(v.man||'da assegnare')}</div>`}
+ ${isR()?`<div class="evf"><label>Data<input type="date" value="${v.data}" onchange="MNX.visSet('${id}','data',this.value)"></label><label>Manutentore<select onchange="MNX.visSet('${id}','man',this.value)"><option value="">Da assegnare</option>${PERS().map(p=>`<option ${v.man===p?'selected':''}>${e_(p)}</option>`).join('')}</select></label></div>`:`<div class="muted">${fd(v.data)} · ${e_(v.man||'da assegnare')}</div>`}
  ${list(l.map(a=>{const p=P(a.proc);return item('var(--info)',`${e_(p.cod)} · ${e_(p.desc)}`,`<span>${e_(CMP(a))}</span><span class="mn-who${a.man?'':' none'}">👤 ${e_(a.man||'senza nome')}</span><span>${a.ok.filter(Boolean).length}/${a.ok.length} passi</span>`,`<button class="btn pri" onclick="MNX.esegui('${a.id}')">Apri</button>`)}),'Tutte le attività sono state chiuse.')}
  <div class="row" style="justify-content:space-between">${isR()?`<button class="btn" onclick="MNX.visDel('${id}')">Annulla manutenzione</button>`:'<span></span>'}<button class="btn" onclick="MNX.close()">Chiudi</button></div>`)}
 
 function attList(l,man){return list(l.sort((a,b)=>(a.due||'0')<(b.due||'0')?-1:1).map(a=>{const i=IA(a),p=PA(a),st=status(a),nd=a.ok.filter(Boolean).length;
  return item(st[1],`${e_(p.cod)} · ${e_(p.desc)}`,`${dot(st[0]+(a.due?' · '+fd(a.due):''),st[1])}<span class="mn-who${a.man?'':' none'}">👤 ${e_(a.man||'senza nome')}</span>${a.sub?'<span>solo passi mancanti</span>':''}${a.riaperta?'<span style="color:var(--warn);font-weight:600">riaperta</span>':''}${nd?`<span class="mn-prog">${nd}/${a.ok.length} passi fatti</span>`:''}${INOME(a)?`<span>${e_(INOME(a))}</span>`:''}${CMP(a)?`<span>${e_(CMP(a))}</span>`:''}${!man?'':''}`,`${man?manSel(a):''}<button class="btn pri" onclick="MNX.esegui('${a.id}')">Apri</button>`,`MNX.esegui('${a.id}')`)}),'Nessuna attività.')}
-const manSel=a=>`<select class="mn-man" aria-label="Manutentore" onchange="MNX.setMan('${a.id}',this.value)"><option value="">— Da assegnare —</option>${S.persone.map(p=>`<option ${a.man===p?'selected':''}>${e_(p)}</option>`).join('')}</select>`;
+const manSel=a=>`<select class="mn-man" aria-label="Manutentore" onchange="MNX.setMan('${a.id}',this.value)"><option value="">— Da assegnare —</option>${[...PERS(),...(a.man&&!PERS().includes(a.man)?[a.man]:[])].map(p=>`<option ${a.man===p?'selected':''}>${e_(p)}</option>`).join('')}</select>`;
 function split(l,assign){const pr=l.filter(a=>!a.free),al=l.filter(a=>a.free);
  return (pr.length?`<h3 class="mn-sec">Attività preventive <span class="mn-n">${pr.length}</span></h3><div class="mn-list">${grouped(pr,assign)}</div>`:'')+(al.length?`<h3 class="mn-sec">Altre attività <span class="mn-n">${al.length}</span></h3>${attList(al,assign)}`:'')||'<div class="mn-empty muted">Nessuna attività.</div>'}
 function grouped(l,assign){const g={};l.forEach(a=>(g[a.imp||'']=g[a.imp||'']||[]).push(a));
  const ids=Object.keys(g).sort((x,y)=>{const m=k=>g[k].map(a=>a.due).sort()[0];return m(x)<m(y)?-1:1});
  return ids.map(id=>{const i=I(id)||{cod:'—',nome:'',cli:''},arr=g[id],mans=[...new Set(arr.map(a=>a.man||''))];
   return `<div class="mn-grp"><div class="mn-gh"><div><h3>${e_(i.cod)} · ${e_(i.nome)}</h3><div class="muted" style="font-size:13px">${i.cli?e_(i.cli)+' · ':''}${arr.length} attività${mans.length===1&&mans[0]?' · tutte a '+e_(mans[0]):''}</div></div>
-  ${assign&&id?`<label class="mn-fs" style="display:grid;gap:4px;font-size:12px;color:var(--muted)">Assegna tutto l'impianto a<select onchange="MNX.setManImp('${id}',this.value,'${arr.map(a=>a.id).join(',')}')"><option value="">— scegli —</option>${S.persone.map(p=>`<option>${e_(p)}</option>`).join('')}<option value="-">Nessuno (togli)</option></select></label>`:''}</div>
+  ${assign&&id?`<label class="mn-fs" style="display:grid;gap:4px;font-size:12px;color:var(--muted)">Assegna tutto l'impianto a<select onchange="MNX.setManImp('${id}',this.value,'${arr.map(a=>a.id).join(',')}')"><option value="">— scegli —</option>${PERS().map(p=>`<option>${e_(p)}</option>`).join('')}<option value="-">Nessuno (togli)</option></select></label>`:''}</div>
   ${attList(arr,assign)}</div>`}).join('')||'<div class="mn-empty muted">Nessuna attività.</div>'}
 function vAtt(){const l=M.att.filter(attOk);return fBox(fStato()+fMan()+fImp(),l.length+' attività in '+new Set(l.map(a=>a.imp)).size+' impianti · assegna la singola attività o tutto l\'impianto')+`<div class="mn-list">${grouped(l,true)}</div>`}
 function vMie(){const l=M.att.filter(a=>a.man===me()&&attOk(a));return fBox(fStato(),l.length+' attività assegnate a te')+`<div class="mn-list">${grouped(l,false)}</div>`}
@@ -215,7 +217,7 @@ async function vSto(){
 
 // --- Attività assegnate (manutenzione)
 function vPers(){const R=isR()||(typeof isAdm_==='function'&&isAdm_())||(typeof isResp==='function'&&isResp());
- const PL=R?[...new Set([...S.persone.filter(p=>typeof repSez==='function'&&repSez(pEnte(p)).includes('mpers')),...M.att.map(a=>a.man).filter(Boolean)])]:[me()];
+ const PL=R?[...new Set([...PERS().filter(p=>typeof repSez==='function'&&repSez(pEnte(p)).includes('mpers')),...M.att.map(a=>a.man).filter(Boolean)])]:[me()];
  if(R)PL.push('');
  if(!PL.includes(MN.pSel))MN.pSel=R?PL[0]:me();
  const l=M.att.filter(a=>a.due&&(a.man||'')===(MN.pSel||''));
@@ -369,7 +371,7 @@ window.MNX={
  catDel(id){M.cat=M.cat.filter(c=>c.id!==id);saveM();draw()},
  newLib(){ovl(`<div class="mn-oh"><h2>Altra attività</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div>
  <div class="muted" style="font-size:13px">Riparazioni, messe a punto o lavori fuori dal piano di manutenzione. L'impianto è facoltativo.</div>
- <div class="evf"><label>Titolo<input id="mnLT" placeholder="es. Riparazione porta sezionale"></label><label>Data<input type="date" id="mnLD" value="${tdy()}"></label><label>Assegnata a<select id="mnLM"><option value="">Da assegnare</option>${S.persone.map(p=>`<option>${e_(p)}</option>`).join('')}</select></label><label>Impianto (facoltativo)<select id="mnLI"><option value="">— nessuno —</option>${M.imp.map(i=>`<option value="${i.id}">${e_(i.cod)} · ${e_(i.nome)}</option>`).join('')}</select></label></div>
+ <div class="evf"><label>Titolo<input id="mnLT" placeholder="es. Riparazione porta sezionale"></label><label>Data<input type="date" id="mnLD" value="${tdy()}"></label><label>Assegnata a<select id="mnLM"><option value="">Da assegnare</option>${PERS().map(p=>`<option>${e_(p)}</option>`).join('')}</select></label><label>Impianto (facoltativo)<select id="mnLI"><option value="">— nessuno —</option>${M.imp.map(i=>`<option value="${i.id}">${e_(i.cod)} · ${e_(i.nome)}</option>`).join('')}</select></label></div>
  <div class="evf"><label>Descrizione<textarea id="mnLX" rows="3" placeholder="Cosa c'è da fare"></textarea></label></div>
  <div class="evf"><label>Passi da confermare (facoltativi, uno per riga)<textarea id="mnLS" rows="3"></textarea></label></div>
  <label class="mn-chk"><input type="checkbox" id="mnLF"> Richiedi una foto del lavoro eseguito</label>
@@ -389,7 +391,7 @@ window.MNX={
   <div class="row" style="justify-content:space-between"><button class="btn" onclick="MNX.esegui('${id}')">Apri i dettagli</button><div class="row"><button class="btn" onclick="MNX.close()">Annulla</button><button class="btn pri mn-done" onclick="MNX.fattaOk()">✓ Conferma e chiudi</button></div></div>`)},
  fattaOk(){const a=M.att.find(x=>x.id===MN.ex);a.ok=a.ok.map(()=>true);const n=document.getElementById('mnQN');if(n)a.note=n.value;MNX.chiudi()},
  rip(id){const a=M.att.find(x=>x.id===id),p=PA(a);ovl(`<div class="mn-oh"><h2>Ripianifica</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div><div><b>${e_(p.cod)} · ${e_(p.desc)}</b><div class="muted">${e_(INOME(a))}</div></div><div class="mn-checks">${p.steps.map(x=>`<div class="mn-chk">• <span>${e_(x.t)}</span></div>`).join('')}</div>
-  <div class="evf"><label>Data<input type="date" id="mnRpD" value="${tdy()}"></label><label>Manutentore<select id="mnRpM"><option value="">Senza nome (da assegnare)</option>${S.persone.map(n=>`<option>${e_(n)}</option>`).join('')}</select></label></div>
+  <div class="evf"><label>Data<input type="date" id="mnRpD" value="${tdy()}"></label><label>Manutentore<select id="mnRpM"><option value="">Senza nome (da assegnare)</option>${PERS().map(n=>`<option>${e_(n)}</option>`).join('')}</select></label></div>
   <div class="row" style="justify-content:flex-end"><button class="btn" onclick="MNX.close()">Annulla</button><button class="btn pri" onclick="MNX.ripOk('${id}')">Ripianifica</button></div>`)},
  ripOk(id){const a=M.att.find(x=>x.id===id);a.due=document.getElementById('mnRpD').value||tdy();a.man=document.getElementById('mnRpM').value||null;const v={id:nid('v'),imp:a.imp||null,data:a.due,man:a.man,tit:a.free?a.free.titolo:null};M.vis.push(v);a.vis=v.id;LOG('Ripianificata',a,'il '+fd(a.due)+(a.man?' a '+a.man:' senza nome'));saveM();closeO();mt('Ripianificata il '+fd(a.due))},
  box(k){MN.box=k;draw()},
@@ -400,7 +402,7 @@ window.MNX={
  async riapri(y,id){await storico(y);const arr=H[y]||[],c=arr.find(x=>x.id===id);if(!c)return;const p=c._steps?{desc:c._pdesc,cod:c._pcod}:PA(c);
   ovl(`<div class="mn-oh"><h2>Riaprire l'attività?</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div><div><b>${e_(p.cod)} · ${e_(p.desc)}</b><div class="muted">${c._imp?e_(c._imp)+' · ':''}chiusa il ${fd(c.chiusa)} da ${e_(c.esec)}</div></div>
   <div class="muted" style="font-size:13px">Torna tra le attività da fare con i passi già spuntati, le foto e le note. Lo scadenziario della procedura torna com'era prima della chiusura.</div>
-  <div class="evf"><label>Nuova data<input type="date" id="mnRoD" value="${tdy()}"></label><label>Manutentore<select id="mnRoM"><option value="">Senza nome</option>${S.persone.map(n=>`<option ${n===c.esec?'selected':''}>${e_(n)}</option>`).join('')}</select></label></div>
+  <div class="evf"><label>Nuova data<input type="date" id="mnRoD" value="${tdy()}"></label><label>Manutentore<select id="mnRoM"><option value="">Senza nome</option>${PERS().map(n=>`<option ${n===c.esec?'selected':''}>${e_(n)}</option>`).join('')}</select></label></div>
   <div class="row" style="justify-content:flex-end"><button class="btn" onclick="MNX.close()">Annulla</button><button class="btn pri" onclick="MNX.riapriOk('${y}','${id}')">Riapri</button></div>`)},
  async riapriOk(y,id){const arr=H[y]||[],c=arr.find(x=>x.id===id);if(!c)return;const d=document.getElementById('mnRoD').value||tdy(),m=document.getElementById('mnRoM').value||null;
   const s0=M.ass.find(x=>x.id===c.ass);if(s0&&c._prev)Object.assign(s0,c._prev);
