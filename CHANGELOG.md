@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.7.2 — 2026-11-15
+- Le attività di manutenzione completate restano nella lista della persona («Completate») finché il responsabile le toglie (singole o tutte); restano comunque nello storico.
+
 ## 2.7.1 — 2026-11-15
 - Manutenzione → Registro: cronologia di tutti gli eventi delle attività (pianificata, assegnata, spostata, completata, tolta, riaperta…); cronologia anche dentro ogni attività.
 - Le attività scadute non vengono più tolte in automatico: restano sulla persona come «in ritardo · non conclusa»; il responsabile le sposta o le toglie («Togli e ripianifica»).
