@@ -16,7 +16,8 @@ const TIPI={cal:'Ricorrente a calendario',ultima:'Da ultima chiusura',evento:'A 
 const isR=()=>typeof can==='function'&&can('manut');
 const me=()=>S.user&&S.user.nome;
 const P=id=>M.proc.find(x=>x.id===id),I=id=>M.imp.find(x=>x.id===id),T=id=>M.tipi.find(x=>x.id===id);
-const PA=a=>a&&a.free?{id:null,cod:'Attività',desc:a.free.titolo,norma:'',tipo:'libera',int:0,steps:a.free.steps||[],doc:null,_d:a.free.desc}:P(a.proc);
+const PA0=a=>a&&a.free?{id:null,cod:'Attività',desc:a.free.titolo,norma:'',tipo:'libera',int:0,steps:a.free.steps||[],doc:null,_d:a.free.desc}:P(a.proc);
+const PA=a=>{const b=PA0(a);if(!b||!a||!a.sub)return b;return{...b,steps:b.steps.filter((x,k)=>a.sub.includes(k)),_sub:1}};
 const IA=a=>I(a.imp)||{id:'',cod:'Generica',nome:'',cli:'',comps:[]};
 const INOME=a=>{const i=I(a.imp);return i?i.cod+' · '+i.nome:''};
 const CMP=a=>{const i=I(a.imp);const c=i&&(i.comps||[]).find(x=>x.id===a.comp);return c?c.sigla:''};
@@ -46,13 +47,13 @@ function seedBase(){
 const isStd=a=>{if(a.std===false)return false;const i=I(a.imp),c=i&&(i.comps||[]).find(x=>x.id===a.comp),t=c&&T(c.tipo);return !!(t&&t.procs.includes(a.proc))};
 function assign(impId,procId,next,man,comp,std){const a={id:nid('s'),imp:impId,comp:comp||null,proc:procId,next:next||null,last:null,evt:false,man:man||null,std:std!==false};M.ass.push(a);return a}
 function newAtt(s,due,vis,man){const p=P(s.proc);const a={id:nid('a'),vis:vis||null,ass:s.id,imp:s.imp,comp:s.comp,proc:s.proc,due,man:man||null,ok:p.steps.map(()=>false),foto:p.steps.map(()=>[]),note:''};M.att.push(a);return a}
-function status(a){if(a.chiusa)return['Chiusa','var(--ok)','c'];const t=tdy();if(a.due<t)return['In ritardo','var(--accent)','r'];if(a.due===t)return['Oggi','var(--warn)','g'];return['Pianificata','var(--info)','b']}
+function status(a){if(a.chiusa)return['Chiusa','var(--ok)','c'];if(!a.due)return['Da ripianificare','var(--accent)','r'];const t=tdy();if(a.due<t)return['In ritardo','var(--accent)','r'];if(a.due===t)return['Oggi','var(--warn)','g'];return['Pianificata','var(--info)','b']}
 const pill=s=>`<span class="pill" style="color:${s[1]}">${s[0]}</span>`;
 // stato di una procedura assegnata: serve farla entro la data d?
 const planned=s=>M.att.find(a=>a.ass===s.id);
 function dueOn(s,d){const p=P(s.proc);if(!p)return false;if(p.tipo==='evento')return !!s.evt;return !s.next||s.next<=d}
 function assStatus(s){const p=P(s.proc),t=tdy(),pa=planned(s);
- if(pa)return['Pianificata '+fd(pa.due),'var(--info)','b'];
+ if(pa)return pa.due?['Pianificata '+fd(pa.due),'var(--info)','b']:['Passi da ripianificare','var(--accent)','r'];
  if(p.tipo==='evento')return s.evt?['Evento da gestire','var(--accent)','r']:['In attesa di evento','var(--off)','n'];
  if(!s.next)return['Da fare (mai eseguita)','var(--accent)','r'];
  if(s.next<t)return['Scaduta il '+fd(s.next),'var(--accent)','r'];
@@ -104,7 +105,7 @@ const dot=(t,c)=>`<span class="mn-st" style="color:${c}">${t}</span>`;
 const MESI=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
 function yCounts(y,imp){const pian=Array(12).fill(0),fatte=Array(12).fill(0);
  M.vis.filter(v=>v.data.startsWith(y)&&(!imp||v.imp===imp)).forEach(v=>pian[+v.data.slice(5,7)-1]++);
- const lo=new Set();M.att.filter(a=>!a.vis&&a.due.startsWith(y)&&(!imp||a.imp===imp)).forEach(a=>{const k=a.due+a.imp;if(!lo.has(k)){lo.add(k);pian[+a.due.slice(5,7)-1]++}});
+ const lo=new Set();M.att.filter(a=>!a.vis&&a.due&&a.due.startsWith(y)&&(!imp||a.imp===imp)).forEach(a=>{const k=a.due+a.imp;if(!lo.has(k)){lo.add(k);pian[+a.due.slice(5,7)-1]++}});
  const dn=new Set();(H[y]||[]).filter(a=>!imp||a.imp===imp).forEach(a=>{const k=a.vis||(a.imp+a.chiusa);if(!dn.has(k)){dn.add(k);fatte[+a.chiusa.slice(5,7)-1]++}});
  return{pian,fatte}}
 function yearGrid(y,imp,fn,selM){const c=yCounts(y,imp),cur=tdy().slice(0,7);
@@ -114,12 +115,12 @@ async function vPian(){const y=MN.anno2||(MN.anno2=tdy().slice(0,4));await stori
  const rows=all.filter(r=>r.toPlan).sort((a,b)=>ord[a.w[2]]-ord[b.w[2]]||((a.next||'9')<(b.next||'9')?-1:1));
  return `<div class="mn-calw" style="margin-bottom:14px"><div class="mn-calh"><button class="btn" onclick="MNX.anno2(-1)" aria-label="Anno precedente">‹</button><h3>${y}</h3><button class="btn" onclick="MNX.anno2(1)" aria-label="Anno successivo">›</button></div>${yearGrid(y,null,'meseSel',MN.mese)}</div>
  <div class="mn-dash"><div class="mn-calw">${cal()}</div>
- <div><h3 style="margin-bottom:8px">Da pianificare <span class="mn-n">${rows.length}</span></h3>
+ <div>${(()=>{const rp=M.att.filter(a=>!a.due);return rp.length?`<h3 style="margin-bottom:8px">Passi da ripianificare <span class="mn-n">${rp.length}</span></h3>${list(rp.map(a=>{const p=PA(a);return item('var(--accent)',`${e_(p.cod)} · ${e_(p.desc)}`,`<span>${e_(INOME(a))}</span><span>${p.steps.map(x=>e_(x.t)).join(', ')}</span>`,isR()?`<button class="btn pri" onclick="MNX.rip('${a.id}')">Ripianifica</button>`:'',`MNX.esegui('${a.id}')`)}),'')}<div style="height:14px"></div>`:''})()}<h3 style="margin-bottom:8px">Da pianificare <span class="mn-n">${rows.length}</span></h3>
  ${list(rows.map(r=>item(r.w[1],`${e_(r.i.cod)} · ${e_(r.i.nome)}`,`${dot(r.w[0],r.w[1])}${r.mai?'<span>nessuna manutenzione ancora pianificata</span>':`<span>${r.toPlan} procedure da fare</span>`}${r.next&&!r.mai?`<span>dal ${fd(r.next)}</span>`:''}`,isR()?`<button class="btn pri" onclick="MNX.plan('${r.i.id}')">Pianifica</button>`:'',`MNX.apriImp('${r.i.id}')`)),'Niente da pianificare 👍')}</div></div>`}
 function cal(){const m=MN.mese||(MN.mese=tdy().slice(0,7));const [Y,Mo]=m.split('-').map(Number);
  const first=new Date(Y,Mo-1,1),start=new Date(first);start.setDate(1-((first.getDay()+6)%7));
  const ev={};M.vis.forEach(v=>(ev[v.data]=ev[v.data]||[]).push(v));
- const loose={};M.att.filter(a=>!a.vis).forEach(a=>{const k=a.due+'|'+(a.imp||a.id);loose[k]=loose[k]||{data:a.due,imp:a.imp,n:0,man:a.man,tit:a.free?a.free.titolo:null,aid:a.id};loose[k].n++});
+ const loose={};M.att.filter(a=>!a.vis&&a.due).forEach(a=>{const k=a.due+'|'+(a.imp||a.id);loose[k]=loose[k]||{data:a.due,imp:a.imp,n:0,man:a.man,tit:a.free?a.free.titolo:null,aid:a.id};loose[k].n++});
  Object.values(loose).forEach(x=>(ev[x.data]=ev[x.data]||[]).push({loose:1,...x}));
  const chip=v=>{const i=I(v.imp)||{cod:v.tit||'Attività',nome:''};const n=v.loose?v.n:M.att.filter(a=>a.vis===v.id).length;const late=v.data<tdy();
   return `<button class="mn-chip" ${v.loose?'':`draggable="true" ondragstart="event.dataTransfer.setData('text/plain','${v.id}')"`} style="--c:${late?'var(--accent)':'var(--info)'}" onclick="event.stopPropagation();${v.loose?(v.imp?`MNX.impDett('${v.imp}')`:`MNX.esegui('${v.aid}')`):`MNX.visDett('${v.id}')`}" title="${e_(i.cod+' '+i.nome)}"><b>${e_(i.cod)}</b> <span>${n} att.${v.man?' · '+e_(v.man.split(' ')[0]):''}</span></button>`};
@@ -158,11 +159,11 @@ function drawPlan(){const P_=MN.pl;const i=P_.imp&&I(P_.imp);const pv=i?planPrev
 function visDett(id){const v=M.vis.find(x=>x.id===id);if(!v)return closeO();const i=I(v.imp),l=M.att.filter(a=>a.vis===id);
  ovl(`<div class="mn-oh"><h2>Manutenzione ${e_(i.cod)} · ${e_(i.nome)}</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div>
  ${isR()?`<div class="evf"><label>Data<input type="date" value="${v.data}" onchange="MNX.visSet('${id}','data',this.value)"></label><label>Manutentore<select onchange="MNX.visSet('${id}','man',this.value)"><option value="">Da assegnare</option>${S.persone.map(p=>`<option ${v.man===p?'selected':''}>${e_(p)}</option>`).join('')}</select></label></div>`:`<div class="muted">${fd(v.data)} · ${e_(v.man||'da assegnare')}</div>`}
- ${list(l.map(a=>{const p=P(a.proc);return item('var(--info)',`${e_(p.cod)} · ${e_(p.desc)}`,`<span>${e_(CMP(a))}</span><span>${a.ok.filter(Boolean).length}/${a.ok.length} passi</span>`,`<button class="btn pri" onclick="MNX.esegui('${a.id}')">Apri</button>`)}),'Tutte le attività sono state chiuse.')}
+ ${list(l.map(a=>{const p=P(a.proc);return item('var(--info)',`${e_(p.cod)} · ${e_(p.desc)}`,`<span>${e_(CMP(a))}</span><span class="mn-who${a.man?'':' none'}">👤 ${e_(a.man||'senza nome')}</span><span>${a.ok.filter(Boolean).length}/${a.ok.length} passi</span>`,`<button class="btn pri" onclick="MNX.esegui('${a.id}')">Apri</button>`)}),'Tutte le attività sono state chiuse.')}
  <div class="row" style="justify-content:space-between">${isR()?`<button class="btn" onclick="MNX.visDel('${id}')">Annulla manutenzione</button>`:'<span></span>'}<button class="btn" onclick="MNX.close()">Chiudi</button></div>`)}
 
-function attList(l,man){return list(l.sort((a,b)=>a.due<b.due?-1:1).map(a=>{const i=IA(a),p=PA(a),st=status(a),nd=a.ok.filter(Boolean).length;
- return item(st[1],`${e_(p.cod)} · ${e_(p.desc)}`,`${dot(st[0]+' · '+fd(a.due),st[1])}${nd?`<span class="mn-prog">${nd}/${a.ok.length} passi fatti</span>`:''}${INOME(a)?`<span>${e_(INOME(a))}</span>`:''}${CMP(a)?`<span>${e_(CMP(a))}</span>`:''}${!man?'':''}`,`${man?manSel(a):''}<button class="btn pri" onclick="MNX.esegui('${a.id}')">Apri</button>`,`MNX.esegui('${a.id}')`)}),'Nessuna attività.')}
+function attList(l,man){return list(l.sort((a,b)=>(a.due||'0')<(b.due||'0')?-1:1).map(a=>{const i=IA(a),p=PA(a),st=status(a),nd=a.ok.filter(Boolean).length;
+ return item(st[1],`${e_(p.cod)} · ${e_(p.desc)}`,`${dot(st[0]+(a.due?' · '+fd(a.due):''),st[1])}<span class="mn-who${a.man?'':' none'}">👤 ${e_(a.man||'senza nome')}</span>${a.sub?'<span>solo passi mancanti</span>':''}${nd?`<span class="mn-prog">${nd}/${a.ok.length} passi fatti</span>`:''}${INOME(a)?`<span>${e_(INOME(a))}</span>`:''}${CMP(a)?`<span>${e_(CMP(a))}</span>`:''}${!man?'':''}`,`${man?manSel(a):''}<button class="btn pri" onclick="MNX.esegui('${a.id}')">Apri</button>`,`MNX.esegui('${a.id}')`)}),'Nessuna attività.')}
 const manSel=a=>`<select class="mn-man" aria-label="Manutentore" onchange="MNX.setMan('${a.id}',this.value)"><option value="">— Da assegnare —</option>${S.persone.map(p=>`<option ${a.man===p?'selected':''}>${e_(p)}</option>`).join('')}</select>`;
 function split(l,assign){const pr=l.filter(a=>!a.free),al=l.filter(a=>a.free);
  return (pr.length?`<h3 class="mn-sec">Attività preventive <span class="mn-n">${pr.length}</span></h3><div class="mn-list">${grouped(pr,assign)}</div>`:'')+(al.length?`<h3 class="mn-sec">Altre attività <span class="mn-n">${al.length}</span></h3>${attList(al,assign)}`:'')||'<div class="mn-empty muted">Nessuna attività.</div>'}
@@ -189,7 +190,7 @@ async function vSto(){
  const anni=[...new Set([...(M.anni||[]),String(new Date().getFullYear())])].sort().reverse();
  return fBox(`<label class="mn-fs">Anno<select onchange="MNX.anno(this.value)">${anni.map(a=>`<option ${a===y?'selected':''}>${a}</option>`).join('')}</select></label>`+fImp()+(isR()?fMan('Eseguita da',false):'')+`<label class="mn-fs">Dal<input type="date" value="${MN.f.da}" onchange="MNX.f('da',this.value)"></label><label class="mn-fs">Al<input type="date" value="${MN.f.a}" onchange="MNX.f('a',this.value)"></label>`,
   `${list_.length} interventi nel ${y} · <button class="btn sm" onclick="MNX.xls()">Esporta Excel</button>`)+
- list(list_.map(a=>{const ok=a.ok.filter(Boolean).length;return item('var(--ok)',`${e_(a._pcod)} · ${e_(a._pdesc)}`,`<span><b>${fd(a.chiusa)}</b></span><span>${e_(a._imp)}${a._cmp?' › '+e_(a._cmp):''}</span><span>${e_(a.esec)}</span><span>${ok}/${a.ok.length} passi</span>${a.foto.flat().length?`<span>${a.foto.flat().length} foto</span>`:''}${a.note?`<span class="mn-note">«${e_(a.note)}»</span>`:''}`,`<button class="btn pri" onclick="MNX.pdf('${y}','${a.id}')">PDF</button>`)}),'Nessun intervento con questi filtri.')}
+ list(list_.map(a=>{const ok=a.ok.filter(Boolean).length;return item('var(--ok)',`${e_(a._pcod)} · ${e_(a._pdesc)}`,`<span><b>${fd(a.chiusa)}</b></span><span>${e_(a._imp)}${a._cmp?' › '+e_(a._cmp):''}</span><span>${e_(a.esec)}</span><span>${ok}/${a.ok.length} passi</span>${a.parziale?'<span style="color:var(--accent);font-weight:600">chiusa in parte</span>':''}${a.foto.flat().length?`<span>${a.foto.flat().length} foto</span>`:''}${a.note?`<span class="mn-note">«${e_(a.note)}»</span>`:''}`,`<button class="btn pri" onclick="MNX.pdf('${y}','${a.id}')">PDF</button>`)}),'Nessun intervento con questi filtri.')}
 
 // --- Attività assegnate (manutenzione)
 function vPers(){const R=isR()||(typeof isAdm_==='function'&&isAdm_());
@@ -204,7 +205,7 @@ function vPers(){const R=isR()||(typeof isAdm_==='function'&&isAdm_());
 
 // --- Impianti (matrice e scheda)
 const lastOf=id=>M.ass.filter(s=>s.imp===id&&s.last).map(s=>s.last).sort().pop()||null;
-const nextVis=id=>{const d=[...M.vis.filter(v=>v.imp===id).map(v=>v.data),...M.att.filter(a=>a.imp===id&&!a.vis).map(a=>a.due)].sort();return d[0]||null};
+const nextVis=id=>{const d=[...M.vis.filter(v=>v.imp===id).map(v=>v.data),...M.att.filter(a=>a.imp===id&&!a.vis&&a.due).map(a=>a.due)].sort();return d[0]||null};
 function vImpM(){if(MN.impSel&&I(MN.impSel))return impPage(MN.impSel);
  const ds=MN.f.cat?catDesc(MN.f.cat):null;const l=M.imp.filter(i=>(!ds||ds.has(i.cat))&&qm(i.cod,i.nome,i.cli,catPath(i.cat),(i.comps||[]).map(c=>c.sigla).join(' '))).sort((a,b)=>(catPath(a.cat)||'~').localeCompare(catPath(b.cat)||'~')||a.cod.localeCompare(b.cod));
  let lastP=null;
@@ -287,7 +288,7 @@ async function drawEx(){const a=M.att.find(x=>x.id===MN.ex);if(!a)return closeO(
  const done=p.steps.filter((s,k)=>a.ok[k]&&(!s.foto||(a.foto[k]||[]).length)).length;
  const thumbs=await Promise.all(p.steps.map((s,k)=>Promise.all((a.foto[k]||[]).map(id=>blob('manutFoto',id)))));
  const canDo=isR()||a.man===me();
- ovl(`<div class="mn-oh"><h2>${e_(p.cod)} · ${e_(p.desc)}</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div><div class="muted">${a.free?'Altra attività':'Attività preventiva'}${INOME(a)?' · '+e_(INOME(a)):''}${CMP(a)?' › '+e_(CMP(a)):''} · ${fd(a.due)} ${pill(st)}</div>${p._d?`<div class="mn-info" style="white-space:pre-line">${e_(p._d)}</div>`:''}
+ ovl(`<div class="mn-oh"><h2>${e_(p.cod)} · ${e_(p.desc)}</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div><div class="muted">👤 ${e_(a.man||'senza nome')} · ${a.free?'Altra attività':'Attività preventiva'}${a.sub?' (solo passi mancanti)':''}${INOME(a)?' · '+e_(INOME(a)):''}${CMP(a)?' › '+e_(CMP(a)):''} · ${fd(a.due)} ${pill(st)}</div>${p._d?`<div class="mn-info" style="white-space:pre-line">${e_(p._d)}</div>`:''}
  ${p.doc?`<div><button class="btn" onclick="MNX.viewDoc('${p.id}')">📄 Apri documento procedura</button></div>`:''}
  ${!canDo?'<div class="muted">Attività assegnata a '+e_(a.man||'nessuno')+': puoi solo consultarla.</div>':''}
  ${p.steps.map((s,k)=>`<div class="mn-step"><label class="mn-chk"><input type="checkbox" ${a.ok[k]?'checked':''} ${canDo?'':'disabled'} onchange="MNX.tick(${k},this.checked)"> <span>${e_(s.t)}</span></label>
@@ -295,7 +296,7 @@ async function drawEx(){const a=M.att.find(x=>x.id===MN.ex);if(!a)return closeO(
  <div class="mn-step"><b>Ricambi</b>${M.ric.filter(r=>r.att===a.id).map(r=>`<div class="row" style="font-size:13px"><span style="flex:1">${e_(r.desc)}${r.qta?' × '+e_(r.qta):''} <span class="muted">· ${r.buy?'da acquistare':'necessario'}</span></span>${canDo?`<button class="btn sm" onclick="MNX.ricDel('${r.id}',1)" aria-label="Elimina">✕</button>`:''}</div>`).join('')||'<span class="muted" style="font-size:13px">Nessun ricambio indicato.</span>'}
  ${canDo?`<div class="evf"><label>Ricambio<input id="mnRD" placeholder="es. Cartuccia grasso, guarnizione…"></label><label>Quantità<input id="mnRQ" placeholder="1"></label><label class="mn-chk"><input type="checkbox" id="mnRB" checked> Da acquistare</label><button class="btn" onclick="MNX.ricAdd()">+ Aggiungi ricambio</button></div>`:''}</div>
  <div class="evf"><label>Note<textarea id="mnNote" rows="3" ${canDo?'':'disabled'} onchange="MNX.note(this.value)">${e_(a.note)}</textarea></label></div>
- <div class="row" style="justify-content:space-between"><span class="muted">${done}/${p.steps.length} passi completati</span><div class="row"><button class="btn" onclick="MNX.pdfOpen()">PDF</button><button class="btn" onclick="MNX.close()">Esci</button>${canDo?`<button class="btn pri mn-done" ${done<p.steps.length?'disabled title="Conferma prima tutti i passi"':''} onclick="MNX.chiudi()">✓ Attività completata</button>`:''}</div></div>`)}
+ <div class="row" style="justify-content:space-between"><span class="muted">${done}/${p.steps.length} passi completati</span><div class="row"><button class="btn" onclick="MNX.pdfOpen()">PDF</button><button class="btn" onclick="MNX.close()">Esci</button>${canDo&&done>0&&done<p.steps.length?`<button class="btn" onclick="MNX.chiudi(1)" title="I passi non fatti restano da ripianificare">Chiudi con passi mancanti</button>`:''}${canDo?`<button class="btn pri mn-done" ${done<p.steps.length?'disabled title="Conferma prima tutti i passi"':''} onclick="MNX.chiudi()">✓ Attività completata</button>`:''}</div></div>`)}
 
 // ---------- foto ----------
 function compress(file){return new Promise((res,rej)=>{const r=new FileReader();r.onerror=rej;r.onload=()=>{const img=new Image();img.onerror=rej;img.onload=()=>{
@@ -357,6 +358,10 @@ window.MNX={
   <div class="evf"><label>Note (facoltative)<textarea id="mnQN" rows="2">${e_(a.note)}</textarea></label></div>
   <div class="row" style="justify-content:space-between"><button class="btn" onclick="MNX.esegui('${id}')">Apri i dettagli</button><div class="row"><button class="btn" onclick="MNX.close()">Annulla</button><button class="btn pri mn-done" onclick="MNX.fattaOk()">✓ Conferma e chiudi</button></div></div>`)},
  fattaOk(){const a=M.att.find(x=>x.id===MN.ex);a.ok=a.ok.map(()=>true);const n=document.getElementById('mnQN');if(n)a.note=n.value;MNX.chiudi()},
+ rip(id){const a=M.att.find(x=>x.id===id),p=PA(a);ovl(`<div class="mn-oh"><h2>Ripianifica passi mancanti</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div><div><b>${e_(p.cod)} · ${e_(p.desc)}</b><div class="muted">${e_(INOME(a))}</div></div><div class="mn-checks">${p.steps.map(x=>`<div class="mn-chk">• <span>${e_(x.t)}</span></div>`).join('')}</div>
+  <div class="evf"><label>Data<input type="date" id="mnRpD" value="${tdy()}"></label><label>Manutentore<select id="mnRpM"><option value="">Senza nome (da assegnare)</option>${S.persone.map(n=>`<option>${e_(n)}</option>`).join('')}</select></label></div>
+  <div class="row" style="justify-content:flex-end"><button class="btn" onclick="MNX.close()">Annulla</button><button class="btn pri" onclick="MNX.ripOk('${id}')">Ripianifica</button></div>`)},
+ ripOk(id){const a=M.att.find(x=>x.id===id);a.due=document.getElementById('mnRpD').value||tdy();a.man=document.getElementById('mnRpM').value||null;saveM();closeO();mt('Passi ripianificati il '+fd(a.due))},
  meseSel(ym){MN.mese=ym;draw()},anno2(d){MN.anno2=String(+MN.anno2+d);draw()},
  async plMese(ym){const d=MN.pl.data.slice(8,10);const last=new Date(+ym.slice(0,4),+ym.slice(5,7),0).getDate();MN.pl.data=ym+'-'+String(Math.min(+d,last)).padStart(2,'0');MN.pl.sel=null;await storico(ym.slice(0,4));drawPlan()},
  async plAnno(d){MN.pl.data=String(+MN.pl.data.slice(0,4)+d)+MN.pl.data.slice(4);MN.pl.sel=null;await storico(MN.pl.data.slice(0,4));drawPlan()},
@@ -427,10 +432,14 @@ window.MNX={
   await window.FBM.putBlob('manutFoto',id,{data,att:MN.ex,anno:tdy().slice(0,4)});BL[id]={data};const a=M.att.find(x=>x.id===MN.ex);(a.foto[k]=a.foto[k]||[]).push(id);saveM();drawEx();mt('Foto salvata ('+Math.round(data.length*.75/1024)+' KB)')}
   catch(er){mt('Foto non salvata: '+FB.err(er))}},
  delFoto(k,j){const a=M.att.find(x=>x.id===MN.ex);const id=a.foto[k][j];a.foto[k].splice(j,1);window.FBM.delBlob('manutFoto',id).catch(()=>{});saveM();drawEx()},
- async chiudi(){const a=M.att.find(x=>x.id===MN.ex),p=PA(a),s=M.ass.find(x=>x.id===a.ass),i=IA(a);
-  const c={...a,chiusa:tdy(),esec:me(),_imp:a.imp?i.cod+' '+i.nome:'',_cat:a.cat||null,_cmp:CMP(a),_pcod:a.free?'Attività':p.cod,_pdesc:p.desc,_free:a.free||null,_norma:p.norma,_steps:p.steps.map(x=>({t:x.t,foto:x.foto}))};const y=c.chiusa.slice(0,4);
+ async chiudi(part){const a=M.att.find(x=>x.id===MN.ex),p=PA(a),s=M.ass.find(x=>x.id===a.ass),i=IA(a);
+  const fatto=k=>a.ok[k]&&(!p.steps[k].foto||(a.foto[k]||[]).length),orig=a.sub||p.steps.map((x,k)=>k),miss=orig.filter((o,k)=>!fatto(k));
+  if(part){if(!miss.length)part=0;else a.ok=a.ok.map((v,k)=>fatto(k))}
+  const c={...a,parziale:part?1:0,_mancanti:part?p.steps.filter((x,k)=>!fatto(k)).map(x=>x.t):null,chiusa:tdy(),esec:me(),_imp:a.imp?i.cod+' '+i.nome:'',_cat:a.cat||null,_cmp:CMP(a),_pcod:a.free?'Attività':p.cod,_pdesc:p.desc,_free:a.free||null,_norma:p.norma,_steps:p.steps.map(x=>({t:x.t,foto:x.foto}))};const y=c.chiusa.slice(0,4);
   try{const arr=await storico(y);arr.push(c);await window.FBM.saveY(y,arr)}catch(er){return mt('Chiusura non salvata: '+FB.err(er))}
   M.att=M.att.filter(x=>x.id!==a.id);if(!(M.anni||[]).includes(y))(M.anni=M.anni||[]).push(y);
+  if(part){const r={id:nid('a'),vis:null,ass:a.ass,imp:a.imp,comp:a.comp,proc:a.proc,free:a.free||null,sub:miss,due:null,man:null,ok:miss.map(()=>false),foto:miss.map(()=>[]),note:'',orig:a.id};M.att.push(r);
+   if(a.vis&&!M.att.some(x=>x.vis===a.vis))M.vis=M.vis.filter(v=>v.id!==a.vis);saveM();closeO();return mt('Chiusa in parte: '+miss.length+' passi restano da ripianificare')}
   let msg='✓ Attività completata';if(s){s.last=c.chiusa;if(p.tipo==='cal'){s.next=addM(s.next&&s.next<=c.chiusa?s.next:c.chiusa,p.int)}else if(p.tipo==='ultima'){s.next=addM(c.chiusa,p.int)}else{s.evt=false}msg+=p.tipo==='evento'?' · in attesa del prossimo evento':' · prossima richiesta dal '+fd(s.next)}
   if(a.vis&&!M.att.some(x=>x.vis===a.vis))M.vis=M.vis.filter(v=>v.id!==a.vis);
   saveM();closeO();mt(msg)},
