@@ -53,7 +53,7 @@ const pill=s=>`<span class="pill" style="color:${s[1]}">${s[0]}</span>`;
 const planned=s=>M.att.find(a=>a.ass===s.id&&a.due);
 const pend=s=>M.att.find(a=>a.ass===s.id&&!a.due);
 const nextWork=d=>{const x=new Date(d+'T12:00:00');do{x.setDate(x.getDate()+1)}while(x.getDay()===0||x.getDay()===6);return isoL(x)};
-function sweep(){let ch=0;const t=tdy();M.att.forEach(a=>{if(a.due&&a.due<t&&!a.ok.some(Boolean)){a.due=null;a.vis=null;ch=1}});if(ch){M.vis=M.vis.filter(v=>M.att.some(a=>a.vis===v.id));saveM()}}
+function sweep(){let ch=0;const t=tdy();M.att.forEach(a=>{if(a.due&&a.due<t&&!a.ok.some(Boolean)){a.due=null;a.vis=null;ch=1}});if(ch){M.vis=M.vis.filter(v=>M.att.some(a=>a.vis===v.id));saveM();refresh()}}
 function dueOn(s,d){const p=P(s.proc);if(!p)return false;if(pend(s))return true;if(p.tipo==='evento')return !!s.evt;return !s.next||s.next<=d}
 function assStatus(s){const r=assStatus0(s);if(s.incompleto&&r[2]!=='r')return[r[0]+' · da concludere',r[2]==='v'?'var(--warn)':r[1],r[2]==='v'?'g':r[2]];if(s.incompleto)return[r[0]+' · da concludere',r[1],r[2]];return r}
 function assStatus0(s){const p=P(s.proc),t=tdy(),pa=planned(s);
@@ -115,13 +115,26 @@ function yCounts(y,imp){const pian=Array(12).fill(0),fatte=Array(12).fill(0);
  return{pian,fatte}}
 function yearGrid(y,imp,fn,selM){const c=yCounts(y,imp),cur=tdy().slice(0,7);
  return `<div class="mn-yr">${MESI.map((m,k)=>{const ym=y+'-'+String(k+1).padStart(2,'0');return `<button class="mn-mo${ym===selM?' sel':''}${ym===cur?' cur':''}${ym<cur?' past':''}" onclick="MNX.${fn}('${ym}')"><b>${m}</b><span class="${c.pian[k]?'p':''}">${c.pian[k]} pianificate</span><span class="${c.fatte[k]?'f':''}">${c.fatte[k]} fatte</span></button>`}).join('')}</div>`}
-async function vPian(){const y=MN.anno2||(MN.anno2=tdy().slice(0,4));await storico(y);
- const all=M.imp.map(i=>({i,...impStatus(i.id)}));const ord={r:0,g:1,b:2,n:3,v:4};
- const rows=all.filter(r=>r.toPlan).sort((a,b)=>ord[a.w[2]]-ord[b.w[2]]||((a.next||'9')<(b.next||'9')?-1:1));
- return `<div class="mn-calw" style="margin-bottom:14px"><div class="mn-calh"><button class="btn" onclick="MNX.anno2(-1)" aria-label="Anno precedente">‹</button><h3>${y}</h3><button class="btn" onclick="MNX.anno2(1)" aria-label="Anno successivo">›</button></div>${yearGrid(y,null,'meseSel',MN.mese)}</div>
- <div class="mn-dash"><div class="mn-calw">${cal()}</div>
- <div>${(()=>{const fr=M.att.filter(a=>!a.due&&!a.ass);return `<h3 style="margin-bottom:8px">Da pianificare <span class="mn-n">${rows.length+fr.length}</span></h3>`+(fr.length?list(fr.map(a=>{const p=PA(a);return item('var(--accent)',`${e_(p.cod)} · ${e_(p.desc)}`,`${dot(a.sub?'Passi mancanti':'Non completata','var(--accent)')}${INOME(a)?`<span>${e_(INOME(a))}</span>`:''}`,isR()?`<button class="btn pri" onclick="MNX.rip('${a.id}')">Ripianifica</button>`:'',`MNX.esegui('${a.id}')`)}),'')+'<div style="height:8px"></div>':'')})()}
- ${list(rows.map(r=>item(r.w[1],`${e_(r.i.cod)} · ${e_(r.i.nome)}`,`${dot(r.w[0],r.w[1])}${r.mai?'<span>nessuna manutenzione ancora pianificata</span>':`<span>${r.toPlan} procedure da fare</span>`}${M.ass.some(s=>s.imp===r.i.id&&pend(s))?'<span style="color:var(--accent);font-weight:600">con attività non completate</span>':''}${r.inc?`<span style="color:var(--warn);font-weight:600">${r.inc} da concludere</span>`:''}${r.next&&!r.mai?`<span>dal ${fd(r.next)}</span>`:''}`,isR()?`<button class="btn pri" onclick="MNX.plan('${r.i.id}')">Pianifica</button>`:'',`MNX.apriImp('${r.i.id}')`)),'Niente da pianificare 👍')}</div></div>`}
+async function vPian(){const y=MN.anno2||(MN.anno2=tdy().slice(0,4));const cy=tdy().slice(0,4);await storico(y);await storico(cy);
+ const t=tdy(),all=M.imp.map(i=>({i,...impStatus(i.id)}));const ord={r:0,g:1,b:2,n:3,v:4};
+ const pianR=all.filter(r=>r.toPlan&&!M.ass.some(s=>s.imp===r.i.id&&pend(s))).sort((a,b)=>ord[a.w[2]]-ord[b.w[2]]||((a.next||'9')<(b.next||'9')?-1:1));
+ const ripA=M.att.filter(a=>!a.due);
+ const late=M.att.filter(a=>a.due&&a.due<t);
+ const plan=M.att.filter(a=>a.due&&a.due>=t);
+ const mm=t.slice(0,7),done=(H[cy]||[]).filter(a=>a.chiusa.startsWith(mm)).sort((a,b)=>a.chiusa<b.chiusa?1:-1);
+ const box=MN.box||'pian';
+ const k=(key,l,n,col,sub)=>`<button class="mn-kpi" style="--c:${col}" onclick="MNX.box('${key}')" aria-pressed="${box===key}"><b>${n}</b><span>${l}</span>${sub?`<span style="font-size:11px">${sub}</span>`:''}</button>`;
+ const ripImp=[...new Set(ripA.filter(a=>a.imp).map(a=>a.imp))];
+ let lst='',tit='';
+ if(box==='pian'){tit='Da pianificare';lst=list(pianR.map(r=>item(r.w[1],`${e_(r.i.cod)} · ${e_(r.i.nome)}`,`${dot(r.w[0],r.w[1])}${r.mai?'<span>mai pianificato</span>':`<span>${r.toPlan} procedure</span>`}${r.next&&!r.mai?`<span>dal ${fd(r.next)}</span>`:''}${r.inc?`<span style="color:var(--warn);font-weight:600">${r.inc} da concludere</span>`:''}`,isR()?`<button class="btn pri" onclick="MNX.plan('${r.i.id}')">Pianifica</button>`:'',`MNX.apriImp('${r.i.id}')`)),'Niente da pianificare 👍')}
+ if(box==='rip'){tit='Da ripianificare';lst=list(ripA.map(a=>{const p=PA(a);return item('var(--accent)',`${e_(p.cod)} · ${e_(p.desc)}`,`${dot(a.sub?'Passi mancanti':'Non completata','var(--accent)')}${INOME(a)?`<span>${e_(INOME(a))}</span>`:''}<span class="mn-who${a.man?'':' none'}">👤 ${e_(a.man||'senza nome')}</span>`,isR()?(a.ass?`<button class="btn pri" onclick="MNX.plan('${a.imp}')">Ripianifica</button>`:`<button class="btn pri" onclick="MNX.rip('${a.id}')">Ripianifica</button>`):'',`MNX.esegui('${a.id}')`)}),'Niente da ripianificare 👍')}
+ if(box==='late'){tit='In ritardo';lst=attList(late,isR())}
+ if(box==='plan'){tit='Pianificate';lst=attList(plan,isR())}
+ if(box==='done'){tit='Fatte questo mese';lst=list(done.map(a=>item(a.parziale?'var(--warn)':'var(--ok)',`${e_(a._pcod)} · ${e_(a._pdesc)}`,`<span><b>${fd(a.chiusa)}</b></span>${a._imp?`<span>${e_(a._imp)}</span>`:''}<span>👤 ${e_(a.esec)}</span>${a.parziale?'<span style="color:var(--warn);font-weight:600">chiusa in parte</span>':''}`,`<button class="btn sm" onclick="MNX.pdf('${cy}','${a.id}')">PDF</button>${isR()?`<button class="btn sm" onclick="MNX.riapri('${cy}','${a.id}')">Riapri</button>`:''}`)),'Nessuna attività completata questo mese.')}
+ return `<div class="mn-kpis mn-k5">${k('pian','Da pianificare',pianR.length,'var(--accent)','impianti')}${k('rip','Da ripianificare',ripA.length,'#b4235a','non completate o con passi mancanti')}${k('late','In ritardo',late.length,'var(--warn)','data passata, iniziate')}${k('plan','Pianificate',plan.length,'var(--info)','da oggi in poi')}${k('done','Fatte',done.length,'var(--ok)','questo mese')}</div>
+ <div class="mn-dash"><div><h3 style="margin-bottom:8px">${tit}</h3>${lst}</div>
+ <div class="mn-calw">${cal()}</div></div>
+ <div class="mn-calw" style="margin-top:14px"><div class="mn-calh"><button class="btn" onclick="MNX.anno2(-1)" aria-label="Anno precedente">‹</button><h3>${y}</h3><button class="btn" onclick="MNX.anno2(1)" aria-label="Anno successivo">›</button></div>${yearGrid(y,null,'meseSel',MN.mese)}</div>`}
 function cal(){const m=MN.mese||(MN.mese=tdy().slice(0,7));const [Y,Mo]=m.split('-').map(Number);
  const first=new Date(Y,Mo-1,1),start=new Date(first);start.setDate(1-((first.getDay()+6)%7));
  const ev={};M.vis.forEach(v=>(ev[v.data]=ev[v.data]||[]).push(v));
@@ -169,7 +182,7 @@ function visDett(id){const v=M.vis.find(x=>x.id===id);if(!v)return closeO();cons
  <div class="row" style="justify-content:space-between">${isR()?`<button class="btn" onclick="MNX.visDel('${id}')">Annulla manutenzione</button>`:'<span></span>'}<button class="btn" onclick="MNX.close()">Chiudi</button></div>`)}
 
 function attList(l,man){return list(l.sort((a,b)=>(a.due||'0')<(b.due||'0')?-1:1).map(a=>{const i=IA(a),p=PA(a),st=status(a),nd=a.ok.filter(Boolean).length;
- return item(st[1],`${e_(p.cod)} · ${e_(p.desc)}`,`${dot(st[0]+(a.due?' · '+fd(a.due):''),st[1])}<span class="mn-who${a.man?'':' none'}">👤 ${e_(a.man||'senza nome')}</span>${a.sub?'<span>solo passi mancanti</span>':''}${nd?`<span class="mn-prog">${nd}/${a.ok.length} passi fatti</span>`:''}${INOME(a)?`<span>${e_(INOME(a))}</span>`:''}${CMP(a)?`<span>${e_(CMP(a))}</span>`:''}${!man?'':''}`,`${man?manSel(a):''}<button class="btn pri" onclick="MNX.esegui('${a.id}')">Apri</button>`,`MNX.esegui('${a.id}')`)}),'Nessuna attività.')}
+ return item(st[1],`${e_(p.cod)} · ${e_(p.desc)}`,`${dot(st[0]+(a.due?' · '+fd(a.due):''),st[1])}<span class="mn-who${a.man?'':' none'}">👤 ${e_(a.man||'senza nome')}</span>${a.sub?'<span>solo passi mancanti</span>':''}${a.riaperta?'<span style="color:var(--warn);font-weight:600">riaperta</span>':''}${nd?`<span class="mn-prog">${nd}/${a.ok.length} passi fatti</span>`:''}${INOME(a)?`<span>${e_(INOME(a))}</span>`:''}${CMP(a)?`<span>${e_(CMP(a))}</span>`:''}${!man?'':''}`,`${man?manSel(a):''}<button class="btn pri" onclick="MNX.esegui('${a.id}')">Apri</button>`,`MNX.esegui('${a.id}')`)}),'Nessuna attività.')}
 const manSel=a=>`<select class="mn-man" aria-label="Manutentore" onchange="MNX.setMan('${a.id}',this.value)"><option value="">— Da assegnare —</option>${S.persone.map(p=>`<option ${a.man===p?'selected':''}>${e_(p)}</option>`).join('')}</select>`;
 function split(l,assign){const pr=l.filter(a=>!a.free),al=l.filter(a=>a.free);
  return (pr.length?`<h3 class="mn-sec">Attività preventive <span class="mn-n">${pr.length}</span></h3><div class="mn-list">${grouped(pr,assign)}</div>`:'')+(al.length?`<h3 class="mn-sec">Altre attività <span class="mn-n">${al.length}</span></h3>${attList(al,assign)}`:'')||'<div class="mn-empty muted">Nessuna attività.</div>'}
@@ -196,7 +209,7 @@ async function vSto(){
  const anni=[...new Set([...(M.anni||[]),String(new Date().getFullYear())])].sort().reverse();
  return fBox(`<label class="mn-fs">Anno<select onchange="MNX.anno(this.value)">${anni.map(a=>`<option ${a===y?'selected':''}>${a}</option>`).join('')}</select></label>`+fImp()+(isR()?fMan('Eseguita da',false):'')+`<label class="mn-fs">Dal<input type="date" value="${MN.f.da}" onchange="MNX.f('da',this.value)"></label><label class="mn-fs">Al<input type="date" value="${MN.f.a}" onchange="MNX.f('a',this.value)"></label>`,
   `${list_.length} interventi nel ${y} · <button class="btn sm" onclick="MNX.xls()">Esporta Excel</button>`)+
- list(list_.map(a=>{const ok=a.ok.filter(Boolean).length;return item('var(--ok)',`${e_(a._pcod)} · ${e_(a._pdesc)}`,`<span><b>${fd(a.chiusa)}</b></span><span>${e_(a._imp)}${a._cmp?' › '+e_(a._cmp):''}</span><span>${e_(a.esec)}</span><span>${ok}/${a.ok.length} passi</span>${a.parziale?'<span style="color:var(--accent);font-weight:600">chiusa in parte</span>':''}${a.foto.flat().length?`<span>${a.foto.flat().length} foto</span>`:''}${a.note?`<span class="mn-note">«${e_(a.note)}»</span>`:''}`,`<button class="btn pri" onclick="MNX.pdf('${y}','${a.id}')">PDF</button>`)}),'Nessun intervento con questi filtri.')}
+ list(list_.map(a=>{const ok=a.ok.filter(Boolean).length;return item('var(--ok)',`${e_(a._pcod)} · ${e_(a._pdesc)}`,`<span><b>${fd(a.chiusa)}</b></span><span>${e_(a._imp)}${a._cmp?' › '+e_(a._cmp):''}</span><span>${e_(a.esec)}</span><span>${ok}/${a.ok.length} passi</span>${a.parziale?'<span style="color:var(--accent);font-weight:600">chiusa in parte</span>':''}${a.foto.flat().length?`<span>${a.foto.flat().length} foto</span>`:''}${a.note?`<span class="mn-note">«${e_(a.note)}»</span>`:''}`,`<button class="btn" onclick="MNX.pdf('${y}','${a.id}')">PDF</button>${isR()?`<button class="btn" onclick="MNX.riapri('${y}','${a.id}')">Riapri</button>`:''}`)}),'Nessun intervento con questi filtri.')}
 
 // --- Attività assegnate (manutenzione)
 function vPers(){const R=isR()||(typeof isAdm_==='function'&&isAdm_());
@@ -228,7 +241,7 @@ async function impPage(id){const i=I(id),R=isR();const ys=[...new Set([...(M.ann
  <div class="mn-kpis"><div class="mn-kpi" style="--c:var(--ok)"><b style="font-size:20px">${lastOf(id)?fd(lastOf(id)):'—'}</b><span>Ultima manutenzione</span></div><div class="mn-kpi" style="--c:var(--info)"><b style="font-size:20px">${nextVis(id)?fd(nextVis(id)):'—'}</b><span>Prossima pianificata</span></div><div class="mn-kpi" style="--c:${st.w[1]}"><b style="font-size:20px">${st.toPlan}</b><span>Procedure da pianificare</span></div><div class="mn-kpi" style="--c:var(--warn)"><b style="font-size:20px">${ric.filter(r=>r.buy&&r.stato!=='ok').length}</b><span>Ricambi da acquistare</span></div></div>
  <div class="mn-det">
  <section class="panel"><h3>Da fare</h3>${list(ass.map(s=>{const p=P(s.proc),x=assStatus(s),a=planned(s);return item(x[1],`${e_(p.cod)} · ${e_(p.desc)}`,`${dot(x[0],x[1])}<span>${e_(CMP(s))}</span>${s.last?`<span>ultima ${fd(s.last)}</span>`:''}${s.incompleto?`<span style="color:var(--warn)">mancano: ${e_(s.incompleto.passi.join(', '))}</span>`:''}`,a?`<button class="btn" onclick="MNX.esegui('${a.id}')">Apri</button>`:p.tipo==='evento'&&R&&!s.evt?`<button class="btn" onclick="MNX.evento('${s.id}')">Registra evento</button>`:'')}),'Nessuna procedura assegnata.')}</section>
- <section class="panel"><h3>Fatte</h3>${list(done.slice(0,30).map(a=>item('var(--ok)',`${e_(a._pcod)} · ${e_(a._pdesc)}`,`<span><b>${fd(a.chiusa)}</b></span><span>${e_(a._cmp)}</span><span>${e_(a.esec)}</span><span>${a.ok.filter(Boolean).length}/${a.ok.length} passi</span>`,`<button class="btn sm" onclick="MNX.pdf('${a._y}','${a.id}')">PDF</button>`)),'Nessuna manutenzione eseguita.')}</section>
+ <section class="panel"><h3>Fatte</h3>${list(done.slice(0,30).map(a=>item('var(--ok)',`${e_(a._pcod)} · ${e_(a._pdesc)}`,`<span><b>${fd(a.chiusa)}</b></span><span>${e_(a._cmp)}</span><span>${e_(a.esec)}</span><span>${a.ok.filter(Boolean).length}/${a.ok.length} passi</span>`,`<button class="btn sm" onclick="MNX.pdf('${a._y}','${a.id}')">PDF</button>${R?`<button class="btn sm" onclick="MNX.riapri('${a._y}','${a.id}')">Riapri</button>`:''}`)),'Nessuna manutenzione eseguita.')}</section>
  <section class="panel"><h3>Note delle manutenzioni</h3>${note.length?`<div class="mn-notes">${note.map(n=>`<div class="mn-nt"><div class="muted" style="font-size:12px">${fd(n.d)} · ${e_(n.chi||'')} · ${e_(n.p||'')}${n.c?' · '+e_(n.c):''}${n.aperta?' · in corso':''}</div><div>${e_(n.t)}</div></div>`).join('')}</div>`:'<div class="mn-empty muted">Nessuna nota.</div>'}</section>
  <section class="panel"><div class="mn-oh"><h3>Ricambi</h3>${R?`<button class="btn sm" onclick="MNX.ricNew('${id}')">+ Aggiungi</button>`:''}</div>${ricList(ric,true)}</section>
  </div>`}
@@ -368,6 +381,19 @@ window.MNX={
   <div class="evf"><label>Data<input type="date" id="mnRpD" value="${tdy()}"></label><label>Manutentore<select id="mnRpM"><option value="">Senza nome (da assegnare)</option>${S.persone.map(n=>`<option>${e_(n)}</option>`).join('')}</select></label></div>
   <div class="row" style="justify-content:flex-end"><button class="btn" onclick="MNX.close()">Annulla</button><button class="btn pri" onclick="MNX.ripOk('${id}')">Ripianifica</button></div>`)},
  ripOk(id){const a=M.att.find(x=>x.id===id);a.due=document.getElementById('mnRpD').value||tdy();a.man=document.getElementById('mnRpM').value||null;const v={id:nid('v'),imp:a.imp||null,data:a.due,man:a.man,tit:a.free?a.free.titolo:null};M.vis.push(v);a.vis=v.id;saveM();closeO();mt('Ripianificata il '+fd(a.due))},
+ box(k){MN.box=k;draw()},
+ riapri(y,id){const arr=H[y]||[],c=arr.find(x=>x.id===id);if(!c)return;const p=c._steps?{desc:c._pdesc,cod:c._pcod}:PA(c);
+  ovl(`<div class="mn-oh"><h2>Riaprire l'attività?</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div><div><b>${e_(p.cod)} · ${e_(p.desc)}</b><div class="muted">${c._imp?e_(c._imp)+' · ':''}chiusa il ${fd(c.chiusa)} da ${e_(c.esec)}</div></div>
+  <div class="muted" style="font-size:13px">Torna tra le attività da fare con i passi già spuntati, le foto e le note. Lo scadenziario della procedura torna com'era prima della chiusura.</div>
+  <div class="evf"><label>Nuova data<input type="date" id="mnRoD" value="${tdy()}"></label><label>Manutentore<select id="mnRoM"><option value="">Senza nome</option>${S.persone.map(n=>`<option ${n===c.esec?'selected':''}>${e_(n)}</option>`).join('')}</select></label></div>
+  <div class="row" style="justify-content:flex-end"><button class="btn" onclick="MNX.close()">Annulla</button><button class="btn pri" onclick="MNX.riapriOk('${y}','${id}')">Riapri</button></div>`)},
+ async riapriOk(y,id){const arr=H[y]||[],c=arr.find(x=>x.id===id);if(!c)return;const d=document.getElementById('mnRoD').value||tdy(),m=document.getElementById('mnRoM').value||null;
+  const s0=M.ass.find(x=>x.id===c.ass);if(s0&&c._prev)Object.assign(s0,c._prev);
+  const a={id:c.id,vis:null,ass:c.ass,imp:c.imp,comp:c.comp,proc:c.proc,free:c.free||c._free||null,sub:c.sub||null,due:d,man:m,ok:c.ok,foto:c.foto,note:c.note||'',riaperta:tdy()};
+  if(a.free&&!a.free.steps&&c._steps)a.free.steps=c._steps;
+  const v={id:nid('v'),imp:a.imp||null,data:d,man:m,tit:a.free?a.free.titolo:null};M.vis.push(v);a.vis=v.id;
+  try{H[y]=arr.filter(x=>x.id!==id);await window.FBM.saveY(y,H[y])}catch(er){return mt('Non riaperta: '+FB.err(er))}
+  M.att.push(a);saveM();closeO();mt('Attività riaperta per il '+fd(d))},
  meseSel(ym){MN.mese=ym;draw()},anno2(d){MN.anno2=String(+MN.anno2+d);draw()},
  async plMese(ym){const d=MN.pl.data.slice(8,10);const last=new Date(+ym.slice(0,4),+ym.slice(5,7),0).getDate();MN.pl.data=ym+'-'+String(Math.min(+d,last)).padStart(2,'0');MN.pl.sel=null;await storico(ym.slice(0,4));drawPlan()},
  async plAnno(d){MN.pl.data=String(+MN.pl.data.slice(0,4)+d)+MN.pl.data.slice(4);MN.pl.sel=null;await storico(MN.pl.data.slice(0,4));drawPlan()},
@@ -446,7 +472,7 @@ window.MNX={
   M.att=M.att.filter(x=>x.id!==a.id);if(!(M.anni||[]).includes(y))(M.anni=M.anni||[]).push(y);
   if(part&&!s){const r={id:nid('a'),vis:null,ass:null,imp:a.imp,comp:a.comp,proc:null,free:a.free||null,sub:miss,due:null,man:a.man||null,ok:miss.map(()=>false),foto:miss.map(()=>[]),note:'',orig:a.id};M.att.push(r);
    if(a.vis&&!M.att.some(x=>x.vis===a.vis))M.vis=M.vis.filter(x=>x.id!==a.vis);saveM();closeO();return mt('Chiusa in parte: i passi mancanti sono in «Da pianificare»')}
-  let msg=part?'Chiusa in parte':'✓ Attività completata';if(s){s.last=c.chiusa;s.incompleto=part?{data:c.chiusa,passi:c._mancanti}:null;if(p.tipo==='cal'){s.next=addM(s.next&&s.next<=c.chiusa?s.next:c.chiusa,p.int)}else if(p.tipo==='ultima'){s.next=addM(c.chiusa,p.int)}else{s.evt=false}msg+=p.tipo==='evento'?' · in attesa del prossimo evento':(part?' · i passi mancanti restano da concludere, prossima manutenzione dal ':' · prossima richiesta dal ')+fd(s.next)}
+  let msg=part?'Chiusa in parte':'✓ Attività completata';if(s){c._prev={last:s.last,next:s.next,evt:s.evt,incompleto:s.incompleto||null};try{const arr=H[y];const me_=arr&&arr.find(x=>x.id===c.id);if(me_)me_._prev=c._prev;window.FBM.saveY(y,arr)}catch(e){}s.last=c.chiusa;s.incompleto=part?{data:c.chiusa,passi:c._mancanti}:null;if(p.tipo==='cal'){s.next=addM(s.next&&s.next<=c.chiusa?s.next:c.chiusa,p.int)}else if(p.tipo==='ultima'){s.next=addM(c.chiusa,p.int)}else{s.evt=false}msg+=p.tipo==='evento'?' · in attesa del prossimo evento':(part?' · i passi mancanti restano da concludere, prossima manutenzione dal ':' · prossima richiesta dal ')+fd(s.next)}
   if(a.vis&&!M.att.some(x=>x.vis===a.vis))M.vis=M.vis.filter(v=>v.id!==a.vis);
   saveM();closeO();mt(msg)},
  pdfOpen(){const a=M.att.find(x=>x.id===MN.ex),p=PA(a),i=IA(a);pdf(a,p,a.imp?i.cod+' '+i.nome+(i.cli?' ('+i.cli+')':''):'—',CMP(a))},
