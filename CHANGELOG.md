@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.11.1 — 2026-11-16
+- Intervento non programmato: scelta facoltativa dell'elemento; le preventive mostrate sono solo quelle dell'elemento scelto; ore facoltative dell'impianto o dell'elemento selezionato. Protezione dal doppio salvataggio.
+- Storico e scheda impianto: «Dettaglio attività» apribile con passi eseguiti, note, ricambi e ore, senza stampare il PDF.
+
 ## 2.11.0 — 2026-11-16
 - Manutenzione: «+ Intervento non programmato» per tutti (impianto, causale, descrizione, ricambi con codice/descrizione/quantità, ore impiegate min 0,5). Con «Manutenzione preventiva» si sceglie la preventiva dell'impianto: dopo conferma è segnata eseguita e ripianificata da quella data.
 - Ore lavorate impianto: gli elementi sommano la differenza rispetto all'intervento precedente; un valore scritto sull'elemento diventa il suo riferimento. Ore inferiori alle precedenti solo per responsabile/admin.
