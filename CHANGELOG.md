@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.8.9 — 2026-11-16
+- La manutenzione non resta più bloccata su «Caricamento»: se le procedure non arrivano si apre comunque (in sola lettura) e mostra il motivo.
+
 ## 2.8.8 — 2026-11-16
 - Procedure di nuovo salvate insieme agli altri dati (il limite di 1 MB non era il problema). Recupero automatico delle procedure rimaste fuori dal salvataggio nelle versioni 2.8.5–2.8.7, con gli stessi codici e collegamenti.
 - Nessun salvataggio se le procedure non sono ancora caricate (evita di cancellarle).

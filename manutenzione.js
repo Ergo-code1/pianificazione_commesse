@@ -18,7 +18,7 @@ const me=()=>S.user&&S.user.nome;
 const nk_=x=>String(x||'').trim().toLowerCase().replace(/\s+/g,' ');const sameP=(a,b)=>!!a&&!!b&&nk_(a)===nk_(b);const mine=a=>sameP(a.man,me());
 // persone dell'ente corrente (in manutenzione solo quelle del reparto)
 const PERS=()=>typeof visPers==='function'?visPers():S.persone;
-const P=id=>M.proc.find(x=>x.id===id),I=id=>M.imp.find(x=>x.id===id),T=id=>M.tipi.find(x=>x.id===id);
+const P=id=>id?(M.proc.find(x=>x.id===id)||{id,cod:'?',desc:'Procedura mancante',norma:'',tipo:'ultima',int:1,steps:[],doc:null,_miss:1}):undefined,I=id=>M.imp.find(x=>x.id===id),T=id=>M.tipi.find(x=>x.id===id);
 const PA0=a=>a&&a.free?{id:null,cod:'Attività',desc:a.free.titolo,norma:'',tipo:'libera',int:0,steps:a.free.steps||[],doc:null,_d:a.free.desc}:P(a.proc);
 const PA=a=>{const b=PA0(a);if(!b||!a||!a.sub)return b;return{...b,steps:b.steps.filter((x,k)=>a.sub.includes(k)),_sub:1}};
 const IA=a=>I(a.imp)||{id:'',cod:'Generica',nome:'',cli:'',comps:[]};
@@ -39,7 +39,7 @@ function oldApp(){if(!(M.appV&&cmpV(M.appV,myV())>0))return false;MN.old=true;
 let lastP='';
 const stab=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.keys(v).sort().reduce((r,x)=>(r[x]=v[x],r),{}):v);
 function saveM(){if(MN.old||oldApp())return mt('App non aggiornata: modifiche non salvate. Chiudi e riapri l\'app.');
- if(M.std1&&!M.proc.length)return mt('Procedure non ancora caricate: modifica non salvata, riprova tra qualche secondo.');
+ if(MN.noProc||(M.std1&&!M.proc.length))return mt('Procedure non ancora caricate: modifica non salvata, riprova tra qualche secondo.');
  if(cmpV(myV(),M.appV)>0)M.appV=myV();clearTimeout(svT);svT=setTimeout(()=>{
  const o={...M};delete o.procSep;const d=stab(o);if(d===lastM)return;lastM=d;
  if(new Blob([d]).size>950000)mt('Attenzione: dati manutenzione vicini al limite di 1 MB');
@@ -49,9 +49,9 @@ async function recProc(){if(MN._rec)return;MN._rec=1;try{
  const L=await (await fetch('manut_std.json?v=2.8.8',{cache:'no-store'})).json();const nk=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
  const out=[];M.tipi.forEach(t=>{const l=L.filter(x=>nk(x.comp)===nk(t.nome));t.procs.forEach((id,k)=>{const x=l[k];if(x)out.push({id,cod:x.cod,desc:x.desc,norma:x.norma,tipo:x.tipo,int:x.int,min:x.min,mat:x.mat,steps:x.steps,doc:x.loto?{id:'dloto',name:'Procedura_LOTO.pdf',type:'application/pdf'}:null})})});
  MN.recP=out}catch(er){mt('Recupero procedure non riuscito: '+(er.message||er));MN.recP=[]}
- MN._rec=0;const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))}
+ MN.stage='procedure recuperate: '+(MN.recP||[]).length;MN._rec=0;const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))}
 function onRemote(d){const txt=stab(d||{});if(txt===lastM)return;lastM=txt;const keep=M.proc;M=Object.assign({tipi:[],proc:[],imp:[],ass:[],att:[],vis:[],ric:[],anni:[],nextId:1},d||{});MN.mainL=true;
- let fix=false;if(!M.proc||!M.proc.length){if(keep&&keep.length){M.proc=keep;fix=true}else if(M.std1){if(!MN.procL)return;if(MN.pdoc&&MN.pdoc.length){M.proc=MN.pdoc;fix=true}else if(MN.recP&&MN.recP.length){M.proc=MN.recP;fix=true}else{if(MN.recP===undefined)recProc();return}}}
+ let fix=false;if(!M.proc||!M.proc.length){if(keep&&keep.length){M.proc=keep;fix=true}else if(M.std1){if(!MN.procL&&!MN.procTO){MN.stage='attendo procedure…';clearTimeout(MN._to);MN._to=setTimeout(()=>{MN.procTO=1;const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))},4000);return}if(MN.pdoc&&MN.pdoc.length){M.proc=MN.pdoc;fix=true}else if(MN.recP&&MN.recP.length){M.proc=MN.recP;fix=true}else{if(MN.recP===undefined){recProc();MN.stage='recupero procedure…';return}MN.noProc=true}}}
  delete M.procSep;M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];if(oldApp())return;migra();if(fix&&isR())setTimeout(()=>{lastM='';saveM()},0);if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
  const o=document.getElementById('mnOvl');if(o&&!o.hidden)return;
  if(!(document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)))refresh()}
@@ -125,11 +125,11 @@ const HEAD={manut:['Pianificazione','Panoramica dell\'anno e calendario. In ogni
 window.vManut=function(){start();if(!LEAF.includes(S.tab)){const v=document.getElementById('view');if(v)v.innerHTML='';return}draw()};
 function draw(){const v=document.getElementById('view');if(!v||!LEAF.includes(S.tab))return;
  if(MN.err){v.innerHTML=`<div class="panel"><b>Area manutenzione non accessibile.</b><p class="muted">${e_(MN.err)}. Controlla le regole di Firestore.</p></div>`;return}
- if(!MN.ready){v.innerHTML='<div class="panel muted">Caricamento manutenzione…</div>';return}
+ if(!MN.ready){v.innerHTML=`<div class="panel muted">Caricamento manutenzione… ${e_(MN.stage||'')}</div>`;setTimeout(()=>{if(!MN.ready)draw()},1500);return}
  if(MN.tab!==S.tab){MN.tab=S.tab;MN.f={imp:'',stato:'',man:'',proc:'',q:'',da:'',a:'',cat:''};if(S.tab!=='mimp')MN.impSel=null}
  const R=isR(),lib=R?`<button class="btn" onclick="MNX.newLib()">+ Altra attività</button>`:'',act={manut:R?`${lib}<button class="btn pri" onclick="MNX.plan()">+ Pianifica manutenzione</button>`:'',mpers:lib+`<button class="btn" onclick="MNX.diag()">Diagnostica</button>`,ccat:`<button class="btn pri" onclick="MNX.catAdd()">+ Livello principale</button>`,mric:R?`<button class="btn" onclick="MNX.ricNew()">+ Aggiungi ricambio</button>`:'',cimp:`<button class="btn pri" onclick="MNX.newImp()">+ Nuovo impianto</button>`,ctipi:`<button class="btn pri" onclick="MNX.newTipo()">+ Nuovo tipo</button>`,cproc:`<button class="btn pri" onclick="MNX.editProc()">+ Nuova procedura</button>`}[S.tab]||'';
  const hd=S.tab==='mimp'&&MN.impSel?null:HEAD[S.tab];
- v.innerHTML=`<div class="mnt">${hd?`<div class="mn-head"><div><h2>${hd[0]}</h2><div class="muted">${hd[1]}</div></div><div class="row">${act}</div></div>`:''}<div id="mnBody"></div></div>`;
+ v.innerHTML=`<div class="mnt">${MN.noProc?'<div class="mn-info" style="border-left-color:var(--accent)">Procedure non trovate: i dati sono in sola lettura. Avvisa l\'assistenza.</div>':''}${hd?`<div class="mn-head"><div><h2>${hd[0]}</h2><div class="muted">${hd[1]}</div></div><div class="row">${act}</div></div>`:''}<div id="mnBody"></div></div>`;
  const body=document.getElementById('mnBody');
  const r=({manut:vPian,mpers:vPers,mimp:vImpM,mric:vRic,msto:vSto,mlog:vLog,cimp:vImp,ccat:vCat,ctipi:vTipi,cproc:vProc})[S.tab]();
  if(r&&r.then){body.innerHTML='<div class="muted">Caricamento…</div>';r.then(h=>{if(document.getElementById('mnBody')===body){body.innerHTML=h;after()}})}else{body.innerHTML=r;after()}}
