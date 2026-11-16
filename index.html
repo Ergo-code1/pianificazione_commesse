@@ -425,7 +425,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.8.1';
+const VERSIONE='2.8.2';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -475,7 +475,8 @@ function groups(){const A=isAdm_(),o=[];if(!S.user)return o;const pm=S.user.perm
  if(A){S.enti.forEach(e=>o.push({id:'e:'+e,ente:e,l:e,t:repSez(e).map(k=>[k,lab(k)])}));if(!S.enti.length)o.push({id:'e:',ente:'*',l:'Lavoro',t:SEZ_ING.map(k=>[k,lab(k)])})}
  else{const me=myEnte(),own=repSez(me),ex=new Set();
   Object.keys(pm.vis||{}).forEach(k=>ex.add(k));if(mR)SEZ_MAN.forEach(k=>ex.add(k));
-  o.push({id:'e:'+me,ente:me,l:me||'Il mio lavoro',t:own.map(k=>[k,lab(k)])});
+  const myM=window.MNP_mine?MNP_mine():0;const own2=!mR&&!own.includes('mpers')&&(myM>0||!own.includes('persone'))?[...own,'mpers']:own;
+  o.push({id:'e:'+me,ente:me,l:me||'Il mio lavoro',t:own2.map(k=>[k,lab(k)])});
   altE().filter(e=>e!==me).forEach(e=>o.push({id:'e:'+e,ente:e,l:e,t:repSez(e).map(k=>[k,lab(k)])}));
   let more=[...ex].filter(k=>!own.includes(k)&&SEZL[k]);S.enti.filter(e=>e!==me&&!altE().includes(e)).forEach(e=>{const ks=repSez(e).filter(k=>more.includes(k));if(ks.length){o.push({id:'v:'+e,ente:e,l:e,t:ks.map(k=>[k,lab(k)])});more=more.filter(k=>!ks.includes(k))}});
   if(more.length)o.push({id:'x',l:'Altre sezioni',t:SEZ.filter(([k])=>more.includes(k)).map(([k])=>[k,lab(k)])})}
@@ -489,7 +490,7 @@ function render(){
  if(!S.user){renderLogin();return}
  const isAdm=S.user.ruolo==='admin';
  const GR=groups();let cg=GR.find(g=>g.id===S.grp&&g.t.some(t=>t[0]===S.tab))||GR.find(g=>g.id===S.grp)||GR.find(g=>g.t.some(t=>t[0]===S.tab))||GR[0];
- if(cg&&!cg.t.some(t=>t[0]===S.tab))S.tab=cg.t[0][0];S.grp=cg&&cg.id;if(cg&&isAdm_()){const want=cg.ente!=null?cg.ente:'*';if(S.admEnte!==want)S.admEnte=want}else if(cg)S.curE=cg.ente!=null?cg.ente:null;
+ if(cg&&!cg.t.some(t=>t[0]===S.tab))S.tab=S.tab==='persone'&&cg.t.some(t=>t[0]==='mpers')?'mpers':cg.t[0][0];S.grp=cg&&cg.id;if(cg&&isAdm_()){const want=cg.ente!=null?cg.ente:'*';if(S.admEnte!==want)S.admEnte=want}else if(cg)S.curE=cg.ente!=null?cg.ente:null;
  $('#app').innerHTML=`<header class="top"><div><h1>Ergo Plan <span class="rev">v${VERSIONE}</span></h1><div class="muted">Dati condivisi</div></div>
  <div class="row"><span class="muted">${esc(S.user.nome)} (${isAdm_()?'admin':isResp()?'resp. '+esc(myEnte()):myEnte()?esc(myEnte()):S.user.ruolo})</span><button class="btn sm" id="acct">Il mio account</button><button class="btn sm" id="logout">Esci</button></div></header>
  <nav class="tabs" role="tablist">${GR.map(g=>`<button role="tab" aria-selected="${g===cg}" data-grp="${esc(g.id)}">${esc(g.l)}</button>`).join('')}</nav>
@@ -1073,7 +1074,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.8.1"></script>
+<script src="manutenzione.js?v=2.8.2"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";

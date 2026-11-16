@@ -15,6 +15,7 @@ const nid=p=>p+(M.nextId++).toString(36)+Math.random().toString(36).slice(2,5);
 const TIPI={cal:'Ricorrente a calendario',ultima:'Da ultima chiusura',evento:'A evento'};
 const isR=()=>typeof can==='function'&&can('manut');
 const me=()=>S.user&&S.user.nome;
+const nk_=x=>String(x||'').trim().toLowerCase().replace(/\s+/g,' ');const sameP=(a,b)=>!!a&&!!b&&nk_(a)===nk_(b);const mine=a=>sameP(a.man,me());
 // persone dell'ente corrente (in manutenzione solo quelle del reparto)
 const PERS=()=>typeof visPers==='function'?visPers():S.persone;
 const P=id=>M.proc.find(x=>x.id===id),I=id=>M.imp.find(x=>x.id===id),T=id=>M.tipi.find(x=>x.id===id);
@@ -213,7 +214,7 @@ function grouped(l,assign){const g={};l.forEach(a=>(g[a.imp||'']=g[a.imp||'']||[
   ${assign&&id?`<label class="mn-fs" style="display:grid;gap:4px;font-size:12px;color:var(--muted)">Assegna tutto l'impianto a<select onchange="MNX.setManImp('${id}',this.value,'${arr.map(a=>a.id).join(',')}')"><option value="">— scegli —</option>${PERS().map(p=>`<option>${e_(p)}</option>`).join('')}<option value="-">Nessuno (togli)</option></select></label>`:''}</div>
   ${attList(arr,assign)}</div>`}).join('')||'<div class="mn-empty muted">Nessuna attività.</div>'}
 function vAtt(){const l=M.att.filter(attOk);return fBox(fStato()+fMan()+fImp(),l.length+' attività in '+new Set(l.map(a=>a.imp)).size+' impianti · assegna la singola attività o tutto l\'impianto')+`<div class="mn-list">${grouped(l,true)}</div>`}
-function vMie(){const l=M.att.filter(a=>a.man===me()&&attOk(a));return fBox(fStato(),l.length+' attività assegnate a te')+`<div class="mn-list">${grouped(l,false)}</div>`}
+function vMie(){const l=M.att.filter(a=>mine(a)&&attOk(a));return fBox(fStato(),l.length+' attività assegnate a te')+`<div class="mn-list">${grouped(l,false)}</div>`}
 
 function vImp(){const l=M.imp.filter(i=>qm(i.cod,i.nome,i.cli,catPath(i.cat),(i.comps||[]).map(c=>c.sigla).join(' ')));
  return fBox('',null)+list(l.map(i=>item('var(--info)',`${e_(i.cod)} · ${e_(i.nome)}`,`${i.cat?`<span>${e_(catPath(i.cat))}</span>`:''}<span>${e_(i.cli||'—')}</span><span>${(i.comps||[]).map(c=>e_(c.sigla)).join(', ')||'nessun componente'}</span><span>${M.ass.filter(a=>a.imp===i.id).length} procedure</span>`,`<button class="btn pri" onclick="MNX.config('${i.id}')">Configura</button>`,`MNX.config('${i.id}')`)),'Nessun impianto: crea il primo con «+ Nuovo impianto».')}
@@ -224,7 +225,7 @@ function vProc(){return list(M.proc.map(p=>item('var(--ink)',`${e_(p.cod)} · ${
 
 async function vSto(){
  const y=MN.anno,list_=(await storico(y)).filter(a=>{const f=MN.f;
-  return (isR()||a.esec===me()||a.man===me())&&(!f.imp||a.imp===f.imp)&&(!f.proc||a.proc===f.proc)&&(!f.man||a.esec===f.man)&&(!f.da||a.chiusa>=f.da)&&(!f.a||a.chiusa<=f.a)&&qm(a._imp,a._cmp,a._pcod,a._pdesc,a.note)}).sort((a,b)=>a.chiusa<b.chiusa?1:-1);
+  return (isR()||sameP(a.esec,me())||sameP(a.man,me()))&&(!f.imp||a.imp===f.imp)&&(!f.proc||a.proc===f.proc)&&(!f.man||a.esec===f.man)&&(!f.da||a.chiusa>=f.da)&&(!f.a||a.chiusa<=f.a)&&qm(a._imp,a._cmp,a._pcod,a._pdesc,a.note)}).sort((a,b)=>a.chiusa<b.chiusa?1:-1);
  MN._sto=list_;
  const anni=[...new Set([...(M.anni||[]),String(new Date().getFullYear())])].sort().reverse();
  return fBox(`<label class="mn-fs">Anno<select onchange="MNX.anno(this.value)">${anni.map(a=>`<option ${a===y?'selected':''}>${a}</option>`).join('')}</select></label>`+fImp()+(isR()?fMan('Eseguita da',false):'')+`<label class="mn-fs">Dal<input type="date" value="${MN.f.da}" onchange="MNX.f('da',this.value)"></label><label class="mn-fs">Al<input type="date" value="${MN.f.a}" onchange="MNX.f('a',this.value)"></label>`,
@@ -236,11 +237,11 @@ function vPers(){const R=isR()||(typeof isAdm_==='function'&&isAdm_())||(typeof 
  const PL=R?[...new Set([...PERS().filter(p=>typeof repSez==='function'&&repSez(pEnte(p)).includes('mpers')),...M.att.map(a=>a.man).filter(Boolean)])]:[me()];
  if(R)PL.push('');
  if(!PL.includes(MN.pSel))MN.pSel=R?PL[0]:me();
- const l=M.att.filter(a=>a.due&&(a.man||'')===(MN.pSel||''));
+ const l=M.att.filter(a=>a.due&&(R?(a.man||'')===(MN.pSel||''):mine(a)));
  const nm=p=>p||'Da assegnare';
  const side=R?`<aside class="panel pside"><h3 style="margin-bottom:8px">Persone</h3><div class="list">${PL.map(p=>`<button class="pbtn ${p===MN.pSel?'sel':''}" onclick="MNX.pSel('${e_(p)}')"><span class="av">${p?e_(p.split(' ').map(x=>x[0]).join('').slice(0,2)):'?'}</span><span style="min-width:0"><span class="cn">${e_(nm(p))}</span><span class="muted" style="font-size:12px;display:block">${M.att.filter(a=>a.due&&(a.man||'')===p).length} attività</span></span></button>`).join('')}</div></aside>`:'';
  const sel=R?`<div class="pchips" role="group" aria-label="Persona">${PL.map(p=>`<button aria-pressed="${p===MN.pSel}" onclick="MNX.pSel('${e_(p)}')">${e_(nm(p))} <span class="mn-n">${M.att.filter(a=>a.due&&(a.man||'')===p).length}</span></button>`).join('')}</div>`:'';
- const F=(M.fatte||[]).filter(x=>(x.man||'')===(MN.pSel||'')).sort((a,b)=>a.chiusa<b.chiusa?1:-1);
+ const F=(M.fatte||[]).filter(x=>R?(x.man||'')===(MN.pSel||''):sameP(x.man,me())||sameP(x.esec,me())).sort((a,b)=>a.chiusa<b.chiusa?1:-1);
  const fh=F.length?`<div class="mn-oh mn-sec"><h3>Completate <span class="mn-n">${F.length}</span></h3>${R?`<button class="btn sm" onclick="MNX.togliFatte('${e_(MN.pSel||'')}')">Togli tutte</button>`:''}</div>${list(F.map(x=>item(x.parziale?'var(--warn)':'var(--ok)',`${e_(x.cod)} · ${e_(x.desc)}`,`${dot((x.parziale?'Chiusa in parte':'✓ Completata')+' il '+fd(x.chiusa),x.parziale?'var(--warn)':'var(--ok)')}${x.imp&&I(x.imp)?`<span>${e_(I(x.imp).cod)}${x.cmp?' › '+e_(x.cmp):''}</span>`:''}${x.esec&&x.esec!==x.man?`<span>da ${e_(x.esec)}</span>`:''}`,`<button class="btn sm" onclick="MNX.pdf('${x.y}','${x.id}')">PDF</button>${R?`<button class="btn sm" onclick="MNX.riapri('${x.y}','${x.id}')">Riapri</button><button class="btn sm" onclick="MNX.togliFatta('${x.id}')">Togli</button>`:''}`)),'')}`:'';
  return `<div class="${R?'grid2':''}">${side}<section>${sel}<h3 style="margin-bottom:10px">${e_(nm(MN.pSel))} <span class="mn-n">${l.length}</span></h3>${l.length?split(l,R):(F.length?'':split(l,R))}${fh}</section></div>`}
 
@@ -295,7 +296,9 @@ function vRic(){const f=MN.f,st=f.stato||'da';
 function ovl(h){let o=document.getElementById('mnOvl');if(!o){o=document.createElement('div');o.id='mnOvl';o.className='mn-ovl';o.onclick=e=>{if(e.target===o)closeO()};document.body.appendChild(o)}
  o.innerHTML=`<div class="mn-box" role="dialog" aria-modal="true">${h}</div>`;o.hidden=false;o.scrollTop=0}
 function closeO(){const o=document.getElementById('mnOvl');if(o)o.hidden=true;refresh()}
-function refresh(){if(LEAF.includes(S.tab))draw();else if(S.tab==='persone'&&typeof render==='function')render()}
+function refresh(){if(LEAF.includes(S.tab))draw();else if(typeof render==='function'&&S.user&&(S.tab==='persone'||MN._myN!==myCount())){MN._myN=myCount();render()}}
+const myCount=()=>M.att.filter(a=>a.due&&mine(a)).length;
+window.MNP_mine=()=>{start();return MN.ready?myCount():0};
 
 function impDett(id){const i=I(id),ass=M.ass.filter(a=>a.imp===id);
  ovl(`<div class="mn-oh"><h2>${e_(i.cod)} · ${e_(i.nome)}</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div><div class="muted">${e_(i.cli||'')}</div>
@@ -339,7 +342,7 @@ function docOpts(){const l=docList();return l.length?`<label class="muted" style
 async function drawEx(){const a=M.att.find(x=>x.id===MN.ex);if(!a)return closeO();const p=PA(a),i=IA(a),st=status(a);
  const done=p.steps.filter((s,k)=>a.ok[k]&&(!s.foto||(a.foto[k]||[]).length)).length;
  const thumbs=await Promise.all(p.steps.map((s,k)=>Promise.all((a.foto[k]||[]).map(id=>blob('manutFoto',id)))));
- const canDo=isR()||a.man===me();
+ const canDo=isR()||mine(a);
  ovl(`<div class="mn-oh"><h2>${e_(p.cod)} · ${e_(p.desc)}</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div><div class="muted">👤 ${e_(a.man||'senza nome')} · ${a.free?'Altra attività':'Attività preventiva'}${a.sub?' (solo passi mancanti)':''}${INOME(a)?' · '+e_(INOME(a)):''}${CMP(a)?' › '+e_(CMP(a)):''} · ${fd(a.due)} ${pill(st)}</div>${p._d?`<div class="mn-info" style="white-space:pre-line">${e_(p._d)}</div>`:''}${(()=>{const s0=M.ass.find(x=>x.id===a.ass);return s0&&s0.incompleto?`<div class="mn-info" style="border-left-color:var(--warn)">Da concludere: la volta precedente (${fd(s0.incompleto.data)}) mancavano ${e_(s0.incompleto.passi.join(', '))}.</div>`:''})()}
  ${p.min||p.mat?`<div class="mn-info" style="white-space:pre-line">${p.min?`<b>Tempo stimato:</b> ${p.min} minuti\n`:''}${e_(p.mat||'')}</div>`:''}
  ${p.doc?`<div><button class="btn" onclick="MNX.viewDoc('${p.id}')">📄 Apri ${e_(p.doc.name||'documento procedura')}</button></div>`:''}
@@ -381,8 +384,8 @@ async function pdf(a,p,i,cmp){
 
 // ---------- azioni ----------
 window.MNP={
- count(p){start();return M.att.filter(a=>a.due&&a.man===p).length},
- html(p){start();if(!MN.ready)return '';const l=M.att.filter(a=>a.due&&a.man===p);if(!l.length)return '';
+ count(p){start();return M.att.filter(a=>a.due&&sameP(a.man,p)).length},
+ html(p){start();if(MN.err)return `<div class="mn-pers mn-info" style="border-left-color:var(--accent)">🔧 Manutenzioni non leggibili: ${e_(MN.err)}. Avvisa l'amministratore (regole di Firestore).</div>`;if(!MN.ready)return '';const l=M.att.filter(a=>a.due&&sameP(a.man,p));if(!l.length)return '';
   return `<div class="mn-pers"><h3>🔧 Manutenzioni <span class="mn-n">${l.length}</span></h3><div class="muted" style="font-size:13px">Apri un'attività per vedere i passi da eseguire, confermarli e chiuderla.</div>${split(l,false)}</div>`}
 };
 window.MNX={

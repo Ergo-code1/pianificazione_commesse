@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.8.2 — 2026-11-16
+- Manutentori: le manutenzioni assegnate (per impianto o singole) compaiono sempre nella loro «Attività assegnate»; se il loro reparto non ha la sezione, viene aggiunta in automatico; all'accesso si apre direttamente l'elenco.
+- Confronto dei nomi senza differenze di maiuscole e spazi; messaggio chiaro se i dati della manutenzione non sono leggibili.
+
 ## 2.8.1 — 2026-11-16
 - Tolta la foto obbligatoria da tutti i passi di tutte le procedure.
 
