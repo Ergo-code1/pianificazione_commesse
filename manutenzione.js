@@ -665,7 +665,10 @@ window.MNX={
  qi(){const r=()=>({cod:'',nome:'',cli:'',t:{}});MN.qi={cat:'',nc:'',rows:[r(),r(),r(),r(),r()],add:{}};drawQI()},
  qiSet(k,v){MN.qi[k]=v;if(k==='cat')drawQI()},
  qiRow(k,f,v){const q=MN.qi;if(k<0){q.rows.push({cod:'',nome:'',cli:'',t:{}});return drawQI()}if(f==='del'){q.rows.splice(k,1);return drawQI()}if(f==='t'){q.rows[k].t[v[0]]=v[1];return}q.rows[k][f]=v},
- qiCol(tid,on){MN.qi.rows.forEach(r=>{if((r.cod||'').trim())r.t[tid]=on});drawQI()},
+ qiCol(tid,on){MN.qi.rows.forEach(r=>{if((r.cod||'').trim())r.t[tid]=on});const t=T(tid);let n=0,np=0;
+  if(on&&t){const ex=qiEx().filter(i=>!(i.comps||[]).some(c=>c.tipo===tid));if(ex.length&&!confirm('Aggiungere '+t.nome+' a '+ex.length+' impianti già inseriti mostrati in tabella?')){drawQI();return}
+   const ps=(t.procs||[]).filter(x=>M.proc.some(p=>p.id===x));ex.forEach(i=>{const c={id:nid('c'),tipo:tid,sigla:t.nome};(i.comps=i.comps||[]).push(c);ps.forEach(pid=>{assign(i.id,pid,null,null,c.id);np++});n++});if(n)saveM()}
+  drawQI();if(n)mt(t.nome+' aggiunto a '+n+' impianti con '+np+' procedure')},
  qiEd(id,f,v){const i=I(id);if(!i)return;i[f]=f==='cat'?(v||null):v.trim();saveM();mt('Salvato')},
  qiAdd(id,tid,on){const i=I(id),t=T(tid);if(!on||!i||!t||(i.comps||[]).some(c=>c.tipo===tid))return;const c={id:nid('c'),tipo:tid,sigla:t.nome};(i.comps=i.comps||[]).push(c);const ps=(t.procs||[]).filter(x=>M.proc.some(p=>p.id===x));ps.forEach(pid=>assign(i.id,pid,null,null,c.id));saveM();drawQI();mt(t.nome+' aggiunto a '+i.cod+' con '+ps.length+' procedure')},
  qiGrid(ev,k,f){const tx=(ev.clipboardData||window.clipboardData).getData('text');if(!/[\t\n]/.test(tx.replace(/\r?\n$/,'')))return;ev.preventDefault();const F=['cod','desc','nome','cli'],c0=F.indexOf(f),q=MN.qi;

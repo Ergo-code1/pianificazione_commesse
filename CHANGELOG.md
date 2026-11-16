@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.14.1 — 2026-11-16
+- Inserimento rapido: la spunta in testa alla colonna aggiunge il componente (con le procedure) anche a tutti gli impianti già inseriti mostrati, dopo conferma.
+
 ## 2.14.0 — 2026-11-16
 - Nuovo tipo «Termoregolatore HB-Therm» con procedure dal manuale (cap. 9.3–9.4): PM074 trimestrale (~1000 h), PM075 semestrale (~2000 h, con LOTO), PM076 ogni 18 mesi (~6000 h, con LOTO). Aggiunte automaticamente una sola volta.
 
