@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.14.2 — 2026-11-16
+- Inserimento rapido: clic sul ✓ verde di un impianto già inserito toglie quel componente con le sue procedure e attività aperte (dopo conferma; lo storico resta).
+
 ## 2.14.1 — 2026-11-16
 - Inserimento rapido: la spunta in testa alla colonna aggiunge il componente (con le procedure) anche a tutti gli impianti già inseriti mostrati, dopo conferma.
 
