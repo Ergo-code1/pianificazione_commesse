@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.9.1 — 2026-11-16
+- Pianificazione manutenzione: pulsante «Elimina» in Da pianificare (salta la scadenza delle procedure scelte), Da ripianificare, In ritardo, Pianificate (con scelta se saltare la scadenza) e Fatte/Storico (toglie l'intervento e ripristina la scadenza precedente). La cronologia resta dentro ogni attività.
+- Tolta la sezione «Registro» dal menu della manutenzione.
+
 ## 2.9.0 — 2026-11-16
 - Salvataggi sicuri anche con più persone insieme: ogni salvataggio (commesse/persone, manutenzione, storico) avviene in una transazione che fonde le proprie modifiche con quelle fatte nel frattempo dagli altri, invece di sovrascriverle.
 - Se un salvataggio non riesce (es. rete assente) viene ripetuto in automatico.
