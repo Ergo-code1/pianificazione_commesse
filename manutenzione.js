@@ -253,7 +253,17 @@ function vImp(){const l=M.imp.filter(i=>qm(i.cod,i.nome,i.cli,catPath(i.cat),(i.
 
 function vTipi(){return list(M.tipi.map(t=>item('var(--hi)',e_(t.nome),`<span>${t.procs.map(id=>P(id)?.cod).filter(Boolean).join(', ')||'nessuna procedura standard'}</span><span>usato in ${M.imp.reduce((n,i)=>n+(i.comps||[]).filter(c=>c.tipo===t.id).length,0)} componenti</span>`,`<button class="btn" onclick="MNX.editTipo('${t.id}')">Modifica</button>`,`MNX.editTipo('${t.id}')`)),'Nessun tipo di componente.')}
 
-function vProc(){return list(M.proc.map(p=>item('var(--ink)',`${e_(p.cod)} · ${e_(p.desc)}`,`<span>${freq(p)}</span>${p.norma?`<span>${e_(p.norma)}</span>`:''}<span>${p.steps.length} passi</span>${p.min?`<span>⏱ ${p.min} min</span>`:''}${p.doc?`<span>📄 ${e_(p.doc.name||'documento')}</span>`:''}<span>usata ${M.ass.filter(a=>a.proc===p.id).length} volte</span>`,`<button class="btn" onclick="MNX.editProc('${p.id}')">Modifica</button>`,`MNX.editProc('${p.id}')`)),'Nessuna procedura.')}
+const procItem=p=>item('var(--ink)',`${e_(p.cod)} · ${e_(p.desc)}`,`<span>${freq(p)}</span><span>${p.steps.length} passi</span>${p.min?`<span>⏱ ${p.min} min</span>`:''}${p.doc?`<span>📄 ${e_(p.doc.name||'documento')}</span>`:''}<span>usata ${M.ass.filter(a=>a.proc===p.id).length} volte</span>`,`<button class="btn" onclick="MNX.editProc('${p.id}')">Modifica</button>`,`MNX.editProc('${p.id}')`);
+const byCod=(a,b)=>String(a.cod).localeCompare(String(b.cod),'it',{numeric:true});
+// procedure raggruppate per tipo componente; si apre toccando il gruppo
+function vProc(){const q=(MN.f.q||'').toLowerCase(),hit=p=>!q||(p.cod+' '+p.desc).toLowerCase().includes(q);const op=MN.procOpen||(MN.procOpen={});
+ const G=M.tipi.map(t=>({id:t.id,nome:t.nome,l:t.procs.map(id=>M.proc.find(p=>p.id===id)).filter(Boolean).sort(byCod)}));
+ const inT=new Set(M.tipi.flatMap(t=>t.procs));G.push({id:'_altre',nome:'Altre procedure (non legate a un tipo)',l:M.proc.filter(p=>!inT.has(p.id)).sort(byCod)});
+ const gs=G.filter(g=>g.l.length||g.id!=='_altre').map(g=>({...g,f:g.l.filter(hit)})).filter(g=>!q||g.f.length);
+ return fBox('',`${M.proc.length} procedure in ${gs.length} gruppi`)+`
+ <div class="mn-list">${gs.map(g=>{const o=q||op[g.id];const mins=g.l.reduce((n,p)=>n+(p.min||0),0);
+  return `<div class="mn-grp" style="padding:0;gap:0"><button class="mn-cfgc" aria-expanded="${!!o}" onclick="MNX.procOpen('${g.id}')"><span>${o?'▾':'▸'}</span><b style="flex:1;text-align:left">${e_(g.nome)}</b><span class="muted" style="font-size:12px">${g.l.length} procedure${mins?' · '+mins+' min':''}</span></button>
+  ${o?`<div style="padding:0 0 8px">${list(g.f.map(procItem),'Nessuna procedura in questo gruppo.')}${g.id!=='_altre'?`<div class="row" style="padding:8px 12px 0"><button class="btn sm" onclick="MNX.editProc(null,'${g.id}')">+ Procedura per ${e_(g.nome)}</button></div>`:''}</div>`:''}</div>`}).join('')||'<div class="mn-empty muted">Nessuna procedura.</div>'}</div>`}
 
 async function vSto(){
  const y=MN.anno,list_=(await storico(y)).filter(a=>{const f=MN.f;
@@ -357,10 +367,11 @@ function drawCfg(){const i=I(MN.cfgImp);if(!MN.cfgTipo&&M.tipi[0])MN.cfgTipo=M.t
  <div class="row" style="justify-content:space-between"><button class="btn" onclick="MNX.delImp()">Elimina impianto</button><button class="btn pri" onclick="MNX.close()">Fine</button></div>`)}
 window.MN_setTipo=v=>{MN.cfgTipo=v;drawCfg()};
 
-function editProc(id){const p=id?P(id):{cod:'',desc:'',norma:'',tipo:'cal',int:6,min:'',mat:'',steps:[],doc:null};
+const nextCod=()=>{const n=M.proc.map(p=>/^PM0*(\d+)$/i.exec(String(p.cod||'').trim())).filter(Boolean).map(m=>+m[1]);return 'PM'+String((n.length?Math.max(...n):0)+1).padStart(3,'0')};
+function editProc(id,forTipo){const t0=forTipo&&T(forTipo);const p=id?P(id):{cod:nextCod(),desc:t0?t0.nome+' – ':'',norma:'',tipo:'cal',int:6,min:'',mat:'',steps:[],doc:null};MN.newTipo=id?null:(t0?t0.id:null);
  MN.tmpSteps=p.steps.map(s=>({...s}));MN.tmpDoc=p.doc;MN.editId=id||null;
  ovl(`<div class="mn-oh"><h2>${id?'Modifica':'Nuova'} procedura</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div>
- <div class="evf"><label>Codice<input id="mnPCod" value="${e_(p.cod)}" placeholder="PM001"></label><label>Riferimento normativo<input id="mnPNorma" value="${e_(p.norma)}"></label></div>
+ <div class="evf"><label>Codice${id?'':' <span class="muted" style="font-weight:400">(proposto, modificabile)</span>'}<input id="mnPCod" value="${e_(p.cod)}" placeholder="PM001"></label><label>Riferimento normativo<input id="mnPNorma" value="${e_(p.norma)}"></label></div>
  <div class="evf"><label>Descrizione<input id="mnPDesc" value="${e_(p.desc)}"></label></div>
  <div class="evf"><label>Frequenza<select id="mnPTipo">${Object.entries(TIPI).map(([k,v])=>`<option value="${k}" ${p.tipo===k?'selected':''}>${v}</option>`).join('')}</select></label><label>Ogni (mesi)<input id="mnPInt" type="number" min="1" value="${p.int||6}"></label><label>Tempo stimato (minuti)<input id="mnPMin" type="number" min="0" value="${p.min||''}"></label></div>
  <div class="evf"><label>Materiali, attrezzature e DPI<textarea id="mnPMat" rows="4">${e_(p.mat||'')}</textarea></label></div>
@@ -565,6 +576,7 @@ window.MNX={
    else{const rm=mine.filter(a=>a.proc===pid&&isStd(a)).map(a=>a.id);if(rm.length){M.att=M.att.filter(a=>!rm.includes(a.ass));M.ass=M.ass.filter(a=>!rm.includes(a.id));n++}}}));
   t.procs=on?[...new Set([...t.procs,pid])]:t.procs.filter(x=>x!==pid);saveM();
   mt(n?(on?'Procedura aggiunta a ':'Procedura tolta da ')+n+' componenti'+(on?' (da fare alla prossima manutenzione)':''):'Tipo aggiornato')},
+ procOpen(g){MN.procOpen=MN.procOpen||{};MN.procOpen[g]=!MN.procOpen[g];draw()},
  editProc,addStep(){const t=document.getElementById('mnNS').value.trim();if(!t)return;const i=document.getElementById('mnNI').value.trim();MN.tmpSteps.push(i?{t,foto:document.getElementById('mnNF').checked,i}:{t,foto:document.getElementById('mnNF').checked});document.getElementById('mnNS').value='';document.getElementById('mnNI').value='';document.getElementById('mnNF').checked=false;drawSteps()},
  stSet(k,f,v){const s=MN.tmpSteps[k];if(!s)return;if(f==='t'){v=String(v).trim();if(!v)return drawSteps()}if(f==='i'){v=String(v).trim();if(!v){delete s.i;return}}s[f]=v},
  pickDoc(id){if(!id)return;const d=docList().find(x=>x.id===id);if(!d)return;MN.tmpDoc=d;document.getElementById('mnDocI').textContent='Collegato: '+d.name+' (stesso file, non duplicato)'},
@@ -576,7 +588,7 @@ window.MNX={
   const data={cod:v('mnPCod'),desc:v('mnPDesc'),norma:v('mnPNorma'),tipo:v('mnPTipo'),int:Number(v('mnPInt'))||6,min:Number(v('mnPMin'))||0,mat:v('mnPMat'),steps:MN.tmpSteps,doc:d};
   if(MN.editId){const p=P(MN.editId);if(p.doc&&p.doc.id&&(!d||d.id!==p.doc.id)&&!docUsed(p.doc.id,p))window.FBM.delBlob('manutDoc',p.doc.id).catch(()=>{});Object.assign(p,data);
    M.att.filter(a=>a.proc===p.id).forEach(a=>{a.ok=p.steps.map((s,k)=>a.ok[k]||false);a.foto=p.steps.map((s,k)=>a.foto[k]||[])})}
-  else M.proc.push({id:nid('p'),...data});saveM();closeO();mt('Procedura salvata')},
+  else{if(M.proc.some(x=>x.cod===data.cod))return mt('Codice '+data.cod+' già usato: scegline un altro');const np={id:nid('p'),...data};M.proc.push(np);if(MN.newTipo&&T(MN.newTipo)){MNX.togTipo(MN.newTipo,np.id,true);(MN.procOpen=MN.procOpen||{})[MN.newTipo]=true}}saveM();closeO();mt('Procedura salvata')},
  delProc(){const p=P(MN.editId);if(M.ass.some(a=>a.proc===p.id))return mt('Procedura assegnata a dei componenti: toglila prima da lì');
   if(p.doc&&p.doc.id&&!docUsed(p.doc.id,p))window.FBM.delBlob('manutDoc',p.doc.id).catch(()=>{});M.proc=M.proc.filter(x=>x.id!==p.id);M.tipi.forEach(t=>t.procs=t.procs.filter(x=>x!==p.id));saveM();closeO()},
  async viewDoc(pid){const p=P(pid);const d=await blob('manutDoc',p.doc.id);if(!d)return mt('Documento non trovato');

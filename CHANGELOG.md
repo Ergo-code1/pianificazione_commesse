@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.9.3 — 2026-11-16
+- Procedure raggruppate per tipo componente (es. Robot 6 assi): si tocca il gruppo per vedere tutte le sue procedure; ricerca per codice o descrizione.
+- Nuova procedura: codice progressivo proposto (es. PM072), modificabile; controllo codici doppi. Dal gruppo, «+ Procedura per…» la collega subito a quel tipo.
+
 ## 2.9.2 — 2026-11-16
 - Configura impianto: elenco a spunta dei tipi di componente presenti; quelli spuntati vengono aggiunti con la sola descrizione e le loro procedure. Toccando un componente si aprono i dettagli (descrizione modificabile, procedure, ultima esecuzione).
 
