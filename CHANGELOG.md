@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.12.1 — 2026-11-16
+- Inserimento rapido: sotto le righe nuove compaiono gli impianti già inseriti della zona (tutti se nessuna zona) con i componenti presenti; si possono spuntare componenti mancanti da aggiungere.
+- Impianti (vista e impostazioni): «Ordina per» codice, nome, zona o tipo componente.
+
 ## 2.12.0 — 2026-11-16
 - Impostazioni → Impianti: «Inserimento rapido» con zona unica (esistente o nuova) e matrice impianti × tipi componente; ogni spunta crea il componente con le sue procedure.
 
