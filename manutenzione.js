@@ -38,18 +38,24 @@ function oldApp(){if(!(M.appV&&cmpV(M.appV,myV())>0))return false;MN.old=true;
 // le procedure stanno in un documento a parte (manutDoc/_proc) per non superare il limite di 1 MB
 let lastP='';
 const stab=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.keys(v).sort().reduce((r,x)=>(r[x]=v[x],r),{}):v);
-function saveM(){if(MN.old||oldApp())return mt('App non aggiornata: modifiche non salvate. Chiudi e riapri l\'app.');if(cmpV(myV(),M.appV)>0)M.appV=myV();clearTimeout(svT);svT=setTimeout(()=>{
- const {proc,...rest}=M;if(MN.procL)rest.procSep=1;
- if(MN.procL&&!MN.procErr&&isR()&&(proc.length||!M.procSep||MN.procDoc)){const dp=stab({proc});if(dp!==lastP){lastP=dp;window.FBM.putBlob('manutDoc','_proc',{proc:JSON.parse(JSON.stringify(proc))}).catch(er=>{lastP='';mt('Salvataggio procedure non riuscito: '+FB.err(er))})}}
- const d=stab(rest);if(d===lastM)return;lastM=d;
+function saveM(){if(MN.old||oldApp())return mt('App non aggiornata: modifiche non salvate. Chiudi e riapri l\'app.');
+ if(M.std1&&!M.proc.length)return mt('Procedure non ancora caricate: modifica non salvata, riprova tra qualche secondo.');
+ if(cmpV(myV(),M.appV)>0)M.appV=myV();clearTimeout(svT);svT=setTimeout(()=>{
+ const o={...M};delete o.procSep;const d=stab(o);if(d===lastM)return;lastM=d;
  if(new Blob([d]).size>950000)mt('Attenzione: dati manutenzione vicini al limite di 1 MB');
  MN.sv={t:new Date().toLocaleTimeString(),st:'in corso',b:new Blob([d]).size};window.FBM.save(JSON.parse(d)).then(()=>{MN.sv.st='riuscito'}).catch(er=>{lastM='';MN.sv.st='NON riuscito: '+FB.err(er);mt('Salvataggio manutenzione NON riuscito: '+FB.err(er))})},400)}
-function onRemote(d){const txt=stab(d||{});if(txt===lastM)return;lastM=txt;const keep=M.proc;M=Object.assign({tipi:[],proc:[],imp:[],ass:[],att:[],vis:[],ric:[],anni:[],nextId:1},d||{});
- MN.mainL=true;if(M.procSep){M.proc=MN.procL?keep:[];if(!MN.procL)return}else if(MN.procL&&MN.procDoc)M.proc=keep;M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];if(oldApp())return;migra();if(isR()&&!M.procSep&&MN.procL)setTimeout(saveM,0);if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
+// recupero procedure perse (v2.8.5-2.8.7): da manutDoc/_proc, oppure ricostruite da manut_std.json con gli stessi id (ordine nei tipi)
+async function recProc(){if(MN._rec)return;MN._rec=1;try{
+ const L=await (await fetch('manut_std.json?v=2.8.8',{cache:'no-store'})).json();const nk=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+ const out=[];M.tipi.forEach(t=>{const l=L.filter(x=>nk(x.comp)===nk(t.nome));t.procs.forEach((id,k)=>{const x=l[k];if(x)out.push({id,cod:x.cod,desc:x.desc,norma:x.norma,tipo:x.tipo,int:x.int,min:x.min,mat:x.mat,steps:x.steps,doc:x.loto?{id:'dloto',name:'Procedura_LOTO.pdf',type:'application/pdf'}:null})})});
+ MN.recP=out}catch(er){mt('Recupero procedure non riuscito: '+(er.message||er));MN.recP=[]}
+ MN._rec=0;const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))}
+function onRemote(d){const txt=stab(d||{});if(txt===lastM)return;lastM=txt;const keep=M.proc;M=Object.assign({tipi:[],proc:[],imp:[],ass:[],att:[],vis:[],ric:[],anni:[],nextId:1},d||{});MN.mainL=true;
+ let fix=false;if(!M.proc||!M.proc.length){if(keep&&keep.length){M.proc=keep;fix=true}else if(M.std1){if(!MN.procL)return;if(MN.pdoc&&MN.pdoc.length){M.proc=MN.pdoc;fix=true}else if(MN.recP&&MN.recP.length){M.proc=MN.recP;fix=true}else{if(MN.recP===undefined)recProc();return}}}
+ delete M.procSep;M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];if(oldApp())return;migra();if(fix&&isR())setTimeout(()=>{lastM='';saveM()},0);if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
  const o=document.getElementById('mnOvl');if(o&&!o.hidden)return;
  if(!(document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)))refresh()}
-function onProc(d){const t=stab(d||{});MN.procL=true;MN.procDoc=!!(d&&d.proc);if(t===lastP&&MN.mainL)return;lastP=t;if(d&&d.proc)M.proc=d.proc;
- if(MN.mainL){const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))}}
+function onProc(d){MN.procL=true;MN.pdoc=d&&d.proc||null;if(MN.mainL&&(!M.proc||!M.proc.length)){const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))}}
 function start(){if(!window.FBM||window.FBM._u)return;MN.err=null;window.FBM.listenDoc&&window.FBM.listenDoc('manutDoc','_proc',onProc,er=>{MN.procErr=FB.err(er);mt('Procedure non leggibili: '+MN.procErr);onProc(null)});window.FBM.listen(d=>{if(d===null){MN.ready=true;if(isR()&&!M.tipi.length)seedBase();refresh();return}onRemote(d)},er=>{MN.err=FB.err(er);draw()})}
 async function storico(y){y=String(y);if(!H[y]){H[y]=await window.FBM.getY(y).catch(er=>{mt('Storico non leggibile: '+FB.err(er));return[]})}return H[y]}
 async function blob(col,id){if(!id)return null;if(BL[id])return BL[id];const d=await window.FBM.getBlob(col,id).catch(()=>null);if(d)BL[id]=d;return d}
@@ -409,7 +415,7 @@ window.MNX={
   let srv='—';try{const d=await window.FBM.getMain();const l=(d&&d.att||[]).filter(a=>a.due);const sm={};l.forEach(a=>{const k=a.man||'(senza nome)';sm[k]=(sm[k]||0)+1});srv=`${sz(d)} · ${l.length} attività pianificate<br>${Object.entries(sm).map(([k,v])=>e_(k)+': '+v).join('<br>')||'nessuna'}`}catch(er){srv='lettura non riuscita: '+e_(FB.err(er))}
   ovl(`<div class="mn-oh"><h2>Diagnostica manutenzione</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div>
   <div class="mn-step" style="font-size:13px;line-height:1.6"><b>Versione:</b> ${e_(myV())} · <b>Utente:</b> «${e_(me())}» · <b>Responsabile manutenzione:</b> ${isR()?'sì':'no'}<br>
-  <b>Dati principali in memoria:</b> ${sz(rest)} (limite 1024 KB) · <b>Procedure:</b> ${sz({proc})} (${M.proc.length}) ${M.procSep?'separate':'NON ancora separate'}${MN.procErr?' · errore: '+e_(MN.procErr):''}<br>
+  <b>Dati principali in memoria:</b> ${sz(rest)} (limite 1024 KB) · <b>Procedure:</b> ${sz({proc})} (${M.proc.length}) ${MN.procErr?' · errore: '+e_(MN.procErr):''}<br>
   <b>Ultimo salvataggio:</b> ${MN.sv?`${MN.sv.t} · ${Math.round(MN.sv.b/1024)} KB · ${e_(MN.sv.st)}`:'nessuno da questa apertura'}<br>
   <b>Attività pianificate qui:</b> ${M.att.filter(a=>a.due).length}<br>${Object.entries(mans).map(([k,v])=>'«'+e_(k)+'»: '+v).join('<br>')}<br>
   <b>Sul server adesso:</b> ${srv}</div><div class="muted" style="font-size:12px">Fai uno screenshot di questa finestra (sul tuo PC e sul telefono del manutentore).</div>`)},

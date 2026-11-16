@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.8.8 — 2026-11-16
+- Procedure di nuovo salvate insieme agli altri dati (il limite di 1 MB non era il problema). Recupero automatico delle procedure rimaste fuori dal salvataggio nelle versioni 2.8.5–2.8.7, con gli stessi codici e collegamenti.
+- Nessun salvataggio se le procedure non sono ancora caricate (evita di cancellarle).
+
 ## 2.8.7 — 2026-11-16
 - CORRETTO: pianificazioni e assegnazioni della manutenzione non venivano salvate sul server (Firestore rifiutava le foto per passo, salvate come «array dentro array», senza dare errore). Ora vengono convertite e salvate correttamente; anche lo storico delle attività chiuse.
 
