@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.12.8 — 2026-11-16
+- Inserimento rapido a tutto schermo.
+
 ## 2.12.7 — 2026-11-16
 - Inserimento rapido: campi della tabella visibili (bordo e sfondo), tendina zona a larghezza piena, caselle di spunta a misura.
 
