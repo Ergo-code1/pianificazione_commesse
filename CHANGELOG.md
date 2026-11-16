@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.9.2 — 2026-11-16
+- Configura impianto: elenco a spunta dei tipi di componente presenti; quelli spuntati vengono aggiunti con la sola descrizione e le loro procedure. Toccando un componente si aprono i dettagli (descrizione modificabile, procedure, ultima esecuzione).
+
 ## 2.9.1 — 2026-11-16
 - Pianificazione manutenzione: pulsante «Elimina» in Da pianificare (salta la scadenza delle procedure scelte), Da ripianificare, In ritardo, Pianificate (con scelta se saltare la scadenza) e Fatte/Storico (toglie l'intervento e ripristina la scadenza precedente). La cronologia resta dentro ogni attività.
 - Tolta la sezione «Registro» dal menu della manutenzione.

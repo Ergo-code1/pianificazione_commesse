@@ -400,6 +400,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 .mn-box textarea{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;box-sizing:border-box}
 .mn-box .mn-list .mn-it{background:var(--bg)}
 .mn-step{border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:8px}
+.mn-cfgc{display:flex;gap:10px;align-items:center;width:100%;background:none;border:0;padding:12px;cursor:pointer;color:var(--fg);font:inherit}.mn-cfgc:hover{background:var(--soft)}
 .mn-ist{font-size:13px;color:var(--muted);margin-left:32px}.mn-ist summary{cursor:pointer;color:var(--accent);font-weight:600}.mn-ist div{margin-top:4px;color:var(--fg)}
 #mnOvl textarea{width:100%;font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);resize:vertical}
 .mn-checks{display:grid;gap:6px}
@@ -425,7 +426,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.9.1';
+const VERSIONE='2.9.2';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -1074,7 +1075,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.9.1"></script>
+<script src="manutenzione.js?v=2.9.2"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
