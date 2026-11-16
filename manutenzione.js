@@ -29,10 +29,16 @@ function mt(t){const el=document.getElementById('mnToast')||Object.assign(docume
 
 // ---------- persistenza ----------
 let svT=null,lastM='';
-function saveM(){clearTimeout(svT);svT=setTimeout(()=>{const d=JSON.stringify(M);if(d===lastM)return;lastM=d;
+// protezione dati: un'app non aggiornata non può sovrascrivere i dati scritti da una versione più nuova
+const myV=()=>typeof VERSIONE!=='undefined'?VERSIONE:'0';
+const cmpV=(a,b)=>{const x=String(a||'0').split('.').map(Number),y=String(b||'0').split('.').map(Number);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)-(y[i]||0)}return 0};
+function oldApp(){if(!(M.appV&&cmpV(M.appV,myV())>0))return false;MN.old=true;
+ try{if(!sessionStorage.getItem('epUpd'+M.appV)){sessionStorage.setItem('epUpd'+M.appV,'1');caches&&caches.keys().then(k=>Promise.all(k.map(x=>caches.delete(x)))).finally(()=>location.replace(location.pathname+'?v='+M.appV));return true}}catch(e){}
+ mt('App non aggiornata (v'+myV()+', serve v'+M.appV+'): chiudi e riapri l\'app. Le modifiche non vengono salvate.');return true}
+function saveM(){if(MN.old||oldApp())return mt('App non aggiornata: modifiche non salvate. Chiudi e riapri l\'app.');if(cmpV(myV(),M.appV)>0)M.appV=myV();clearTimeout(svT);svT=setTimeout(()=>{const d=JSON.stringify(M);if(d===lastM)return;lastM=d;
  if(d.length>900000)mt('Attenzione: dati manutenzione vicini al limite di 1 MB');
  window.FBM.save(JSON.parse(d)).catch(er=>mt('Salvataggio manutenzione non riuscito: '+FB.err(er)))},400)}
-function onRemote(d){const txt=JSON.stringify(d||{});if(txt===lastM)return;lastM=txt;M=Object.assign({tipi:[],proc:[],imp:[],ass:[],att:[],vis:[],ric:[],anni:[],nextId:1},d||{});M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];migra();if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
+function onRemote(d){const txt=JSON.stringify(d||{});if(txt===lastM)return;lastM=txt;M=Object.assign({tipi:[],proc:[],imp:[],ass:[],att:[],vis:[],ric:[],anni:[],nextId:1},d||{});M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];if(oldApp())return;migra();if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
  const o=document.getElementById('mnOvl');if(o&&!o.hidden)return;
  if(!(document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)))refresh()}
 function start(){if(!window.FBM||window.FBM._u)return;MN.err=null;window.FBM.listen(d=>{if(d===null){MN.ready=true;if(isR()&&!M.tipi.length)seedBase();refresh();return}onRemote(d)},er=>{MN.err=FB.err(er);draw()})}

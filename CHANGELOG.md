@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.8.4 — 2026-11-16
+- Protezione dati manutenzione: un'app rimasta a una versione vecchia (es. su iPhone) si ricarica da sola e non può più sovrascrivere pianificazioni e assegnazioni fatte con la versione nuova.
+
 ## 2.8.3 — 2026-11-16
 - Aggiornamenti: l'app controlla se c'è una versione nuova all'apertura e quando torna in primo piano, e mostra «Aggiorna» (utile su iPhone con l'app installata).
 
