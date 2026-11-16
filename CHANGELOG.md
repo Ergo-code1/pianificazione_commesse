@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.12.7 — 2026-11-16
+- Inserimento rapido: campi della tabella visibili (bordo e sfondo), tendina zona a larghezza piena, caselle di spunta a misura.
+
 ## 2.12.6 — 2026-11-16
 - Inserimento rapido: i componenti già presenti sugli impianti esistenti sono indicati con un ✓ verde ben visibile.
 
