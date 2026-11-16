@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.13.1 — 2026-11-16
+- Impianti: nuovo campo «Descrizione» (nuovo impianto, configura, inserimento rapido, ricerca). «Incolla elenco» mette il testo dopo il nome in Descrizione (non più in Commessa).
+
 ## 2.13.0 — 2026-11-16
 - Inserimento rapido: «Incolla elenco» trasforma un elenco (una riga per impianto: nome, poi descrizione in «Commessa») in righe della matrice; i nomi doppi diventano «(2)».
 
