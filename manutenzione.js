@@ -260,7 +260,10 @@ function vProc(){const q=(MN.f.q||'').toLowerCase(),hit=p=>!q||(p.cod+' '+p.desc
  const G=M.tipi.map(t=>({id:t.id,nome:t.nome,l:t.procs.map(id=>M.proc.find(p=>p.id===id)).filter(Boolean).sort(byCod)}));
  const inT=new Set(M.tipi.flatMap(t=>t.procs));G.push({id:'_altre',nome:'Altre procedure (non legate a un tipo)',l:M.proc.filter(p=>!inT.has(p.id)).sort(byCod)});
  const gs=G.filter(g=>g.l.length||g.id!=='_altre').map(g=>({...g,f:g.l.filter(hit)})).filter(g=>!q||g.f.length);
- return fBox('',`${M.proc.length} procedure in ${gs.length} gruppi`)+`
+ const dl=docList(),od=op._doc!==false;
+ const docs=dl.length?`<div class="mn-grp" style="padding:0;gap:0;margin-bottom:12px;border-color:var(--info)"><button class="mn-cfgc" aria-expanded="${od}" onclick="MNX.procOpen('_doc')"><span>${od?'▾':'▸'}</span><b style="flex:1;text-align:left">📄 Documenti comuni</b><span class="muted" style="font-size:12px">${dl.length} documenti</span></button>
+  ${od?list(dl.map(d=>{const n=M.proc.filter(p=>p.doc&&p.doc.id===d.id).length;return item('var(--info)',e_(d.name),`<span>usato in ${n} procedure</span>${d.size?`<span>${Math.round(d.size/1024)} KB</span>`:''}`,`<button class="btn" onclick="MNX.viewDocId('${d.id}')">Apri</button><label class="btn pri" style="cursor:pointer">Carica nuova versione<input type="file" accept="application/pdf,image/*" hidden onchange="MNX.docRepl('${d.id}',this)"></label>`,`MNX.viewDocId('${d.id}')`)}),''):''}</div>`:'';
+ return fBox('',`${M.proc.length} procedure in ${gs.length} gruppi`)+docs+`
  <div class="mn-list">${gs.map(g=>{const o=q||op[g.id];const mins=g.l.reduce((n,p)=>n+(p.min||0),0);
   return `<div class="mn-grp" style="padding:0;gap:0"><button class="mn-cfgc" aria-expanded="${!!o}" onclick="MNX.procOpen('${g.id}')"><span>${o?'▾':'▸'}</span><b style="flex:1;text-align:left">${e_(g.nome)}</b><span class="muted" style="font-size:12px">${g.l.length} procedure${mins?' · '+mins+' min':''}</span></button>
   ${o?`<div style="padding:0 0 8px">${list(g.f.map(procItem),'Nessuna procedura in questo gruppo.')}${g.id!=='_altre'?`<div class="row" style="padding:8px 12px 0"><button class="btn sm" onclick="MNX.editProc(null,'${g.id}')">+ Procedura per ${e_(g.nome)}</button></div>`:''}</div>`:''}</div>`}).join('')||'<div class="mn-empty muted">Nessuna procedura.</div>'}</div>`}
@@ -577,13 +580,13 @@ window.MNX={
    else{const rm=mine.filter(a=>a.proc===pid&&isStd(a)).map(a=>a.id);if(rm.length){M.att=M.att.filter(a=>!rm.includes(a.ass));M.ass=M.ass.filter(a=>!rm.includes(a.id));n++}}}));
   t.procs=on?[...new Set([...t.procs,pid])]:t.procs.filter(x=>x!==pid);saveM();
   mt(n?(on?'Procedura aggiunta a ':'Procedura tolta da ')+n+' componenti'+(on?' (da fare alla prossima manutenzione)':''):'Tipo aggiornato')},
- procOpen(g){MN.procOpen=MN.procOpen||{};MN.procOpen[g]=!MN.procOpen[g];draw()},
+ procOpen(g){MN.procOpen=MN.procOpen||{};MN.procOpen[g]=g==='_doc'?MN.procOpen[g]===false:!MN.procOpen[g];draw()},
  editProc,addStep(){const t=document.getElementById('mnNS').value.trim();if(!t)return;const i=document.getElementById('mnNI').value.trim();MN.tmpSteps.push(i?{t,foto:document.getElementById('mnNF').checked,i}:{t,foto:document.getElementById('mnNF').checked});document.getElementById('mnNS').value='';document.getElementById('mnNI').value='';document.getElementById('mnNF').checked=false;drawSteps()},
  stSet(k,f,v){const s=MN.tmpSteps[k];if(!s)return;if(f==='t'){v=String(v).trim();if(!v)return drawSteps()}if(f==='i'){v=String(v).trim();if(!v){delete s.i;return}}s[f]=v},
  docRepl(id,inp){const f=inp.files[0];if(!f)return;if(f.size>700*1024){inp.value='';return mt('Il file supera 700 KB: comprimilo')}
   const r=new FileReader();r.onload=async()=>{try{await window.FBM.putBlob('manutDoc',id,{name:f.name,type:f.type,data:r.result});BL[id]={name:f.name,type:f.type,data:r.result};
    let n=0;M.proc.forEach(p=>{if(p.doc&&p.doc.id===id){p.doc={...p.doc,name:f.name,type:f.type,size:f.size};n++}});if(MN.tmpDoc&&MN.tmpDoc.id===id)MN.tmpDoc={...MN.tmpDoc,name:f.name,type:f.type,size:f.size};
-   saveM();const el=document.getElementById('mnDocI');if(el)el.textContent='Allegato: '+f.name+' (nuova versione)';mt('Documento sostituito in '+n+' procedure')}catch(er){mt('Documento non sostituito: '+FB.err(er))}};r.readAsDataURL(f)},
+   saveM();if(S.tab==='cproc'&&document.getElementById('mnOvl')?.hidden!==false)draw();const el=document.getElementById('mnDocI');if(el)el.textContent='Allegato: '+f.name+' (nuova versione)';mt('Documento sostituito in '+n+' procedure')}catch(er){mt('Documento non sostituito: '+FB.err(er))}};r.readAsDataURL(f)},
  pickDoc(id){if(!id)return;const d=docList().find(x=>x.id===id);if(!d)return;MN.tmpDoc=d;document.getElementById('mnDocI').textContent='Collegato: '+d.name+' (stesso file, non duplicato)'},
  rmStep(k){MN.tmpSteps.splice(k,1);drawSteps()},mvStep(k,d){if(k+d<0)return;const s=MN.tmpSteps;[s[k],s[k+d]]=[s[k+d],s[k]];drawSteps()},
  loadDoc(inp){const f=inp.files[0];if(!f)return;if(f.size>700*1024){inp.value='';return mt('Il file supera 700 KB: comprimilo o usa un link')}
@@ -596,6 +599,7 @@ window.MNX={
   else{if(M.proc.some(x=>x.cod===data.cod))return mt('Codice '+data.cod+' già usato: scegline un altro');const np={id:nid('p'),...data};M.proc.push(np);if(MN.newTipo&&T(MN.newTipo)){MNX.togTipo(MN.newTipo,np.id,true);(MN.procOpen=MN.procOpen||{})[MN.newTipo]=true}}saveM();closeO();mt('Procedura salvata')},
  delProc(){const p=P(MN.editId);if(M.ass.some(a=>a.proc===p.id))return mt('Procedura assegnata a dei componenti: toglila prima da lì');
   if(p.doc&&p.doc.id&&!docUsed(p.doc.id,p))window.FBM.delBlob('manutDoc',p.doc.id).catch(()=>{});M.proc=M.proc.filter(x=>x.id!==p.id);M.tipi.forEach(t=>t.procs=t.procs.filter(x=>x!==p.id));saveM();closeO()},
+ viewDocId(id){const p=M.proc.find(x=>x.doc&&x.doc.id===id);if(p)MNX.viewDoc(p.id)},
  async viewDoc(pid){const p=P(pid);const d=await blob('manutDoc',p.doc.id);if(!d)return mt('Documento non trovato');
   if(d.type.startsWith('image'))return ovl(`<h2>${e_(d.name)}</h2><img src="${d.data}" style="max-width:100%" alt="${e_(d.name)}"><div class="row" style="justify-content:flex-end"><button class="btn" onclick="MNX.close()">Chiudi</button></div>`);
   const b=await (await fetch(d.data)).blob(),u=URL.createObjectURL(b);

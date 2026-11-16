@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.9.5 — 2026-11-16
+- Procedure: riquadro «Documenti comuni» in alto (es. Procedura LOTO) con documento attuale, in quante procedure è usato, «Apri» e «Carica nuova versione» (vale per tutte le procedure).
+
 ## 2.9.4 — 2026-11-16
 - Documento condiviso (es. Procedura LOTO): dalla procedura si carica la nuova versione e viene sostituita in tutte le procedure che la usano, senza duplicare il file.
 
