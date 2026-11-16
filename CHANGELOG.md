@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.8.6 — 2026-11-16
+- Attività assegnate (manutenzione): pulsante «Diagnostica» con versione, dimensione dati, esito dell'ultimo salvataggio e confronto con i dati sul server.
+
 ## 2.8.5 — 2026-11-16
 - Manutenzione: le procedure sono salvate in un documento separato; i dati principali (pianificazioni, assegnazioni) non superano più il limite di 1 MB di Firestore, che faceva fallire i salvataggi.
 - Messaggio evidente se un salvataggio non riesce.

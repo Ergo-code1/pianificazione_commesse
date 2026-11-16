@@ -43,7 +43,7 @@ function saveM(){if(MN.old||oldApp())return mt('App non aggiornata: modifiche no
  if(MN.procL&&!MN.procErr&&isR()&&(proc.length||!M.procSep||MN.procDoc)){const dp=stab({proc});if(dp!==lastP){lastP=dp;window.FBM.putBlob('manutDoc','_proc',{proc:JSON.parse(JSON.stringify(proc))}).catch(er=>{lastP='';mt('Salvataggio procedure non riuscito: '+FB.err(er))})}}
  const d=stab(rest);if(d===lastM)return;lastM=d;
  if(new Blob([d]).size>950000)mt('Attenzione: dati manutenzione vicini al limite di 1 MB');
- window.FBM.save(JSON.parse(d)).catch(er=>{lastM='';mt('Salvataggio manutenzione NON riuscito: '+FB.err(er))})},400)}
+ MN.sv={t:new Date().toLocaleTimeString(),st:'in corso',b:new Blob([d]).size};window.FBM.save(JSON.parse(d)).then(()=>{MN.sv.st='riuscito'}).catch(er=>{lastM='';MN.sv.st='NON riuscito: '+FB.err(er);mt('Salvataggio manutenzione NON riuscito: '+FB.err(er))})},400)}
 function onRemote(d){const txt=stab(d||{});if(txt===lastM)return;lastM=txt;const keep=M.proc;M=Object.assign({tipi:[],proc:[],imp:[],ass:[],att:[],vis:[],ric:[],anni:[],nextId:1},d||{});
  MN.mainL=true;if(M.procSep){M.proc=MN.procL?keep:[];if(!MN.procL)return}else if(MN.procL&&MN.procDoc)M.proc=keep;M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];if(oldApp())return;migra();if(isR()&&!M.procSep&&MN.procL)setTimeout(saveM,0);if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
  const o=document.getElementById('mnOvl');if(o&&!o.hidden)return;
@@ -121,7 +121,7 @@ function draw(){const v=document.getElementById('view');if(!v||!LEAF.includes(S.
  if(MN.err){v.innerHTML=`<div class="panel"><b>Area manutenzione non accessibile.</b><p class="muted">${e_(MN.err)}. Controlla le regole di Firestore.</p></div>`;return}
  if(!MN.ready){v.innerHTML='<div class="panel muted">Caricamento manutenzione…</div>';return}
  if(MN.tab!==S.tab){MN.tab=S.tab;MN.f={imp:'',stato:'',man:'',proc:'',q:'',da:'',a:'',cat:''};if(S.tab!=='mimp')MN.impSel=null}
- const R=isR(),lib=R?`<button class="btn" onclick="MNX.newLib()">+ Altra attività</button>`:'',act={manut:R?`${lib}<button class="btn pri" onclick="MNX.plan()">+ Pianifica manutenzione</button>`:'',mpers:lib,ccat:`<button class="btn pri" onclick="MNX.catAdd()">+ Livello principale</button>`,mric:R?`<button class="btn" onclick="MNX.ricNew()">+ Aggiungi ricambio</button>`:'',cimp:`<button class="btn pri" onclick="MNX.newImp()">+ Nuovo impianto</button>`,ctipi:`<button class="btn pri" onclick="MNX.newTipo()">+ Nuovo tipo</button>`,cproc:`<button class="btn pri" onclick="MNX.editProc()">+ Nuova procedura</button>`}[S.tab]||'';
+ const R=isR(),lib=R?`<button class="btn" onclick="MNX.newLib()">+ Altra attività</button>`:'',act={manut:R?`${lib}<button class="btn pri" onclick="MNX.plan()">+ Pianifica manutenzione</button>`:'',mpers:lib+`<button class="btn" onclick="MNX.diag()">Diagnostica</button>`,ccat:`<button class="btn pri" onclick="MNX.catAdd()">+ Livello principale</button>`,mric:R?`<button class="btn" onclick="MNX.ricNew()">+ Aggiungi ricambio</button>`:'',cimp:`<button class="btn pri" onclick="MNX.newImp()">+ Nuovo impianto</button>`,ctipi:`<button class="btn pri" onclick="MNX.newTipo()">+ Nuovo tipo</button>`,cproc:`<button class="btn pri" onclick="MNX.editProc()">+ Nuova procedura</button>`}[S.tab]||'';
  const hd=S.tab==='mimp'&&MN.impSel?null:HEAD[S.tab];
  v.innerHTML=`<div class="mnt">${hd?`<div class="mn-head"><div><h2>${hd[0]}</h2><div class="muted">${hd[1]}</div></div><div class="row">${act}</div></div>`:''}<div id="mnBody"></div></div>`;
  const body=document.getElementById('mnBody');
@@ -404,6 +404,15 @@ window.MNP={
   return `<div class="mn-pers"><h3>🔧 Manutenzioni <span class="mn-n">${l.length}</span></h3><div class="muted" style="font-size:13px">Apri un'attività per vedere i passi da eseguire, confermarli e chiuderla.</div>${split(l,false)}</div>`}
 };
 window.MNX={
+ async diag(){const sz=o=>Math.round(new Blob([JSON.stringify(o||{})]).size/1024)+' KB';const {proc,...rest}=M;
+  const mans={};M.att.filter(a=>a.due).forEach(a=>{const k=a.man||'(senza nome)';mans[k]=(mans[k]||0)+1});
+  let srv='—';try{const d=await window.FBM.getMain();const l=(d&&d.att||[]).filter(a=>a.due);const sm={};l.forEach(a=>{const k=a.man||'(senza nome)';sm[k]=(sm[k]||0)+1});srv=`${sz(d)} · ${l.length} attività pianificate<br>${Object.entries(sm).map(([k,v])=>e_(k)+': '+v).join('<br>')||'nessuna'}`}catch(er){srv='lettura non riuscita: '+e_(FB.err(er))}
+  ovl(`<div class="mn-oh"><h2>Diagnostica manutenzione</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div>
+  <div class="mn-step" style="font-size:13px;line-height:1.6"><b>Versione:</b> ${e_(myV())} · <b>Utente:</b> «${e_(me())}» · <b>Responsabile manutenzione:</b> ${isR()?'sì':'no'}<br>
+  <b>Dati principali in memoria:</b> ${sz(rest)} (limite 1024 KB) · <b>Procedure:</b> ${sz({proc})} (${M.proc.length}) ${M.procSep?'separate':'NON ancora separate'}${MN.procErr?' · errore: '+e_(MN.procErr):''}<br>
+  <b>Ultimo salvataggio:</b> ${MN.sv?`${MN.sv.t} · ${Math.round(MN.sv.b/1024)} KB · ${e_(MN.sv.st)}`:'nessuno da questa apertura'}<br>
+  <b>Attività pianificate qui:</b> ${M.att.filter(a=>a.due).length}<br>${Object.entries(mans).map(([k,v])=>'«'+e_(k)+'»: '+v).join('<br>')}<br>
+  <b>Sul server adesso:</b> ${srv}</div><div class="muted" style="font-size:12px">Fai uno screenshot di questa finestra (sul tuo PC e sul telefono del manutentore).</div>`)},
  f(k,v){MN.f[k]=v;draw()},q(v){MN.f.q=v;MN.focus='mnQ';draw()},reset(){MN.f={imp:'',stato:'',man:'',proc:'',q:'',da:'',a:''};draw()},
  anno(v){MN.anno=v;draw()},close:closeO,impDett,
  catAdd(par){const c={id:nid('k'),nome:par?'Nuovo sotto-livello':'Nuovo livello',par:par||null};M.cat.push(c);saveM();draw();setTimeout(()=>{const x=[...document.querySelectorAll('.mn-catr input')].find(e=>e.value===c.nome);if(x){x.focus();x.select()}},30)},
