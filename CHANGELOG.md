@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.12.3 — 2026-11-16
+- Inserimento rapido: commessa e cliente degli impianti già inseriti modificabili (salvataggio immediato).
+
 ## 2.12.2 — 2026-11-16
 - Impianti: etichette «Codice» → «Nome» e «Nome» → «Commessa» (nuovo impianto, configura, inserimento rapido, ordinamento). Dati invariati.
 
