@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.12.4 — 2026-11-16
+- Inserimento rapido: colonna «Zona» modificabile sugli impianti già inseriti (salvataggio immediato).
+
 ## 2.12.3 — 2026-11-16
 - Inserimento rapido: commessa e cliente degli impianti già inseriti modificabili (salvataggio immediato).
 
