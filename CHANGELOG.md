@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.11.2 — 2026-11-16
+- Intervento non programmato: la scelta dell'elemento compariva per errore nel modulo «Altra attività»; ora è nel modulo giusto.
+
 ## 2.11.1 — 2026-11-16
 - Intervento non programmato: scelta facoltativa dell'elemento; le preventive mostrate sono solo quelle dell'elemento scelto; ore facoltative dell'impianto o dell'elemento selezionato. Protezione dal doppio salvataggio.
 - Storico e scheda impianto: «Dettaglio attività» apribile con passi eseguiti, note, ricambi e ore, senza stampare il PDF.
