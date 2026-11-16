@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.10.1 — 2026-11-16
+- Prossime scadenze: il periodo in giorni è un'impostazione salvata, uguale per tutti (la cambia il responsabile manutenzione).
+
 ## 2.10.0 — 2026-11-16
 - Prossime scadenze: giorni di avviso modificabili direttamente su ogni riga (valgono per la procedura su tutti gli impianti) e periodo del riquadro regolabile (predefinito 90 giorni).
 
