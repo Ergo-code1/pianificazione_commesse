@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.9.6 — 2026-11-16
+- Procedure PM015–PM018 riscritte per la pressa a iniezione plastica (LOTO con accumulatori, gruppo iniezione caldo e piano mobile; ugello, cilindro, fasce riscaldanti, ginocchiera, olio idraulico, sicurezze EN 201). Aggiornamento automatico una sola volta.
+
 ## 2.9.5 — 2026-11-16
 - Procedure: riquadro «Documenti comuni» in alto (es. Procedura LOTO) con documento attuale, in quante procedure è usato, «Apri» e «Carica nuova versione» (vale per tutte le procedure).
 
