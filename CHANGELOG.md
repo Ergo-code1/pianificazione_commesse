@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.13.2 — 2026-11-16
+- Inserimento rapido: incolla da Excel a colonne (Nome | Descrizione | Commessa | Cliente), sia in «Incolla elenco» sia direttamente in una cella della tabella (riempie righe e colonne da lì in avanti). Accettato anche il separatore «;».
+
 ## 2.13.1 — 2026-11-16
 - Impianti: nuovo campo «Descrizione» (nuovo impianto, configura, inserimento rapido, ricerca). «Incolla elenco» mette il testo dopo il nome in Descrizione (non più in Commessa).
 
