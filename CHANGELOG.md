@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.10.0 — 2026-11-16
+- Prossime scadenze: giorni di avviso modificabili direttamente su ogni riga (valgono per la procedura su tutti gli impianti) e periodo del riquadro regolabile (predefinito 90 giorni).
+
 ## 2.9.9 — 2026-11-16
 - Pianificazione: nuovo riquadro «Prossime scadenze» con le procedure che scadono nei prossimi 90 giorni (data, giorni mancanti, impianto, componente, avviso), evidenziate quelle già nel periodo di avviso, con «Pianifica».
 
