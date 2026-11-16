@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.12.0 — 2026-11-16
+- Impostazioni → Impianti: «Inserimento rapido» con zona unica (esistente o nuova) e matrice impianti × tipi componente; ogni spunta crea il componente con le sue procedure.
+
 ## 2.11.2 — 2026-11-16
 - Intervento non programmato: la scelta dell'elemento compariva per errore nel modulo «Altra attività»; ora è nel modulo giusto.
 
