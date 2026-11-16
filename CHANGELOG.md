@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.13.0 — 2026-11-16
+- Inserimento rapido: «Incolla elenco» trasforma un elenco (una riga per impianto: nome, poi descrizione in «Commessa») in righe della matrice; i nomi doppi diventano «(2)».
+
 ## 2.12.8 — 2026-11-16
 - Inserimento rapido a tutto schermo.
 
