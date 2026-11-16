@@ -165,7 +165,8 @@ function drawPlan(){const P_=MN.pl;const i=P_.imp&&I(P_.imp);const pv=i?planPrev
  if(P_.sel==null)P_.sel=pv.filter(x=>x.inc).map(x=>x.s.id);const sel=new Set(P_.sel);
  const comps=i?(i.comps||[]):[];const first=i&&!i.avviato;
  const row=x=>`<label class="mn-chk${x.inc?'':' mn-nd'}"><input type="checkbox" ${sel.has(x.s.id)?'checked':''} onchange="MNX.plSel(['${x.s.id}'],this.checked)"> <span><b>${e_(x.p.cod)}</b> ${e_(x.p.desc)} <span class="${x.inc?'mn-due':'muted'}">· ${x.why}</span></span></label>`;
- const blocks=comps.map(c=>{const l=pv.filter(x=>x.s.comp===c.id);if(!l.length)return'';const all=l.every(x=>sel.has(x.s.id)),some=l.some(x=>sel.has(x.s.id));
+ const cids=new Set(comps.map(c=>c.id)),orf=pv.filter(x=>!cids.has(x.s.comp));
+ const blocks=[...comps,...(orf.length?[{id:'__orf',sigla:'Procedure dell\'impianto',tipo:null}]:[])].map(c=>{const l=c.id==='__orf'?orf:pv.filter(x=>x.s.comp===c.id);if(!l.length)return'';const all=l.every(x=>sel.has(x.s.id)),some=l.some(x=>sel.has(x.s.id));
   return `<div class="mn-step"><label class="mn-chk"><input type="checkbox" ${all?'checked':''} ${!all&&some?'data-mixed="1"':''} onchange="MNX.plSel(['${l.map(x=>x.s.id).join("','")}'],this.checked)"> <span><b>${e_(c.sigla)}</b> <span class="muted">· ${e_(T(c.tipo)?.nome||'')} · tutto il componente</span></span></label><div class="mn-checks" style="padding-left:32px">${l.map(row).join('')}</div></div>`}).join('');
  const n=sel.size;
  const yy=P_.data.slice(0,4);
@@ -176,7 +177,7 @@ function drawPlan(){const P_=MN.pl;const i=P_.imp&&I(P_.imp);const pv=i?planPrev
  <label>Manutentore<select onchange="MNX.pl('man',this.value,1)"><option value="">Da assegnare</option>${PERS().map(p=>`<option ${P_.man===p?'selected':''}>${e_(p)}</option>`).join('')}</select></label></div>
  ${i?`${first?'<div class="mn-info">Prima manutenzione di questo impianto: dopo averla pianificata, le procedure non scelte verranno richieste in base alla loro frequenza a partire da questa data.</div>':''}
  <div class="muted" style="font-size:13px">Scegli un componente intero o le singole procedure. Sono già spuntate quelle scadute a questa data; puoi aggiungere anche le altre.</div>
- ${blocks||'<div class="muted">Nessuna procedura disponibile: sono già tutte pianificate.</div>'}`:'<div class="muted">Scegli l\'impianto.</div>'}
+ ${blocks||(M.ass.some(x=>x.imp===i.id&&P(x.proc)&&planned(x))?'<div class="muted">Le procedure di questo impianto sono già tutte pianificate: le trovi nel calendario.</div>':`<div class="mn-info" style="border-left-color:var(--warn)">Questo impianto non ha ancora procedure: aggiungi i componenti in Impostazioni → Impianti → Configura.${isR()?` <button class="btn sm" onclick="MNX.config('${i.id}')">Configura ora</button>`:''}</div>`)}`:'<div class="muted">Scegli l\'impianto.</div>'}
  <div class="row" style="justify-content:flex-end"><button class="btn" onclick="MNX.close()">Annulla</button><button class="btn pri" ${n?'':'disabled'} onclick="MNX.planOk()">Pianifica ${n?n+' attività':''}</button></div>`);
  document.querySelectorAll('#mnOvl [data-mixed]').forEach(x=>x.indeterminate=true)}
 function visDett(id){const v=M.vis.find(x=>x.id===id);if(!v)return closeO();const i=I(v.imp)||{cod:v.tit||'Attività',nome:''},l=M.att.filter(a=>a.vis===id);

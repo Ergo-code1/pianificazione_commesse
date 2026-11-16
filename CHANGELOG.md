@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.7.4 — 2026-11-16
+- Pianifica manutenzione: mostrate anche le procedure non legate a un componente; messaggio chiaro (con «Configura ora») quando l'impianto non ha procedure.
+
 ## 2.7.3 — 2026-11-15
 - Manutenzione: nei filtri e nelle scelte del manutentore compaiono solo le persone del reparto.
 
