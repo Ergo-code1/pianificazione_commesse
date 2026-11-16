@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.9.4 — 2026-11-16
+- Documento condiviso (es. Procedura LOTO): dalla procedura si carica la nuova versione e viene sostituita in tutte le procedure che la usano, senza duplicare il file.
+
 ## 2.9.3 — 2026-11-16
 - Procedure raggruppate per tipo componente (es. Robot 6 assi): si tocca il gruppo per vedere tutte le sue procedure; ricerca per codice o descrizione.
 - Nuova procedura: codice progressivo proposto (es. PM072), modificabile; controllo codici doppi. Dal gruppo, «+ Procedura per…» la collega subito a quel tipo.
