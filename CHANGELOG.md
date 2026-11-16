@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.11.0 — 2026-11-16
+- Manutenzione: «+ Intervento non programmato» per tutti (impianto, causale, descrizione, ricambi con codice/descrizione/quantità, ore impiegate min 0,5). Con «Manutenzione preventiva» si sceglie la preventiva dell'impianto: dopo conferma è segnata eseguita e ripianificata da quella data.
+- Ore lavorate impianto: gli elementi sommano la differenza rispetto all'intervento precedente; un valore scritto sull'elemento diventa il suo riferimento. Ore inferiori alle precedenti solo per responsabile/admin.
+
 ## 2.10.1 — 2026-11-16
 - Prossime scadenze: il periodo in giorni è un'impostazione salvata, uguale per tutti (la cambia il responsabile manutenzione).
 
