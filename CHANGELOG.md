@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.12.2 — 2026-11-16
+- Impianti: etichette «Codice» → «Nome» e «Nome» → «Commessa» (nuovo impianto, configura, inserimento rapido, ordinamento). Dati invariati.
+
 ## 2.12.1 — 2026-11-16
 - Inserimento rapido: sotto le righe nuove compaiono gli impianti già inseriti della zona (tutti se nessuna zona) con i componenti presenti; si possono spuntare componenti mancanti da aggiungere.
 - Impianti (vista e impostazioni): «Ordina per» codice, nome, zona o tipo componente.
