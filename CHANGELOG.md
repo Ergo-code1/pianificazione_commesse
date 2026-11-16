@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.9.9 — 2026-11-16
+- Pianificazione: nuovo riquadro «Prossime scadenze» con le procedure che scadono nei prossimi 90 giorni (data, giorni mancanti, impianto, componente, avviso), evidenziate quelle già nel periodo di avviso, con «Pianifica».
+
 ## 2.9.8 — 2026-11-16
 - Procedure: campo «Avviso (giorni prima della scadenza)», impostato su tutte (mensili 7 gg, trimestrali 15, semestrali 30, annuali 60; modificabile): la procedura compare «In scadenza» e in «Da pianificare» con quell'anticipo.
 - Nuovo tipo «Scaffalature»: PM072 Ispezione visiva trimestrale UNI EN 15635 (foto cartello e foto scaffalature) e PM073 Ispezione annuale persona competente.

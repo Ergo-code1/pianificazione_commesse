@@ -377,7 +377,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 .mn-sec{margin:14px 0 8px;display:flex;gap:8px;align-items:center}.mn-sec:first-child{margin-top:0}
 .mn-done{background:var(--ok)!important;border-color:var(--ok)!important;color:#fff!important}.mn-done:disabled{opacity:.45}
 .mn-who{font-weight:600;color:var(--fg)}.mn-who.none{color:var(--accent)}
-.mn-k5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.mn-k5{grid-template-columns:repeat(5,minmax(0,1fr))}.mn-k6{grid-template-columns:repeat(6,minmax(0,1fr))}
 @media(max-width:900px){.mn-k5{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:560px){.mn-k5{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .mn-prog{color:var(--ok);font-weight:600}
 .mn-seg{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}.mn-seg button{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 12px;cursor:pointer;font-weight:600;color:var(--fg);font-size:13px}.mn-seg button[aria-current=page]{background:var(--ink);color:var(--onink);border-color:var(--ink)}
@@ -426,7 +426,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.9.8';
+const VERSIONE='2.9.9';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -1075,7 +1075,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.9.8"></script>
+<script src="manutenzione.js?v=2.9.9"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
