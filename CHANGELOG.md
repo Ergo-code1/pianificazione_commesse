@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.9.7 — 2026-11-16
+- Procedure: tolte tutte le richieste di foto obbligatorie e di caricare rapporti, verbali o certificati (es. PM007, PM011, PM018, PM033, PM039, PM043, PM049); si aggiungono a mano se servono. Aggiornamento automatico una sola volta.
+
 ## 2.9.6 — 2026-11-16
 - Procedure PM015–PM018 riscritte per la pressa a iniezione plastica (LOTO con accumulatori, gruppo iniezione caldo e piano mobile; ugello, cilindro, fasce riscaldanti, ginocchiera, olio idraulico, sicurezze EN 201). Aggiornamento automatico una sola volta.
 

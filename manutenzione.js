@@ -53,13 +53,13 @@ async function doSaveM(){svT=null;if(!MN.base)return;const loc=curM();if(stab(lo
  finally{MN.saving=0;if(MN.again){MN.again=0;saveM()}}}
 // recupero procedure perse (v2.8.5-2.8.7): da manutDoc/_proc, oppure ricostruite da manut_std.json con gli stessi id (ordine nei tipi)
 async function recProc(){if(MN._rec)return;MN._rec=1;try{
- const L=await (await fetch('manut_std.json?v=2.9.6',{cache:'no-store'})).json();const nk=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+ const L=await (await fetch('manut_std.json?v=2.9.7',{cache:'no-store'})).json();const nk=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
  const out=[];M.tipi.forEach(t=>{const l=L.filter(x=>nk(x.comp)===nk(t.nome));t.procs.forEach((id,k)=>{const x=l[k];if(x)out.push({id,cod:x.cod,desc:x.desc,norma:x.norma,tipo:x.tipo,int:x.int,min:x.min,mat:x.mat,steps:x.steps,doc:x.loto?{id:'dloto',name:'Procedura_LOTO.pdf',type:'application/pdf'}:null})})});
  MN.recP=out}catch(er){mt('Recupero procedure non riuscito: '+(er.message||er));MN.recP=[]}
  MN.stage='procedure recuperate: '+(MN.recP||[]).length;MN._rec=0;const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))}
 function onRemote(d){const txt=stab(d||{});if(txt===lastM)return;const loc=MN.base?curM():null;lastM=txt;const keep=M.proc;const srv=JSON.parse(txt);const mer=loc?window.EPM.mergeVal(MN.base,loc,srv):srv;MN.base=srv;M=Object.assign(DEF(),JSON.parse(JSON.stringify(mer)));MN.mainL=true;if(loc&&stab(mer)!==txt&&!svT)saveM();
  let fix=false;if(!M.proc||!M.proc.length){if(keep&&keep.length){M.proc=keep;fix=true}else if(M.std1){if(!MN.procL&&!MN.procTO){MN.stage='attendo procedure…';clearTimeout(MN._to);MN._to=setTimeout(()=>{MN.procTO=1;const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))},4000);return}if(MN.pdoc&&MN.pdoc.length){M.proc=MN.pdoc;fix=true}else if(MN.recP&&MN.recP.length){M.proc=MN.recP;fix=true}else{if(MN.recP===undefined){recProc();MN.stage='recupero procedure…';return}MN.noProc=true}}}
- delete M.procSep;M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];if(oldApp())return;migra();if(fix&&isR())setTimeout(()=>{lastM='';saveM()},0);if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);if(isR()&&!M.pressaV)setTimeout(updPressa,80);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
+ delete M.procSep;M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];if(oldApp())return;migra();if(fix&&isR())setTimeout(()=>{lastM='';saveM()},0);if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);if(isR()&&!M.pressaV)setTimeout(updPressa,80);if(isR()&&!M.noUpl1)setTimeout(noUpl,400);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
  const o=document.getElementById('mnOvl');if(o&&!o.hidden)return;
  if(!(document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)))refresh()}
 function onProc(d){MN.procL=true;MN.pdoc=d&&d.proc||null;if(MN.mainL&&(!M.proc||!M.proc.length)){const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))}}
@@ -123,11 +123,21 @@ async function importStd(){if(M.std1||MN._imp||!isR())return;MN._imp=1;
 function skipAss(s){const p=P(s.proc);if(!p)return;if(p.tipo==='evento')s.evt=false;else s.next=addM(tdy(),p.int||1);s.incompleto=null}
 // aggiornamento una tantum: procedure «Pressa» riscritte per pressa a iniezione plastica (PM015-PM018)
 async function updPressa(){if(M.pressaV||MN._pr||!isR()||!M.proc.length)return;MN._pr=1;try{
- const L=await (await fetch('manut_std.json?v=2.9.6',{cache:'no-store'})).json();if(M.pressaV)return;const loto=docList().find(d=>/loto/i.test(d.name||''));let n=0;
+ const L=await (await fetch('manut_std.json?v=2.9.7',{cache:'no-store'})).json();if(M.pressaV)return;const loto=docList().find(d=>/loto/i.test(d.name||''));let n=0;
  L.filter(x=>x.comp==='Pressa').forEach(x=>{const p=M.proc.find(q=>q.cod===x.cod&&/^pressa/i.test(q.desc||''));if(!p)return;
   Object.assign(p,{desc:x.desc,norma:x.norma,tipo:x.tipo,int:x.int,min:x.min,mat:x.mat,steps:x.steps,doc:x.loto?(p.doc||loto||null):null});
   M.att.filter(a=>a.proc===p.id&&!a.sub).forEach(a=>{a.ok=p.steps.map(()=>false);a.foto=p.steps.map(()=>[])});n++});
  M.pressaV=1;saveM();refresh();if(n)mt(n+' procedure Pressa aggiornate per pressa a iniezione')}catch(er){}finally{MN._pr=0}}
+// una tantum: nessuna richiesta di caricare foto o documenti nelle procedure (si aggiungono a mano se servono)
+async function noUpl(){if(M.noUpl1||MN._nu||!isR()||!M.proc.length)return;MN._nu=1;try{
+ const L=await (await fetch('manut_std.json?v=2.9.7',{cache:'no-store'})).json();if(M.noUpl1)return;
+ const RX=/fotograf|\b(caric|alleg)[a-z]*\b[^.\n]{0,30}\b(foto|rapporto|verbale|certificat|document)/i;let n=0;
+ M.proc.forEach(p=>{const before=stab(p.steps),len=p.steps.length;
+  const x=L.find(q=>q.cod===p.cod&&q.desc===p.desc&&['PM007','PM011','PM018','PM033','PM039','PM043','PM049'].includes(q.cod));
+  if(x)p.steps=JSON.parse(JSON.stringify(x.steps));
+  p.steps=p.steps.filter(st=>!(RX.test(st.t)&&!(st.i||'').trim())).map(st=>{const o={...st,foto:false};if(o.i){o.i=o.i.split('\n').filter(l=>!RX.test(l)).join('\n').trim();if(!o.i)delete o.i}return o});
+  if(stab(p.steps)!==before){n++;if(p.steps.length!==len)M.att.filter(a=>a.proc===p.id&&!a.sub).forEach(a=>{a.ok=p.steps.map(()=>false);a.foto=p.steps.map(()=>[])})}});
+ M.noUpl1=1;saveM();refresh();mt(n?n+' procedure ripulite: nessuna richiesta di foto o documenti':'Procedure già senza richieste di foto o documenti')}catch(er){}finally{MN._nu=0}}
 function migra(){if(!M.nofoto1){M.proc.forEach(p=>(p.steps||[]).forEach(x=>x.foto=false));M.nofoto1=true;if(isR())setTimeout(saveM,0)}M.imp.forEach(i=>{if(!i.avviato&&(M.vis.some(v=>v.imp===i.id)||M.att.some(a=>a.imp===i.id)||M.ass.some(s=>s.imp===i.id&&s.last)))i.avviato=true})}
 const CAT=id=>M.cat.find(c=>c.id===id);
 const catPath=id=>{const out=[];let c=CAT(id),n=0;while(c&&n++<20){out.unshift(c.nome);c=CAT(c.par)}return out.join(' › ')};
