@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.12.6 — 2026-11-16
+- Inserimento rapido: i componenti già presenti sugli impianti esistenti sono indicati con un ✓ verde ben visibile.
+
 ## 2.12.5 — 2026-11-16
 - Inserimento rapido: la spunta sugli impianti già inseriti aggiunge subito il componente con le procedure; la tabella non torna più in cima dopo ogni modifica.
 
