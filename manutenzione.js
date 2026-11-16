@@ -62,7 +62,7 @@ async function recProc(){if(MN._rec)return;MN._rec=1;try{
  MN.stage='procedure recuperate: '+(MN.recP||[]).length;MN._rec=0;const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))}
 function onRemote(d){const txt=stab(d||{});if(txt===lastM)return;const loc=MN.base?curM():null;lastM=txt;const keep=M.proc;const srv=JSON.parse(txt);const mer=loc?window.EPM.mergeVal(MN.base,loc,srv):srv;MN.base=srv;M=Object.assign(DEF(),JSON.parse(JSON.stringify(mer)));MN.mainL=true;if(loc&&stab(mer)!==txt&&!svT)saveM();
  let fix=false;if(!M.proc||!M.proc.length){if(keep&&keep.length){M.proc=keep;fix=true}else if(M.std1){if(!MN.procL&&!MN.procTO){MN.stage='attendo procedure…';clearTimeout(MN._to);MN._to=setTimeout(()=>{MN.procTO=1;const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))},4000);return}if(MN.pdoc&&MN.pdoc.length){M.proc=MN.pdoc;fix=true}else if(MN.recP&&MN.recP.length){M.proc=MN.recP;fix=true}else{if(MN.recP===undefined){recProc();MN.stage='recupero procedure…';return}MN.noProc=true}}}
- delete M.procSep;M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];if(oldApp())return;migra();if(fix&&isR())setTimeout(()=>{lastM='';saveM()},0);if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);if(isR()&&!M.pressaV)setTimeout(updPressa,80);if(isR()&&!M.noUpl1)setTimeout(noUpl,400);if(isR()&&!M.scaf1)setTimeout(addScaf,700);if(isR()&&!M.avv1)setTimeout(setAvv,1500);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
+ delete M.procSep;M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];if(oldApp())return;migra();if(fix&&isR())setTimeout(()=>{lastM='';saveM()},0);if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);if(isR()&&!M.pressaV)setTimeout(updPressa,80);if(isR()&&!M.noUpl1)setTimeout(noUpl,400);if(isR()&&!M.scaf1)setTimeout(addScaf,700);if(isR()&&!M.hb1)setTimeout(addHB,1100);if(isR()&&!M.avv1)setTimeout(setAvv,1500);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
  const o=document.getElementById('mnOvl');if(o&&!o.hidden)return;
  if(!(document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)))refresh()}
 function onProc(d){MN.procL=true;MN.pdoc=d&&d.proc||null;if(MN.mainL&&(!M.proc||!M.proc.length)){const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))}}
@@ -148,6 +148,14 @@ async function addScaf(){if(M.scaf1||MN._sc||!isR()||!M.proc.length)return;if(!M
  const out=[];L.forEach(x=>{if(M.proc.some(p=>p.desc===x.desc))return;const cod=M.proc.some(p=>p.cod===x.cod)?nextCod():x.cod;
   const p={id:nid('p'),cod,desc:x.desc,norma:x.norma,tipo:x.tipo,int:x.int,avv:x.avv,min:x.min,mat:x.mat,steps:JSON.parse(JSON.stringify(x.steps)),doc:null};M.proc.push(p);t.procs.push(p.id);out.push(cod)});
  M.scaf1=1;saveM();refresh();if(out.length)mt('Aggiunte '+out.join(' e ')+' (Scaffalature)')}catch(er){}finally{MN._sc=0}}
+// una tantum (v2.14.0): procedure termoregolatori HB-Therm dal manuale
+async function addHB(){if(M.hb1||MN._hb||!isR()||!M.proc.length)return;if(!M.scaf1){setTimeout(addHB,900);return}MN._hb=1;try{
+ const L=(await (await fetch('manut_std.json?v=2.14.0',{cache:'no-store'})).json()).filter(x=>x.comp==='Termoregolatore HB-Therm');if(M.hb1||!L.length)return;
+ const loto=docList().find(d=>/loto/i.test(d.name||''))||null;
+ let t=M.tipi.find(x=>/hb.?therm/i.test(x.nome||''));if(!t){t={id:nid('t'),nome:'Termoregolatore HB-Therm',procs:[]};M.tipi.push(t)}
+ const out=[];L.forEach(x=>{if(M.proc.some(p=>p.desc===x.desc))return;const cod=M.proc.some(p=>p.cod===x.cod)?nextCod():x.cod;
+  const p={id:nid('p'),cod,desc:x.desc,norma:x.norma,tipo:x.tipo,int:x.int,avv:x.avv,min:x.min,mat:x.mat,steps:JSON.parse(JSON.stringify(x.steps)),doc:x.loto&&loto?{id:loto.id,name:loto.name,type:loto.type}:null};M.proc.push(p);t.procs.push(p.id);out.push(cod)});
+ M.hb1=1;saveM();refresh();if(out.length)mt('Aggiunte '+out.join(', ')+' (Termoregolatore HB-Therm)')}catch(er){}finally{MN._hb=0}}
 // una tantum: tempo di avviso su tutte le procedure (mensili 7 gg, trimestrali 15, semestrali 30, annuali e oltre 60)
 function setAvv(){if(M.avv1||!isR()||!M.proc.length)return;M.proc.forEach(p=>{if(p.avv==null||p.avv==='')p.avv=avvDef(p)});M.avv1=1;saveM()}
 function migra(){if(!M.nofoto1){M.proc.forEach(p=>(p.steps||[]).forEach(x=>x.foto=false));M.nofoto1=true;if(isR())setTimeout(saveM,0)}M.imp.forEach(i=>{if(!i.avviato&&(M.vis.some(v=>v.imp===i.id)||M.att.some(a=>a.imp===i.id)||M.ass.some(s=>s.imp===i.id&&s.last)))i.avviato=true})}

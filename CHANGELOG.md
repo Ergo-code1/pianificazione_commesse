@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.14.0 — 2026-11-16
+- Nuovo tipo «Termoregolatore HB-Therm» con procedure dal manuale (cap. 9.3–9.4): PM074 trimestrale (~1000 h), PM075 semestrale (~2000 h, con LOTO), PM076 ogni 18 mesi (~6000 h, con LOTO). Aggiunte automaticamente una sola volta.
+
 ## 2.13.2 — 2026-11-16
 - Inserimento rapido: incolla da Excel a colonne (Nome | Descrizione | Commessa | Cliente), sia in «Incolla elenco» sia direttamente in una cella della tabella (riempie righe e colonne da lì in avanti). Accettato anche il separatore «;».
 
