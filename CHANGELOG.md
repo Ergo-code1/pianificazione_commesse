@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.8.3 — 2026-11-16
+- Aggiornamenti: l'app controlla se c'è una versione nuova all'apertura e quando torna in primo piano, e mostra «Aggiorna» (utile su iPhone con l'app installata).
+
 ## 2.8.2 — 2026-11-16
 - Manutentori: le manutenzioni assegnate (per impianto o singole) compaiono sempre nella loro «Attività assegnate»; se il loro reparto non ha la sezione, viene aggiunta in automatico; all'accesso si apre direttamente l'elenco.
 - Confronto dei nomi senza differenze di maiuscole e spazi; messaggio chiaro se i dati della manutenzione non sono leggibili.

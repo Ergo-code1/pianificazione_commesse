@@ -425,7 +425,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.8.2';
+const VERSIONE='2.8.3';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -1074,7 +1074,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.8.2"></script>
+<script src="manutenzione.js?v=2.8.3"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -1144,6 +1144,13 @@ onAuthStateChanged(auth,user=>{
   if(first&&(e[1].must||(e[0]==='admin'&&!S.admOk)))pwSheet(true);
  },er=>{FB.msg='Accesso al database negato: '+FB.err(er);FB.logout()});
 });
+</script>
+<script>
+// controllo nuova versione: all'apertura e quando l'app torna in primo piano
+(function(){let busy=0;async function chk(){if(busy||document.hidden)return;busy=1;try{const t=await (await fetch('index.html?ck='+Date.now(),{cache:'no-store'})).text();const m=t.match(/const VERSIONE='([^']+)'/);
+ if(m&&m[1]!==VERSIONE&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.setAttribute('role','status');b.style.cssText='position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:9999;background:#1f3b5a;color:#fff;padding:10px 14px;border-radius:12px;box-shadow:0 6px 20px rgb(0 0 0/.25);display:flex;gap:10px;align-items:center;font-size:14px';
+  b.innerHTML='Nuova versione '+m[1]+' disponibile <button class="btn sm" style="background:#fff;color:#1f3b5a">Aggiorna</button>';b.querySelector('button').onclick=async()=>{try{const rs=await navigator.serviceWorker?.getRegistrations?.();for(const r of rs||[])await r.update();const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch(e){}location.replace(location.pathname+'?v='+m[1])};document.body.appendChild(b)}}catch(e){}busy=0}
+ addEventListener('load',()=>setTimeout(chk,3000));document.addEventListener('visibilitychange',chk);setInterval(chk,15*60*1000)})();
 </script>
 <script>if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register("sw.js",{scope:"/pianificazione_commesse/"}).catch(()=>{})</script>
 <script>
