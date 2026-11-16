@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.8.0 — 2026-11-16
+- Procedure: nuovi campi «Tempo stimato (minuti)» e «Materiali, attrezzature e DPI»; ogni passo ha le sue istruzioni (modificabili), visibili nell'attività con «Istruzioni».
+- Documento procedura: si può collegare un documento già caricato invece di ricaricarlo; il file condiviso non viene cancellato finché lo usa un'altra procedura.
+- Caricate una sola volta 71 procedure standard (PM001–PM071) collegate ai tipi componente; la Procedura LOTO è salvata una volta e collegata a tutte le procedure che la richiedono.
+
 ## 2.7.4 — 2026-11-16
 - Pianifica manutenzione: mostrate anche le procedure non legate a un componente; messaggio chiaro (con «Configura ora») quando l'impianto non ha procedure.
 

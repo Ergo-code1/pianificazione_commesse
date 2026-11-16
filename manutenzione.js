@@ -31,7 +31,7 @@ let svT=null,lastM='';
 function saveM(){clearTimeout(svT);svT=setTimeout(()=>{const d=JSON.stringify(M);if(d===lastM)return;lastM=d;
  if(d.length>900000)mt('Attenzione: dati manutenzione vicini al limite di 1 MB');
  window.FBM.save(JSON.parse(d)).catch(er=>mt('Salvataggio manutenzione non riuscito: '+FB.err(er)))},400)}
-function onRemote(d){const txt=JSON.stringify(d||{});if(txt===lastM)return;lastM=txt;M=Object.assign({tipi:[],proc:[],imp:[],ass:[],att:[],vis:[],ric:[],anni:[],nextId:1},d||{});M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];migra();if(isR())setTimeout(restore,0);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
+function onRemote(d){const txt=JSON.stringify(d||{});if(txt===lastM)return;lastM=txt;M=Object.assign({tipi:[],proc:[],imp:[],ass:[],att:[],vis:[],ric:[],anni:[],nextId:1},d||{});M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];migra();if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
  const o=document.getElementById('mnOvl');if(o&&!o.hidden)return;
  if(!(document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)))refresh()}
 function start(){if(!window.FBM||window.FBM._u)return;MN.err=null;window.FBM.listen(d=>{if(d===null){MN.ready=true;if(isR()&&!M.tipi.length)seedBase();refresh();return}onRemote(d)},er=>{MN.err=FB.err(er);draw()})}
@@ -73,6 +73,21 @@ function impStatus(id){const ass=M.ass.filter(a=>a.imp===id),st=ass.map(assStatu
  const w=st.find(x=>x[2]==='r')?['Da pianificare','var(--accent)','r']:st.find(x=>x[2]==='g')?['In scadenza','var(--warn)','g']:st.find(x=>x[2]==='b')?['Pianificato','var(--info)','b']:ass.length&&st.every(x=>x[2]==='n')?['Attesa evento','var(--off)','n']:['In regola','var(--ok)','v'];
  const nx=ass.filter(s=>!planned(s)&&P(s.proc)?.tipo!=='evento').map(s=>s.next||tdy()).sort()[0];
  return{open,w,next:nx,toPlan:st.filter(x=>x[2]==='r'||x[2]==='g').length,inc:ass.filter(x=>x.incompleto).length}}
+// procedure standard (manut_std.json) + Procedura LOTO: caricate una sola volta
+async function importStd(){if(M.std1||MN._imp||!isR())return;MN._imp=1;
+ try{const L=await (await fetch('manut_std.json?v=2.8.0',{cache:'no-store'})).json();
+  let loto=docList().find(d=>/loto/i.test(d.name||''));
+  if(!loto){const b=await (await fetch('Procedura_LOTO.pdf',{cache:'no-store'})).blob();
+   const data=await new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=ko;r.readAsDataURL(b)});
+   const id='dloto';await window.FBM.putBlob('manutDoc',id,{name:'Procedura_LOTO.pdf',type:'application/pdf',data});BL[id]={name:'Procedura_LOTO.pdf',type:'application/pdf',data};
+   loto={id,name:'Procedura_LOTO.pdf',type:'application/pdf',size:b.size}}
+  if(M.std1)return;
+  const nk=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');let n=0,sk=0;
+  L.forEach(x=>{let t=M.tipi.find(t=>nk(t.nome)===nk(x.comp));if(!t){t={id:nid('t'),nome:x.comp,procs:[]};M.tipi.push(t)}
+   if(M.proc.some(p=>p.cod===x.cod)){sk++;return}
+   const p={id:nid('p'),cod:x.cod,desc:x.desc,norma:x.norma,tipo:x.tipo,int:x.int,min:x.min,mat:x.mat,steps:x.steps,doc:x.loto?loto:null};M.proc.push(p);t.procs.push(p.id);n++});
+  M.std1=true;saveM();refresh();mt(n+' procedure standard caricate e collegate ai tipi componente'+(sk?' ('+sk+' codici già presenti, saltati)':''))}
+ catch(er){mt('Caricamento procedure standard non riuscito: '+(er.message||er))}finally{MN._imp=0}}
 function migra(){M.imp.forEach(i=>{if(!i.avviato&&(M.vis.some(v=>v.imp===i.id)||M.att.some(a=>a.imp===i.id)||M.ass.some(s=>s.imp===i.id&&s.last)))i.avviato=true})}
 const CAT=id=>M.cat.find(c=>c.id===id);
 const catPath=id=>{const out=[];let c=CAT(id),n=0;while(c&&n++<20){out.unshift(c.nome);c=CAT(c.par)}return out.join(' › ')};
@@ -205,7 +220,7 @@ function vImp(){const l=M.imp.filter(i=>qm(i.cod,i.nome,i.cli,catPath(i.cat),(i.
 
 function vTipi(){return list(M.tipi.map(t=>item('var(--hi)',e_(t.nome),`<span>${t.procs.map(id=>P(id)?.cod).filter(Boolean).join(', ')||'nessuna procedura standard'}</span><span>usato in ${M.imp.reduce((n,i)=>n+(i.comps||[]).filter(c=>c.tipo===t.id).length,0)} componenti</span>`,`<button class="btn" onclick="MNX.editTipo('${t.id}')">Modifica</button>`,`MNX.editTipo('${t.id}')`)),'Nessun tipo di componente.')}
 
-function vProc(){return list(M.proc.map(p=>item('var(--ink)',`${e_(p.cod)} · ${e_(p.desc)}`,`<span>${freq(p)}</span>${p.norma?`<span>${e_(p.norma)}</span>`:''}<span>${p.steps.length} passi</span>${p.doc?'<span>📄 documento</span>':''}<span>usata ${M.ass.filter(a=>a.proc===p.id).length} volte</span>`,`<button class="btn" onclick="MNX.editProc('${p.id}')">Modifica</button>`,`MNX.editProc('${p.id}')`)),'Nessuna procedura.')}
+function vProc(){return list(M.proc.map(p=>item('var(--ink)',`${e_(p.cod)} · ${e_(p.desc)}`,`<span>${freq(p)}</span>${p.norma?`<span>${e_(p.norma)}</span>`:''}<span>${p.steps.length} passi</span>${p.min?`<span>⏱ ${p.min} min</span>`:''}${p.doc?`<span>📄 ${e_(p.doc.name||'documento')}</span>`:''}<span>usata ${M.ass.filter(a=>a.proc===p.id).length} volte</span>`,`<button class="btn" onclick="MNX.editProc('${p.id}')">Modifica</button>`,`MNX.editProc('${p.id}')`)),'Nessuna procedura.')}
 
 async function vSto(){
  const y=MN.anno,list_=(await storico(y)).filter(a=>{const f=MN.f;
@@ -304,26 +319,32 @@ function drawCfg(){const i=I(MN.cfgImp);if(!MN.cfgTipo&&M.tipi[0])MN.cfgTipo=M.t
  <div class="row" style="justify-content:space-between"><button class="btn" onclick="MNX.delImp()">Elimina impianto</button><button class="btn pri" onclick="MNX.close()">Fine</button></div>`)}
 window.MN_setTipo=v=>{MN.cfgTipo=v;drawCfg()};
 
-function editProc(id){const p=id?P(id):{cod:'',desc:'',norma:'',tipo:'cal',int:6,steps:[],doc:null};
+function editProc(id){const p=id?P(id):{cod:'',desc:'',norma:'',tipo:'cal',int:6,min:'',mat:'',steps:[],doc:null};
  MN.tmpSteps=p.steps.map(s=>({...s}));MN.tmpDoc=p.doc;MN.editId=id||null;
  ovl(`<div class="mn-oh"><h2>${id?'Modifica':'Nuova'} procedura</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div>
  <div class="evf"><label>Codice<input id="mnPCod" value="${e_(p.cod)}" placeholder="PM001"></label><label>Riferimento normativo<input id="mnPNorma" value="${e_(p.norma)}"></label></div>
  <div class="evf"><label>Descrizione<input id="mnPDesc" value="${e_(p.desc)}"></label></div>
- <div class="evf"><label>Frequenza<select id="mnPTipo">${Object.entries(TIPI).map(([k,v])=>`<option value="${k}" ${p.tipo===k?'selected':''}>${v}</option>`).join('')}</select></label><label>Ogni (mesi)<input id="mnPInt" type="number" min="1" value="${p.int||6}"></label></div>
+ <div class="evf"><label>Frequenza<select id="mnPTipo">${Object.entries(TIPI).map(([k,v])=>`<option value="${k}" ${p.tipo===k?'selected':''}>${v}</option>`).join('')}</select></label><label>Ogni (mesi)<input id="mnPInt" type="number" min="1" value="${p.int||6}"></label><label>Tempo stimato (minuti)<input id="mnPMin" type="number" min="0" value="${p.min||''}"></label></div>
+ <div class="evf"><label>Materiali, attrezzature e DPI<textarea id="mnPMat" rows="4">${e_(p.mat||'')}</textarea></label></div>
  <h3>Passi da confermare</h3><div id="mnSteps"></div>
- <div class="evf"><label>Nuovo passo<input id="mnNS" placeholder="Descrizione del passo"></label><label class="mn-chk"><input type="checkbox" id="mnNF"> Foto obbligatoria</label><button class="btn" onclick="MNX.addStep()">Aggiungi passo</button></div>
- <h3>Documento (PDF o immagine, max 700 KB)</h3><input type="file" accept="application/pdf,image/*" onchange="MNX.loadDoc(this)"><div id="mnDocI" class="muted">${MN.tmpDoc?'Allegato: '+e_(MN.tmpDoc.name):'Nessun documento'}</div>
+ <div class="mn-step"><label>Nuovo passo<input id="mnNS" placeholder="Descrizione del passo"></label><label>Istruzioni del passo<textarea id="mnNI" rows="3" placeholder="Come eseguire il passo (una riga per istruzione)"></textarea></label><div class="row"><label class="mn-chk"><input type="checkbox" id="mnNF"> Foto obbligatoria</label><button class="btn" onclick="MNX.addStep()">Aggiungi passo</button></div></div>
+ <h3>Documento (PDF o immagine, max 700 KB)</h3>${docOpts()}<input type="file" accept="application/pdf,image/*" onchange="MNX.loadDoc(this)"><div id="mnDocI" class="muted">${MN.tmpDoc?'Allegato: '+e_(MN.tmpDoc.name):'Nessun documento'}</div>
  <div class="row" style="justify-content:space-between">${id?`<button class="btn" onclick="MNX.delProc()">Elimina</button>`:'<span></span>'}<div class="row"><button class="btn" onclick="MNX.close()">Annulla</button><button class="btn pri" onclick="MNX.saveProc()">Salva</button></div></div>`);drawSteps()}
-function drawSteps(){const b=document.getElementById('mnSteps');if(b)b.innerHTML=MN.tmpSteps.map((s,k)=>`<div class="row mn-srow"><span class="mono">${k+1}.</span><span style="flex:1">${e_(s.t)}</span>${s.foto?'<span class="pill" style="color:var(--warn)">Foto</span>':''}<button class="btn sm" onclick="MNX.mvStep(${k},-1)" aria-label="Su">↑</button><button class="btn sm" onclick="MNX.rmStep(${k})">Rimuovi</button></div>`).join('')||'<p class="muted">Nessun passo</p>'}
+function drawSteps(){const b=document.getElementById('mnSteps');if(b)b.innerHTML=MN.tmpSteps.map((s,k)=>`<div class="mn-srow" style="display:grid;gap:4px;padding:6px 0"><div class="row"><span class="mono">${k+1}.</span><input style="flex:1" value="${e_(s.t)}" aria-label="Passo ${k+1}" onchange="MNX.stSet(${k},'t',this.value)"><label class="mn-chk" style="font-size:12px!important"><input type="checkbox" ${s.foto?'checked':''} onchange="MNX.stSet(${k},'foto',this.checked)"> Foto</label><button class="btn sm" onclick="MNX.mvStep(${k},-1)" aria-label="Su">↑</button><button class="btn sm" onclick="MNX.rmStep(${k})">Rimuovi</button></div><textarea rows="${Math.min(8,Math.max(2,(s.i||'').split('\n').length))}" aria-label="Istruzioni passo ${k+1}" placeholder="Istruzioni del passo" onchange="MNX.stSet(${k},'i',this.value)">${e_(s.i||'')}</textarea></div>`).join('')||'<p class="muted">Nessun passo</p>'}
+// documenti già caricati: si collegano senza ricaricarli
+const docList=()=>{const m={};M.proc.forEach(p=>{if(p.doc&&p.doc.id)m[p.doc.id]=p.doc});return Object.values(m)};
+const docUsed=(id,except)=>M.proc.some(p=>p!==except&&p.doc&&p.doc.id===id);
+function docOpts(){const l=docList();return l.length?`<label class="muted" style="display:grid;gap:4px;font-size:12px">Usa un documento già caricato<select onchange="MNX.pickDoc(this.value)"><option value="">—</option>${l.map(d=>`<option value="${d.id}" ${MN.tmpDoc&&MN.tmpDoc.id===d.id?'selected':''}>${e_(d.name)}</option>`).join('')}</select></label><div class="muted" style="font-size:12px">oppure carica un nuovo file:</div>`:''}
 
 async function drawEx(){const a=M.att.find(x=>x.id===MN.ex);if(!a)return closeO();const p=PA(a),i=IA(a),st=status(a);
  const done=p.steps.filter((s,k)=>a.ok[k]&&(!s.foto||(a.foto[k]||[]).length)).length;
  const thumbs=await Promise.all(p.steps.map((s,k)=>Promise.all((a.foto[k]||[]).map(id=>blob('manutFoto',id)))));
  const canDo=isR()||a.man===me();
  ovl(`<div class="mn-oh"><h2>${e_(p.cod)} · ${e_(p.desc)}</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div><div class="muted">👤 ${e_(a.man||'senza nome')} · ${a.free?'Altra attività':'Attività preventiva'}${a.sub?' (solo passi mancanti)':''}${INOME(a)?' · '+e_(INOME(a)):''}${CMP(a)?' › '+e_(CMP(a)):''} · ${fd(a.due)} ${pill(st)}</div>${p._d?`<div class="mn-info" style="white-space:pre-line">${e_(p._d)}</div>`:''}${(()=>{const s0=M.ass.find(x=>x.id===a.ass);return s0&&s0.incompleto?`<div class="mn-info" style="border-left-color:var(--warn)">Da concludere: la volta precedente (${fd(s0.incompleto.data)}) mancavano ${e_(s0.incompleto.passi.join(', '))}.</div>`:''})()}
- ${p.doc?`<div><button class="btn" onclick="MNX.viewDoc('${p.id}')">📄 Apri documento procedura</button></div>`:''}
+ ${p.min||p.mat?`<div class="mn-info" style="white-space:pre-line">${p.min?`<b>Tempo stimato:</b> ${p.min} minuti\n`:''}${e_(p.mat||'')}</div>`:''}
+ ${p.doc?`<div><button class="btn" onclick="MNX.viewDoc('${p.id}')">📄 Apri ${e_(p.doc.name||'documento procedura')}</button></div>`:''}
  ${!canDo?'<div class="muted">Attività assegnata a '+e_(a.man||'nessuno')+': puoi solo consultarla.</div>':''}
- ${p.steps.map((s,k)=>`<div class="mn-step"><label class="mn-chk"><input type="checkbox" ${a.ok[k]?'checked':''} ${canDo?'':'disabled'} onchange="MNX.tick(${k},this.checked)"> <span>${e_(s.t)}</span></label>
+ ${p.steps.map((s,k)=>`<div class="mn-step"><label class="mn-chk"><input type="checkbox" ${a.ok[k]?'checked':''} ${canDo?'':'disabled'} onchange="MNX.tick(${k},this.checked)"> <span>${e_(s.t)}</span></label>${s.i?`<details class="mn-ist"><summary>Istruzioni</summary><div style="white-space:pre-line">${e_(s.i)}</div></details>`:''}
  ${s.foto||(a.foto[k]||[]).length?`<div class="row mn-ph">${canDo?`<label class="btn sm">📷 Aggiungi foto<input type="file" accept="image/*" capture="environment" hidden onchange="MNX.foto(${k},this)"></label>`:''}${thumbs[k].map((d,j)=>d?`<span class="mn-th"><img src="${d.data}" alt="Foto passo ${k+1}">${canDo?`<button class="btn sm" aria-label="Elimina foto" onclick="MNX.delFoto(${k},${j})">✕</button>`:''}</span>`:'').join('')}${s.foto&&!(a.foto[k]||[]).length?'<span class="muted">Foto obbligatoria</span>':''}</div>`:''}</div>`).join('')}
  <div class="mn-step"><b>Ricambi</b>${M.ric.filter(r=>r.att===a.id).map(r=>`<div class="row" style="font-size:13px"><span style="flex:1">${e_(r.desc)}${r.qta?' × '+e_(r.qta):''} <span class="muted">· ${r.buy?'da acquistare':'necessario'}</span></span>${canDo?`<button class="btn sm" onclick="MNX.ricDel('${r.id}',1)" aria-label="Elimina">✕</button>`:''}</div>`).join('')||'<span class="muted" style="font-size:13px">Nessun ricambio indicato.</span>'}
  ${canDo?`<div class="evf"><label>Ricambio<input id="mnRD" placeholder="es. Cartuccia grasso, guarnizione…"></label><label>Quantità<input id="mnRQ" placeholder="1"></label><label class="mn-chk"><input type="checkbox" id="mnRB" checked> Da acquistare</label><button class="btn" onclick="MNX.ricAdd()">+ Aggiungi ricambio</button></div>`:''}</div>
@@ -459,18 +480,20 @@ window.MNX={
    else{const rm=mine.filter(a=>a.proc===pid&&isStd(a)).map(a=>a.id);if(rm.length){M.att=M.att.filter(a=>!rm.includes(a.ass));M.ass=M.ass.filter(a=>!rm.includes(a.id));n++}}}));
   t.procs=on?[...new Set([...t.procs,pid])]:t.procs.filter(x=>x!==pid);saveM();
   mt(n?(on?'Procedura aggiunta a ':'Procedura tolta da ')+n+' componenti'+(on?' (da fare alla prossima manutenzione)':''):'Tipo aggiornato')},
- editProc,addStep(){const t=document.getElementById('mnNS').value.trim();if(!t)return;MN.tmpSteps.push({t,foto:document.getElementById('mnNF').checked});document.getElementById('mnNS').value='';document.getElementById('mnNF').checked=false;drawSteps()},
+ editProc,addStep(){const t=document.getElementById('mnNS').value.trim();if(!t)return;const i=document.getElementById('mnNI').value.trim();MN.tmpSteps.push(i?{t,foto:document.getElementById('mnNF').checked,i}:{t,foto:document.getElementById('mnNF').checked});document.getElementById('mnNS').value='';document.getElementById('mnNI').value='';document.getElementById('mnNF').checked=false;drawSteps()},
+ stSet(k,f,v){const s=MN.tmpSteps[k];if(!s)return;if(f==='t'){v=String(v).trim();if(!v)return drawSteps()}if(f==='i'){v=String(v).trim();if(!v){delete s.i;return}}s[f]=v},
+ pickDoc(id){if(!id)return;const d=docList().find(x=>x.id===id);if(!d)return;MN.tmpDoc=d;document.getElementById('mnDocI').textContent='Collegato: '+d.name+' (stesso file, non duplicato)'},
  rmStep(k){MN.tmpSteps.splice(k,1);drawSteps()},mvStep(k,d){if(k+d<0)return;const s=MN.tmpSteps;[s[k],s[k+d]]=[s[k+d],s[k]];drawSteps()},
  loadDoc(inp){const f=inp.files[0];if(!f)return;if(f.size>700*1024){inp.value='';return mt('Il file supera 700 KB: comprimilo o usa un link')}
   const r=new FileReader();r.onload=()=>{MN.tmpDoc={name:f.name,type:f.type,size:f.size,_data:r.result};document.getElementById('mnDocI').textContent='Allegato: '+f.name+' ('+Math.round(f.size/1024)+' KB)'};r.readAsDataURL(f)},
  async saveProc(){const v=k=>document.getElementById(k).value.trim();if(!v('mnPCod'))return mt('Inserisci il codice');if(!MN.tmpSteps.length)return mt('Aggiungi almeno un passo');
   let d=MN.tmpDoc;if(d&&d._data){const id=nid('d');try{await window.FBM.putBlob('manutDoc',id,{name:d.name,type:d.type,data:d._data});BL[id]={name:d.name,type:d.type,data:d._data};d={id,name:d.name,type:d.type,size:d.size}}catch(er){return mt('Documento non salvato: '+FB.err(er))}}
-  const data={cod:v('mnPCod'),desc:v('mnPDesc'),norma:v('mnPNorma'),tipo:v('mnPTipo'),int:Number(v('mnPInt'))||6,steps:MN.tmpSteps,doc:d};
-  if(MN.editId){const p=P(MN.editId);if(p.doc&&p.doc.id&&(!d||d.id!==p.doc.id))window.FBM.delBlob('manutDoc',p.doc.id).catch(()=>{});Object.assign(p,data);
+  const data={cod:v('mnPCod'),desc:v('mnPDesc'),norma:v('mnPNorma'),tipo:v('mnPTipo'),int:Number(v('mnPInt'))||6,min:Number(v('mnPMin'))||0,mat:v('mnPMat'),steps:MN.tmpSteps,doc:d};
+  if(MN.editId){const p=P(MN.editId);if(p.doc&&p.doc.id&&(!d||d.id!==p.doc.id)&&!docUsed(p.doc.id,p))window.FBM.delBlob('manutDoc',p.doc.id).catch(()=>{});Object.assign(p,data);
    M.att.filter(a=>a.proc===p.id).forEach(a=>{a.ok=p.steps.map((s,k)=>a.ok[k]||false);a.foto=p.steps.map((s,k)=>a.foto[k]||[])})}
   else M.proc.push({id:nid('p'),...data});saveM();closeO();mt('Procedura salvata')},
  delProc(){const p=P(MN.editId);if(M.ass.some(a=>a.proc===p.id))return mt('Procedura assegnata a dei componenti: toglila prima da lì');
-  if(p.doc&&p.doc.id)window.FBM.delBlob('manutDoc',p.doc.id).catch(()=>{});M.proc=M.proc.filter(x=>x.id!==p.id);M.tipi.forEach(t=>t.procs=t.procs.filter(x=>x!==p.id));saveM();closeO()},
+  if(p.doc&&p.doc.id&&!docUsed(p.doc.id,p))window.FBM.delBlob('manutDoc',p.doc.id).catch(()=>{});M.proc=M.proc.filter(x=>x.id!==p.id);M.tipi.forEach(t=>t.procs=t.procs.filter(x=>x!==p.id));saveM();closeO()},
  async viewDoc(pid){const p=P(pid);const d=await blob('manutDoc',p.doc.id);if(!d)return mt('Documento non trovato');
   if(d.type.startsWith('image'))return ovl(`<h2>${e_(d.name)}</h2><img src="${d.data}" style="max-width:100%" alt="${e_(d.name)}"><div class="row" style="justify-content:flex-end"><button class="btn" onclick="MNX.close()">Chiudi</button></div>`);
   const b=await (await fetch(d.data)).blob(),u=URL.createObjectURL(b);
