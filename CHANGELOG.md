@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.8.7 — 2026-11-16
+- CORRETTO: pianificazioni e assegnazioni della manutenzione non venivano salvate sul server (Firestore rifiutava le foto per passo, salvate come «array dentro array», senza dare errore). Ora vengono convertite e salvate correttamente; anche lo storico delle attività chiuse.
+
 ## 2.8.6 — 2026-11-16
 - Attività assegnate (manutenzione): pulsante «Diagnostica» con versione, dimensione dati, esito dell'ultimo salvataggio e confronto con i dati sul server.
 

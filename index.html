@@ -425,7 +425,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.8.6';
+const VERSIONE='2.8.7';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -1074,7 +1074,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.8.6"></script>
+<script src="manutenzione.js?v=2.8.7"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -1114,16 +1114,20 @@ window.FB={msg:'',key:null,
   await setDoc(doc(db,'utenti',e[1].uid),{user:e[0],resp:!!((S.pInfo||{})[p]||{}).resp},{merge:true}).catch(er=>toast('Permesso responsabile non salvato: '+FB.err(er)))},
  async togliAccesso(u){const x=S.utenti[u];if(!x||u==='admin')return;if(x.uid)await deleteDoc(doc(db,'utenti',x.uid)).catch(()=>{});S.ex=S.ex||{};S.ex[u]={uid:x.uid,ruolo:x.ruolo,perm:x.perm,email:x.email};delete S.utenti[u]}
 };
+// Firestore non accetta array dentro array (es. foto per passo): li salviamo come mappa e li ricostruiamo in lettura
+const fsEnc=v=>{if(Array.isArray(v)){const m=v.map(fsEnc);return m.some(Array.isArray)?{__arr:Object.fromEntries(m.map((e,i)=>[String(i),e]))}:m}if(v&&typeof v==='object'){const o={};for(const k in v)if(v[k]!==undefined)o[k]=fsEnc(v[k]);return o}return v};
+const fsDec=v=>{if(Array.isArray(v))return v.map(fsDec);if(v&&typeof v==='object'){if(v.__arr&&Object.keys(v).length===1)return Object.keys(v.__arr).sort((a,b)=>a-b).map(k=>fsDec(v.__arr[k]));const o={};for(const k in v)o[k]=fsDec(v[k]);return o}return v};
+const fsGet=sn=>sn.exists()?fsDec(sn.data()):null;
 window.FBM={_u:null,
- listen(cb,er){this.stop();this._u=onSnapshot(doc(db,'app','manut'),sn=>cb(sn.exists()?sn.data():null),e=>{this._u=null;er(e)})},
- listenDoc(c,id,cb,er){this._u2&&this._u2();this._u2=onSnapshot(doc(db,c,id),sn=>cb(sn.exists()?sn.data():null),e=>{this._u2=null;er&&er(e)})},
+ listen(cb,er){this.stop();this._u=onSnapshot(doc(db,'app','manut'),sn=>cb(fsGet(sn)),e=>{this._u=null;er(e)})},
+ listenDoc(c,id,cb,er){this._u2&&this._u2();this._u2=onSnapshot(doc(db,c,id),sn=>cb(fsGet(sn)),e=>{this._u2=null;er&&er(e)})},
  stop(){this._u&&this._u();this._u=null;this._u2&&this._u2();this._u2=null},
- save:d=>setDoc(doc(db,'app','manut'),d),
- getMain:async()=>{const sn=await getDoc(doc(db,'app','manut'));return sn.exists()?sn.data():null},
- getY:async y=>{const sn=await getDoc(doc(db,'manutStorico',String(y)));return sn.exists()?(sn.data().att||[]):[]},
- saveY:(y,arr)=>setDoc(doc(db,'manutStorico',String(y)),{att:arr}),
- putBlob:(c,id,o)=>setDoc(doc(db,c,id),o),
- getBlob:async(c,id)=>{const sn=await getDoc(doc(db,c,id));return sn.exists()?sn.data():null},
+ save:async d=>setDoc(doc(db,'app','manut'),fsEnc(d)),
+ getMain:async()=>fsGet(await getDoc(doc(db,'app','manut'))),
+ getY:async y=>{const d=fsGet(await getDoc(doc(db,'manutStorico',String(y))));return d?(d.att||[]):[]},
+ saveY:async(y,arr)=>setDoc(doc(db,'manutStorico',String(y)),fsEnc({att:arr})),
+ putBlob:async(c,id,o)=>setDoc(doc(db,c,id),fsEnc(o)),
+ getBlob:async(c,id)=>fsGet(await getDoc(doc(db,c,id))),
  delBlob:(c,id)=>deleteDoc(doc(db,c,id))};
 onAuthStateChanged(auth,user=>{
  if(!user){S.user=null;renderLogin();return}
