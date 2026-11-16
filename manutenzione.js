@@ -10,6 +10,9 @@ const STEP_FOTO_MAX=1600;
 const e_=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const tdy=()=>todayL();
 const addM=(d,m)=>{const x=new Date(d+'T12:00:00');const day=x.getDate();x.setDate(1);x.setMonth(x.getMonth()+Number(m));const last=new Date(x.getFullYear(),x.getMonth()+1,0).getDate();x.setDate(Math.min(day,last));return isoL(x)};
+const addD=(d,n)=>{const x=new Date(d+'T12:00:00');x.setDate(x.getDate()+Number(n||0));return isoL(x)};
+const avvDef=p=>p.tipo==='evento'?0:(+p.int||1)<=1?7:(+p.int)<=3?15:(+p.int)<=6?30:60;
+const avvOf=p=>p.avv!=null&&p.avv!==''?+p.avv:avvDef(p);
 const fd=d=>d?d.split('-').reverse().join('/'):'—';
 const nid=p=>p+(M.nextId++).toString(36)+Math.random().toString(36).slice(2,5);
 const TIPI={cal:'Ricorrente a calendario',ultima:'Da ultima chiusura',evento:'A evento'};
@@ -53,13 +56,13 @@ async function doSaveM(){svT=null;if(!MN.base)return;const loc=curM();if(stab(lo
  finally{MN.saving=0;if(MN.again){MN.again=0;saveM()}}}
 // recupero procedure perse (v2.8.5-2.8.7): da manutDoc/_proc, oppure ricostruite da manut_std.json con gli stessi id (ordine nei tipi)
 async function recProc(){if(MN._rec)return;MN._rec=1;try{
- const L=await (await fetch('manut_std.json?v=2.9.7',{cache:'no-store'})).json();const nk=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
- const out=[];M.tipi.forEach(t=>{const l=L.filter(x=>nk(x.comp)===nk(t.nome));t.procs.forEach((id,k)=>{const x=l[k];if(x)out.push({id,cod:x.cod,desc:x.desc,norma:x.norma,tipo:x.tipo,int:x.int,min:x.min,mat:x.mat,steps:x.steps,doc:x.loto?{id:'dloto',name:'Procedura_LOTO.pdf',type:'application/pdf'}:null})})});
+ const L=await (await fetch('manut_std.json?v=2.9.8',{cache:'no-store'})).json();const nk=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+ const out=[];M.tipi.forEach(t=>{const l=L.filter(x=>nk(x.comp)===nk(t.nome));t.procs.forEach((id,k)=>{const x=l[k];if(x)out.push({id,cod:x.cod,desc:x.desc,norma:x.norma,tipo:x.tipo,int:x.int,min:x.min,avv:x.avv,mat:x.mat,steps:x.steps,doc:x.loto?{id:'dloto',name:'Procedura_LOTO.pdf',type:'application/pdf'}:null})})});
  MN.recP=out}catch(er){mt('Recupero procedure non riuscito: '+(er.message||er));MN.recP=[]}
  MN.stage='procedure recuperate: '+(MN.recP||[]).length;MN._rec=0;const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))}
 function onRemote(d){const txt=stab(d||{});if(txt===lastM)return;const loc=MN.base?curM():null;lastM=txt;const keep=M.proc;const srv=JSON.parse(txt);const mer=loc?window.EPM.mergeVal(MN.base,loc,srv):srv;MN.base=srv;M=Object.assign(DEF(),JSON.parse(JSON.stringify(mer)));MN.mainL=true;if(loc&&stab(mer)!==txt&&!svT)saveM();
  let fix=false;if(!M.proc||!M.proc.length){if(keep&&keep.length){M.proc=keep;fix=true}else if(M.std1){if(!MN.procL&&!MN.procTO){MN.stage='attendo procedure…';clearTimeout(MN._to);MN._to=setTimeout(()=>{MN.procTO=1;const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))},4000);return}if(MN.pdoc&&MN.pdoc.length){M.proc=MN.pdoc;fix=true}else if(MN.recP&&MN.recP.length){M.proc=MN.recP;fix=true}else{if(MN.recP===undefined){recProc();MN.stage='recupero procedure…';return}MN.noProc=true}}}
- delete M.procSep;M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];if(oldApp())return;migra();if(fix&&isR())setTimeout(()=>{lastM='';saveM()},0);if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);if(isR()&&!M.pressaV)setTimeout(updPressa,80);if(isR()&&!M.noUpl1)setTimeout(noUpl,400);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
+ delete M.procSep;M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];if(oldApp())return;migra();if(fix&&isR())setTimeout(()=>{lastM='';saveM()},0);if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);if(isR()&&!M.pressaV)setTimeout(updPressa,80);if(isR()&&!M.noUpl1)setTimeout(noUpl,400);if(isR()&&!M.scaf1)setTimeout(addScaf,700);if(isR()&&!M.avv1)setTimeout(setAvv,1500);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
  const o=document.getElementById('mnOvl');if(o&&!o.hidden)return;
  if(!(document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)))refresh()}
 function onProc(d){MN.procL=true;MN.pdoc=d&&d.proc||null;if(MN.mainL&&(!M.proc||!M.proc.length)){const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))}}
@@ -98,7 +101,7 @@ function assStatus0(s){const p=P(s.proc),t=tdy(),pa=planned(s);
  if(p.tipo==='evento')return s.evt?['Evento da gestire','var(--accent)','r']:['In attesa di evento','var(--off)','n'];
  if(!s.next)return['Da fare (mai eseguita)','var(--accent)','r'];
  if(s.next<t)return['Scaduta il '+fd(s.next),'var(--accent)','r'];
- if(s.next<=addM(t,1))return['In scadenza il '+fd(s.next),'var(--warn)','g'];
+ if(s.next<=addD(t,avvOf(p)))return['In scadenza il '+fd(s.next),'var(--warn)','g'];
  return['Prossima '+fd(s.next),'var(--ok)','v']}
 function impStatus(id){const ass=M.ass.filter(a=>a.imp===id),st=ass.map(assStatus),open=M.att.filter(a=>a.imp===id),imp=I(id);
  if(imp&&!imp.avviato&&!open.length)return{open,w:['Mai pianificato','var(--accent)','r'],next:null,toPlan:ass.length||1,mai:1,inc:0};
@@ -117,20 +120,20 @@ async function importStd(){if(M.std1||MN._imp||!isR())return;MN._imp=1;
   const nk=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');let n=0,sk=0;
   L.forEach(x=>{let t=M.tipi.find(t=>nk(t.nome)===nk(x.comp));if(!t){t={id:nid('t'),nome:x.comp,procs:[]};M.tipi.push(t)}
    if(M.proc.some(p=>p.cod===x.cod)){sk++;return}
-   const p={id:nid('p'),cod:x.cod,desc:x.desc,norma:x.norma,tipo:x.tipo,int:x.int,min:x.min,mat:x.mat,steps:x.steps,doc:x.loto?loto:null};M.proc.push(p);t.procs.push(p.id);n++});
+   const p={id:nid('p'),cod:x.cod,desc:x.desc,norma:x.norma,tipo:x.tipo,int:x.int,min:x.min,avv:x.avv,mat:x.mat,steps:x.steps,doc:x.loto?loto:null};M.proc.push(p);t.procs.push(p.id);n++});
   M.std1=true;saveM();refresh();mt(n+' procedure standard caricate e collegate ai tipi componente'+(sk?' ('+sk+' codici già presenti, saltati)':''))}
  catch(er){mt('Caricamento procedure standard non riuscito: '+(er.message||er))}finally{MN._imp=0}}
 function skipAss(s){const p=P(s.proc);if(!p)return;if(p.tipo==='evento')s.evt=false;else s.next=addM(tdy(),p.int||1);s.incompleto=null}
 // aggiornamento una tantum: procedure «Pressa» riscritte per pressa a iniezione plastica (PM015-PM018)
 async function updPressa(){if(M.pressaV||MN._pr||!isR()||!M.proc.length)return;MN._pr=1;try{
- const L=await (await fetch('manut_std.json?v=2.9.7',{cache:'no-store'})).json();if(M.pressaV)return;const loto=docList().find(d=>/loto/i.test(d.name||''));let n=0;
+ const L=await (await fetch('manut_std.json?v=2.9.8',{cache:'no-store'})).json();if(M.pressaV)return;const loto=docList().find(d=>/loto/i.test(d.name||''));let n=0;
  L.filter(x=>x.comp==='Pressa').forEach(x=>{const p=M.proc.find(q=>q.cod===x.cod&&/^pressa/i.test(q.desc||''));if(!p)return;
-  Object.assign(p,{desc:x.desc,norma:x.norma,tipo:x.tipo,int:x.int,min:x.min,mat:x.mat,steps:x.steps,doc:x.loto?(p.doc||loto||null):null});
+  Object.assign(p,{desc:x.desc,norma:x.norma,tipo:x.tipo,int:x.int,min:x.min,avv:x.avv,mat:x.mat,steps:x.steps,doc:x.loto?(p.doc||loto||null):null});
   M.att.filter(a=>a.proc===p.id&&!a.sub).forEach(a=>{a.ok=p.steps.map(()=>false);a.foto=p.steps.map(()=>[])});n++});
  M.pressaV=1;saveM();refresh();if(n)mt(n+' procedure Pressa aggiornate per pressa a iniezione')}catch(er){}finally{MN._pr=0}}
 // una tantum: nessuna richiesta di caricare foto o documenti nelle procedure (si aggiungono a mano se servono)
 async function noUpl(){if(M.noUpl1||MN._nu||!isR()||!M.proc.length)return;MN._nu=1;try{
- const L=await (await fetch('manut_std.json?v=2.9.7',{cache:'no-store'})).json();if(M.noUpl1)return;
+ const L=await (await fetch('manut_std.json?v=2.9.8',{cache:'no-store'})).json();if(M.noUpl1)return;
  const RX=/fotograf|\b(caric|alleg)[a-z]*\b[^.\n]{0,30}\b(foto|rapporto|verbale|certificat|document)/i;let n=0;
  M.proc.forEach(p=>{const before=stab(p.steps),len=p.steps.length;
   const x=L.find(q=>q.cod===p.cod&&q.desc===p.desc&&['PM007','PM011','PM018','PM033','PM039','PM043','PM049'].includes(q.cod));
@@ -138,6 +141,15 @@ async function noUpl(){if(M.noUpl1||MN._nu||!isR()||!M.proc.length)return;MN._nu
   p.steps=p.steps.filter(st=>!(RX.test(st.t)&&!(st.i||'').trim())).map(st=>{const o={...st,foto:false};if(o.i){o.i=o.i.split('\n').filter(l=>!RX.test(l)).join('\n').trim();if(!o.i)delete o.i}return o});
   if(stab(p.steps)!==before){n++;if(p.steps.length!==len)M.att.filter(a=>a.proc===p.id&&!a.sub).forEach(a=>{a.ok=p.steps.map(()=>false);a.foto=p.steps.map(()=>[])})}});
  M.noUpl1=1;saveM();refresh();mt(n?n+' procedure ripulite: nessuna richiesta di foto o documenti':'Procedure già senza richieste di foto o documenti')}catch(er){}finally{MN._nu=0}}
+// una tantum: tipo «Scaffalature» con le procedure UNI EN 15635 (trimestrale con 2 foto + annuale)
+async function addScaf(){if(M.scaf1||MN._sc||!isR()||!M.proc.length)return;if(!M.noUpl1){setTimeout(addScaf,800);return}MN._sc=1;try{
+ const L=(await (await fetch('manut_std.json?v=2.9.8',{cache:'no-store'})).json()).filter(x=>x.comp==='Scaffalature');if(M.scaf1||!L.length)return;
+ let t=M.tipi.find(x=>/^scaffal/i.test(x.nome||''));if(!t){t={id:nid('t'),nome:'Scaffalature',procs:[]};M.tipi.push(t)}
+ const out=[];L.forEach(x=>{if(M.proc.some(p=>p.desc===x.desc))return;const cod=M.proc.some(p=>p.cod===x.cod)?nextCod():x.cod;
+  const p={id:nid('p'),cod,desc:x.desc,norma:x.norma,tipo:x.tipo,int:x.int,avv:x.avv,min:x.min,mat:x.mat,steps:JSON.parse(JSON.stringify(x.steps)),doc:null};M.proc.push(p);t.procs.push(p.id);out.push(cod)});
+ M.scaf1=1;saveM();refresh();if(out.length)mt('Aggiunte '+out.join(' e ')+' (Scaffalature)')}catch(er){}finally{MN._sc=0}}
+// una tantum: tempo di avviso su tutte le procedure (mensili 7 gg, trimestrali 15, semestrali 30, annuali e oltre 60)
+function setAvv(){if(M.avv1||!isR()||!M.proc.length)return;M.proc.forEach(p=>{if(p.avv==null||p.avv==='')p.avv=avvDef(p)});M.avv1=1;saveM()}
 function migra(){if(!M.nofoto1){M.proc.forEach(p=>(p.steps||[]).forEach(x=>x.foto=false));M.nofoto1=true;if(isR())setTimeout(saveM,0)}M.imp.forEach(i=>{if(!i.avviato&&(M.vis.some(v=>v.imp===i.id)||M.att.some(a=>a.imp===i.id)||M.ass.some(s=>s.imp===i.id&&s.last)))i.avviato=true})}
 const CAT=id=>M.cat.find(c=>c.id===id);
 const catPath=id=>{const out=[];let c=CAT(id),n=0;while(c&&n++<20){out.unshift(c.nome);c=CAT(c.par)}return out.join(' › ')};
@@ -270,7 +282,7 @@ function vImp(){const l=M.imp.filter(i=>qm(i.cod,i.nome,i.cli,catPath(i.cat),(i.
 
 function vTipi(){return list(M.tipi.map(t=>item('var(--hi)',e_(t.nome),`<span>${t.procs.map(id=>P(id)?.cod).filter(Boolean).join(', ')||'nessuna procedura standard'}</span><span>usato in ${M.imp.reduce((n,i)=>n+(i.comps||[]).filter(c=>c.tipo===t.id).length,0)} componenti</span>`,`<button class="btn" onclick="MNX.editTipo('${t.id}')">Modifica</button>`,`MNX.editTipo('${t.id}')`)),'Nessun tipo di componente.')}
 
-const procItem=p=>item('var(--ink)',`${e_(p.cod)} · ${e_(p.desc)}`,`<span>${freq(p)}</span><span>${p.steps.length} passi</span>${p.min?`<span>⏱ ${p.min} min</span>`:''}${p.doc?`<span>📄 ${e_(p.doc.name||'documento')}</span>`:''}<span>usata ${M.ass.filter(a=>a.proc===p.id).length} volte</span>`,`<button class="btn" onclick="MNX.editProc('${p.id}')">Modifica</button>`,`MNX.editProc('${p.id}')`);
+const procItem=p=>item('var(--ink)',`${e_(p.cod)} · ${e_(p.desc)}`,`<span>${freq(p)}</span><span>${p.steps.length} passi</span>${p.min?`<span>⏱ ${p.min} min</span>`:''}${p.tipo!=='evento'?`<span>🔔 avviso ${avvOf(p)} gg prima</span>`:''}${p.doc?`<span>📄 ${e_(p.doc.name||'documento')}</span>`:''}<span>usata ${M.ass.filter(a=>a.proc===p.id).length} volte</span>`,`<button class="btn" onclick="MNX.editProc('${p.id}')">Modifica</button>`,`MNX.editProc('${p.id}')`);
 const byCod=(a,b)=>String(a.cod).localeCompare(String(b.cod),'it',{numeric:true});
 // procedure raggruppate per tipo componente; si apre toccando il gruppo
 function vProc(){const q=(MN.f.q||'').toLowerCase(),hit=p=>!q||(p.cod+' '+p.desc).toLowerCase().includes(q);const op=MN.procOpen||(MN.procOpen={});
@@ -393,7 +405,7 @@ function editProc(id,forTipo){const t0=forTipo&&T(forTipo);const p=id?P(id):{cod
  ovl(`<div class="mn-oh"><h2>${id?'Modifica':'Nuova'} procedura</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div>
  <div class="evf"><label>Codice${id?'':' <span class="muted" style="font-weight:400">(proposto, modificabile)</span>'}<input id="mnPCod" value="${e_(p.cod)}" placeholder="PM001"></label><label>Riferimento normativo<input id="mnPNorma" value="${e_(p.norma)}"></label></div>
  <div class="evf"><label>Descrizione<input id="mnPDesc" value="${e_(p.desc)}"></label></div>
- <div class="evf"><label>Frequenza<select id="mnPTipo">${Object.entries(TIPI).map(([k,v])=>`<option value="${k}" ${p.tipo===k?'selected':''}>${v}</option>`).join('')}</select></label><label>Ogni (mesi)<input id="mnPInt" type="number" min="1" value="${p.int||6}"></label><label>Tempo stimato (minuti)<input id="mnPMin" type="number" min="0" value="${p.min||''}"></label></div>
+ <div class="evf"><label>Frequenza<select id="mnPTipo">${Object.entries(TIPI).map(([k,v])=>`<option value="${k}" ${p.tipo===k?'selected':''}>${v}</option>`).join('')}</select></label><label>Ogni (mesi)<input id="mnPInt" type="number" min="1" value="${p.int||6}"></label><label>Tempo stimato (minuti)<input id="mnPMin" type="number" min="0" value="${p.min||''}"></label><label>Avviso (giorni prima della scadenza)<input id="mnPAvv" type="number" min="0" value="${id?avvOf(p):15}"></label></div>
  <div class="evf"><label>Materiali, attrezzature e DPI<textarea id="mnPMat" rows="4">${e_(p.mat||'')}</textarea></label></div>
  <h3>Passi da confermare</h3><div id="mnSteps"></div>
  <div class="mn-step"><label>Nuovo passo<input id="mnNS" placeholder="Descrizione del passo"></label><label>Istruzioni del passo<textarea id="mnNI" rows="3" placeholder="Come eseguire il passo (una riga per istruzione)"></textarea></label><div class="row"><label class="mn-chk"><input type="checkbox" id="mnNF"> Foto obbligatoria</label><button class="btn" onclick="MNX.addStep()">Aggiungi passo</button></div></div>
@@ -610,7 +622,7 @@ window.MNX={
   const r=new FileReader();r.onload=()=>{MN.tmpDoc={name:f.name,type:f.type,size:f.size,_data:r.result};document.getElementById('mnDocI').textContent='Allegato: '+f.name+' ('+Math.round(f.size/1024)+' KB)'};r.readAsDataURL(f)},
  async saveProc(){const v=k=>document.getElementById(k).value.trim();if(!v('mnPCod'))return mt('Inserisci il codice');if(!MN.tmpSteps.length)return mt('Aggiungi almeno un passo');
   let d=MN.tmpDoc;if(d&&d._data){const id=nid('d');try{await window.FBM.putBlob('manutDoc',id,{name:d.name,type:d.type,data:d._data});BL[id]={name:d.name,type:d.type,data:d._data};d={id,name:d.name,type:d.type,size:d.size}}catch(er){return mt('Documento non salvato: '+FB.err(er))}}
-  const data={cod:v('mnPCod'),desc:v('mnPDesc'),norma:v('mnPNorma'),tipo:v('mnPTipo'),int:Number(v('mnPInt'))||6,min:Number(v('mnPMin'))||0,mat:v('mnPMat'),steps:MN.tmpSteps,doc:d};
+  const data={cod:v('mnPCod'),desc:v('mnPDesc'),norma:v('mnPNorma'),tipo:v('mnPTipo'),int:Number(v('mnPInt'))||6,min:Number(v('mnPMin'))||0,avv:Math.max(0,Number(v('mnPAvv'))||0),mat:v('mnPMat'),steps:MN.tmpSteps,doc:d};
   if(MN.editId){const p=P(MN.editId);if(p.doc&&p.doc.id&&(!d||d.id!==p.doc.id)&&!docUsed(p.doc.id,p))window.FBM.delBlob('manutDoc',p.doc.id).catch(()=>{});Object.assign(p,data);
    M.att.filter(a=>a.proc===p.id).forEach(a=>{a.ok=p.steps.map((s,k)=>a.ok[k]||false);a.foto=p.steps.map((s,k)=>a.foto[k]||[])})}
   else{if(M.proc.some(x=>x.cod===data.cod))return mt('Codice '+data.cod+' già usato: scegline un altro');const np={id:nid('p'),...data};M.proc.push(np);if(MN.newTipo&&T(MN.newTipo)){MNX.togTipo(MN.newTipo,np.id,true);(MN.procOpen=MN.procOpen||{})[MN.newTipo]=true}}saveM();closeO();mt('Procedura salvata')},

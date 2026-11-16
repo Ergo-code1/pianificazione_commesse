@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.9.8 — 2026-11-16
+- Procedure: campo «Avviso (giorni prima della scadenza)», impostato su tutte (mensili 7 gg, trimestrali 15, semestrali 30, annuali 60; modificabile): la procedura compare «In scadenza» e in «Da pianificare» con quell'anticipo.
+- Nuovo tipo «Scaffalature»: PM072 Ispezione visiva trimestrale UNI EN 15635 (foto cartello e foto scaffalature) e PM073 Ispezione annuale persona competente.
+
 ## 2.9.7 — 2026-11-16
 - Procedure: tolte tutte le richieste di foto obbligatorie e di caricare rapporti, verbali o certificati (es. PM007, PM011, PM018, PM033, PM039, PM043, PM049); si aggiungono a mano se servono. Aggiornamento automatico una sola volta.
 
