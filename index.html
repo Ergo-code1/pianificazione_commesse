@@ -425,7 +425,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.8.4';
+const VERSIONE='2.8.5';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -1074,7 +1074,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.8.4"></script>
+<script src="manutenzione.js?v=2.8.5"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -1116,7 +1116,8 @@ window.FB={msg:'',key:null,
 };
 window.FBM={_u:null,
  listen(cb,er){this.stop();this._u=onSnapshot(doc(db,'app','manut'),sn=>cb(sn.exists()?sn.data():null),e=>{this._u=null;er(e)})},
- stop(){this._u&&this._u();this._u=null},
+ listenDoc(c,id,cb,er){this._u2&&this._u2();this._u2=onSnapshot(doc(db,c,id),sn=>cb(sn.exists()?sn.data():null),e=>{this._u2=null;er&&er(e)})},
+ stop(){this._u&&this._u();this._u=null;this._u2&&this._u2();this._u2=null},
  save:d=>setDoc(doc(db,'app','manut'),d),
  getY:async y=>{const sn=await getDoc(doc(db,'manutStorico',String(y)));return sn.exists()?(sn.data().att||[]):[]},
  saveY:(y,arr)=>setDoc(doc(db,'manutStorico',String(y)),{att:arr}),

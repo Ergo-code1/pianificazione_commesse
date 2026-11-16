@@ -35,13 +35,22 @@ const cmpV=(a,b)=>{const x=String(a||'0').split('.').map(Number),y=String(b||'0'
 function oldApp(){if(!(M.appV&&cmpV(M.appV,myV())>0))return false;MN.old=true;
  try{if(!sessionStorage.getItem('epUpd'+M.appV)){sessionStorage.setItem('epUpd'+M.appV,'1');caches&&caches.keys().then(k=>Promise.all(k.map(x=>caches.delete(x)))).finally(()=>location.replace(location.pathname+'?v='+M.appV));return true}}catch(e){}
  mt('App non aggiornata (v'+myV()+', serve v'+M.appV+'): chiudi e riapri l\'app. Le modifiche non vengono salvate.');return true}
-function saveM(){if(MN.old||oldApp())return mt('App non aggiornata: modifiche non salvate. Chiudi e riapri l\'app.');if(cmpV(myV(),M.appV)>0)M.appV=myV();clearTimeout(svT);svT=setTimeout(()=>{const d=JSON.stringify(M);if(d===lastM)return;lastM=d;
- if(d.length>900000)mt('Attenzione: dati manutenzione vicini al limite di 1 MB');
- window.FBM.save(JSON.parse(d)).catch(er=>mt('Salvataggio manutenzione non riuscito: '+FB.err(er)))},400)}
-function onRemote(d){const txt=JSON.stringify(d||{});if(txt===lastM)return;lastM=txt;M=Object.assign({tipi:[],proc:[],imp:[],ass:[],att:[],vis:[],ric:[],anni:[],nextId:1},d||{});M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];if(oldApp())return;migra();if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
+// le procedure stanno in un documento a parte (manutDoc/_proc) per non superare il limite di 1 MB
+let lastP='';
+const stab=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.keys(v).sort().reduce((r,x)=>(r[x]=v[x],r),{}):v);
+function saveM(){if(MN.old||oldApp())return mt('App non aggiornata: modifiche non salvate. Chiudi e riapri l\'app.');if(cmpV(myV(),M.appV)>0)M.appV=myV();clearTimeout(svT);svT=setTimeout(()=>{
+ const {proc,...rest}=M;if(MN.procL)rest.procSep=1;
+ if(MN.procL&&!MN.procErr&&isR()&&(proc.length||!M.procSep||MN.procDoc)){const dp=stab({proc});if(dp!==lastP){lastP=dp;window.FBM.putBlob('manutDoc','_proc',{proc:JSON.parse(JSON.stringify(proc))}).catch(er=>{lastP='';mt('Salvataggio procedure non riuscito: '+FB.err(er))})}}
+ const d=stab(rest);if(d===lastM)return;lastM=d;
+ if(new Blob([d]).size>950000)mt('Attenzione: dati manutenzione vicini al limite di 1 MB');
+ window.FBM.save(JSON.parse(d)).catch(er=>{lastM='';mt('Salvataggio manutenzione NON riuscito: '+FB.err(er))})},400)}
+function onRemote(d){const txt=stab(d||{});if(txt===lastM)return;lastM=txt;const keep=M.proc;M=Object.assign({tipi:[],proc:[],imp:[],ass:[],att:[],vis:[],ric:[],anni:[],nextId:1},d||{});
+ MN.mainL=true;if(M.procSep){M.proc=MN.procL?keep:[];if(!MN.procL)return}else if(MN.procL&&MN.procDoc)M.proc=keep;M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];if(oldApp())return;migra();if(isR()&&!M.procSep&&MN.procL)setTimeout(saveM,0);if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
  const o=document.getElementById('mnOvl');if(o&&!o.hidden)return;
  if(!(document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)))refresh()}
-function start(){if(!window.FBM||window.FBM._u)return;MN.err=null;window.FBM.listen(d=>{if(d===null){MN.ready=true;if(isR()&&!M.tipi.length)seedBase();refresh();return}onRemote(d)},er=>{MN.err=FB.err(er);draw()})}
+function onProc(d){const t=stab(d||{});MN.procL=true;MN.procDoc=!!(d&&d.proc);if(t===lastP&&MN.mainL)return;lastP=t;if(d&&d.proc)M.proc=d.proc;
+ if(MN.mainL){const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))}}
+function start(){if(!window.FBM||window.FBM._u)return;MN.err=null;window.FBM.listenDoc&&window.FBM.listenDoc('manutDoc','_proc',onProc,er=>{MN.procErr=FB.err(er);mt('Procedure non leggibili: '+MN.procErr);onProc(null)});window.FBM.listen(d=>{if(d===null){MN.ready=true;if(isR()&&!M.tipi.length)seedBase();refresh();return}onRemote(d)},er=>{MN.err=FB.err(er);draw()})}
 async function storico(y){y=String(y);if(!H[y]){H[y]=await window.FBM.getY(y).catch(er=>{mt('Storico non leggibile: '+FB.err(er));return[]})}return H[y]}
 async function blob(col,id){if(!id)return null;if(BL[id])return BL[id];const d=await window.FBM.getBlob(col,id).catch(()=>null);if(d)BL[id]=d;return d}
 
@@ -62,7 +71,7 @@ const pill=s=>`<span class="pill" style="color:${s[1]}">${s[0]}</span>`;
 const planned=s=>M.att.find(a=>a.ass===s.id&&a.due);
 const pend=s=>M.att.find(a=>a.ass===s.id&&!a.due);
 const nextWork=d=>{const x=new Date(d+'T12:00:00');do{x.setDate(x.getDate()+1)}while(x.getDay()===0||x.getDay()===6);return isoL(x)};
-function LOG(az,a,txt){if(!a)return;M.log=M.log||[];const p=PA(a)||{};M.log.push({t:new Date().toISOString().slice(0,16).replace('T',' '),chi:(S.user&&S.user.nome)||'sistema',az,att:a.id,imp:a.imp||null,cod:(p.cod||'')+' '+(p.desc||''),man:a.man||null,txt:txt||''});if(M.log.length>1500)M.log=M.log.slice(-1500)}
+function LOG(az,a,txt){if(!a)return;M.log=M.log||[];const p=PA(a)||{};M.log.push({t:new Date().toISOString().slice(0,16).replace('T',' '),chi:(S.user&&S.user.nome)||'sistema',az,att:a.id,imp:a.imp||null,cod:(p.cod||'')+' '+(p.desc||''),man:a.man||null,txt:txt||''});if(M.log.length>800)M.log=M.log.slice(-800)}
 function restore(){if(M.rip3)return;let n=0;M.att.forEach(a=>{if(!a.due&&!a.sub){a.due=tdy();const v={id:nid('v'),imp:a.imp||null,data:a.due,man:a.man||null,tit:a.free?a.free.titolo:null};M.vis.push(v);a.vis=v.id;LOG('Ripristinata',a,'rimessa '+(a.man?'a '+a.man:'senza nome')+' per oggi (era stata tolta in automatico)');n++}});M.rip3=1;saveM();if(n){refresh();mt(n+' attività tolte in automatico sono state rimesse sulle persone per oggi')}}
 function sweep(){let ch=0;const t=tdy();M.att.forEach(a=>{if(a.due&&a.due<t&&!a.ok.some(Boolean)){LOG('Non completata',a,'non eseguita entro il '+fd(a.due)+': torna da ripianificare'+(a.man?' (era di '+a.man+')':''));a.due=null;a.vis=null;ch=1}});if(ch){M.vis=M.vis.filter(v=>M.att.some(a=>a.vis===v.id));saveM();refresh()}}
 function dueOn(s,d){const p=P(s.proc);if(!p)return false;if(pend(s))return true;if(p.tipo==='evento')return !!s.evt;return !s.next||s.next<=d}

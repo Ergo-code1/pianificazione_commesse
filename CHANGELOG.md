@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.8.5 — 2026-11-16
+- Manutenzione: le procedure sono salvate in un documento separato; i dati principali (pianificazioni, assegnazioni) non superano più il limite di 1 MB di Firestore, che faceva fallire i salvataggi.
+- Messaggio evidente se un salvataggio non riesce.
+
 ## 2.8.4 — 2026-11-16
 - Protezione dati manutenzione: un'app rimasta a una versione vecchia (es. su iPhone) si ricarica da sola e non può più sovrascrivere pianificazioni e assegnazioni fatte con la versione nuova.
 
