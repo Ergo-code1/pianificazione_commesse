@@ -75,7 +75,7 @@ function impStatus(id){const ass=M.ass.filter(a=>a.imp===id),st=ass.map(assStatu
  return{open,w,next:nx,toPlan:st.filter(x=>x[2]==='r'||x[2]==='g').length,inc:ass.filter(x=>x.incompleto).length}}
 // procedure standard (manut_std.json) + Procedura LOTO: caricate una sola volta
 async function importStd(){if(M.std1||MN._imp||!isR())return;MN._imp=1;
- try{const L=await (await fetch('manut_std.json?v=2.8.0',{cache:'no-store'})).json();
+ try{const L=await (await fetch('manut_std.json?v=2.8.1',{cache:'no-store'})).json();
   let loto=docList().find(d=>/loto/i.test(d.name||''));
   if(!loto){const b=await (await fetch('Procedura_LOTO.pdf',{cache:'no-store'})).blob();
    const data=await new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=ko;r.readAsDataURL(b)});
@@ -88,7 +88,7 @@ async function importStd(){if(M.std1||MN._imp||!isR())return;MN._imp=1;
    const p={id:nid('p'),cod:x.cod,desc:x.desc,norma:x.norma,tipo:x.tipo,int:x.int,min:x.min,mat:x.mat,steps:x.steps,doc:x.loto?loto:null};M.proc.push(p);t.procs.push(p.id);n++});
   M.std1=true;saveM();refresh();mt(n+' procedure standard caricate e collegate ai tipi componente'+(sk?' ('+sk+' codici già presenti, saltati)':''))}
  catch(er){mt('Caricamento procedure standard non riuscito: '+(er.message||er))}finally{MN._imp=0}}
-function migra(){M.imp.forEach(i=>{if(!i.avviato&&(M.vis.some(v=>v.imp===i.id)||M.att.some(a=>a.imp===i.id)||M.ass.some(s=>s.imp===i.id&&s.last)))i.avviato=true})}
+function migra(){if(!M.nofoto1){M.proc.forEach(p=>(p.steps||[]).forEach(x=>x.foto=false));M.nofoto1=true;if(isR())setTimeout(saveM,0)}M.imp.forEach(i=>{if(!i.avviato&&(M.vis.some(v=>v.imp===i.id)||M.att.some(a=>a.imp===i.id)||M.ass.some(s=>s.imp===i.id&&s.last)))i.avviato=true})}
 const CAT=id=>M.cat.find(c=>c.id===id);
 const catPath=id=>{const out=[];let c=CAT(id),n=0;while(c&&n++<20){out.unshift(c.nome);c=CAT(c.par)}return out.join(' › ')};
 const catKids=id=>M.cat.filter(c=>(c.par||null)===(id||null));

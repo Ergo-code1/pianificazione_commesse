@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.8.1 — 2026-11-16
+- Tolta la foto obbligatoria da tutti i passi di tutte le procedure.
+
 ## 2.8.0 — 2026-11-16
 - Procedure: nuovi campi «Tempo stimato (minuti)» e «Materiali, attrezzature e DPI»; ogni passo ha le sue istruzioni (modificabili), visibili nell'attività con «Istruzioni».
 - Documento procedura: si può collegare un documento già caricato invece di ricaricarlo; il file condiviso non viene cancellato finché lo usa un'altra procedura.
