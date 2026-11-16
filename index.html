@@ -425,7 +425,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.8.9';
+const VERSIONE='2.9.0';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -1074,21 +1074,46 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.8.9"></script>
+<script src="manutenzione.js?v=2.9.0"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,doc,onSnapshot,setDoc,deleteDoc,getDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,doc,onSnapshot,setDoc,deleteDoc,getDoc,runTransaction} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const cfg={apiKey:"AIzaSyAbscB5amw2TAfWWvrHk1Mt3cxY9UgbPhM",authDomain:"pianificazione-2cb19.firebaseapp.com",projectId:"pianificazione-2cb19",storageBucket:"pianificazione-2cb19.firebasestorage.app",messagingSenderId:"453354724899",appId:"1:453354724899:web:f382d27638cf1059275b96"};
 const FB_DOM='ergoplan-ergotech.it',fem=u=>u+'@'+FB_DOM,fpw=p=>'ep#'+p;
 const app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app),ref=doc(db,'app','stato');
 const secApp=initializeApp(cfg,'sec'),sa=getAuth(secApp);setPersistence(sa,inMemoryPersistence).catch(()=>{});
 try{auth.languageCode='it'}catch(e){}
 const KEYS=['repSez','repSezV','archivio','ex','enti','pInfo','voci','master','persone','ruoli','commesse','eventi','utenti','nextId','admOk'];
-let last='',unsub=null,timer=null,remote=false;
-const pack=()=>JSON.stringify(Object.fromEntries(KEYS.map(k=>[k,S[k]??null])));
-function save(){clearTimeout(timer);timer=setTimeout(()=>{if(!S.user)return;const d=pack();if(d===last)return;last=d;
- setDoc(ref,JSON.parse(d)).catch(e=>toast('Salvataggio non riuscito: '+e.message))},400)}
+// ---- salvataggio sicuro: fusione a tre vie (base = ultima versione del server, locale, server attuale) dentro una transazione
+// così due persone che salvano insieme non si cancellano le modifiche a vicenda
+const stab=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.keys(v).sort().reduce((r,x)=>(r[x]=v[x],r),{}):v);
+const isO=v=>!!v&&typeof v==='object'&&!Array.isArray(v);
+const idArr=a=>Array.isArray(a)&&a.every(x=>isO(x)&&x.id!=null);
+function mergeVal(b,l,s){const sb=stab(b),sl=stab(l);if(sl===sb)return s;const ss=stab(s);if(ss===sb||ss===sl)return l;
+ if(isO(l)&&isO(s)){const B=isO(b)?b:{},o={};for(const k of new Set([...Object.keys(s),...Object.keys(l),...Object.keys(B)])){const v=mergeVal(B[k],l[k],s[k]);if(v!==undefined)o[k]=v}return o}
+ if(Array.isArray(l)&&Array.isArray(s)){const B=Array.isArray(b)?b:[];
+  if(idArr(l)&&idArr(s)&&idArr(B)){const bm=new Map(B.map(x=>[x.id,x])),lm=new Map(l.map(x=>[x.id,x])),sm=new Map(s.map(x=>[x.id,x])),out=[];
+   for(const x of s){if(bm.has(x.id)&&!lm.has(x.id))continue;out.push(lm.has(x.id)?mergeVal(bm.get(x.id),lm.get(x.id),x):x)}
+   for(const x of l)if(!sm.has(x.id)&&!bm.has(x.id))out.push(x);return out}
+  if(B.length===l.length&&l.length===s.length)return l.map((x,i)=>mergeVal(B[i],x,s[i]));
+  const bk=new Set(B.map(stab)),lk=new Set(l.map(stab)),out=s.filter(x=>{const k=stab(x);return !(bk.has(k)&&!lk.has(k))}),sk=new Set(out.map(stab));
+  for(const x of l){const k=stab(x);if(!bk.has(k)&&!sk.has(k)){out.push(x);sk.add(k)}}return out}
+ return l}
+const clone=o=>o===undefined?undefined:JSON.parse(JSON.stringify(o));
+// salva loc nel documento dref fondendolo con le modifiche altrui; restituisce il documento finale
+async function txMerge(dref,base,loc){return runTransaction(db,async tx=>{const sn=await tx.get(dref);const cur=sn.exists()?fsDec(sn.data()):null;
+ const out=cur?mergeVal(base||cur,loc,cur):loc;tx.set(dref,fsEnc(out));return clone(out)})}
+window.EPM={stab,mergeVal,clone};
+let last='',unsub=null,timer=null,remote=false,base=null,saving=false,again=false;
+const packO=()=>clone(Object.fromEntries(KEYS.map(k=>[k,S[k]??null])));
+const pack=()=>stab(packO());
+function save(){clearTimeout(timer);timer=setTimeout(doSave,400)}
+async function doSave(){if(!S.user||!base)return;const loc=packO();if(stab(loc)===stab(base))return;if(saving){again=true;return}saving=true;
+ try{const out=await txMerge(ref,base,loc);const now=packO(),mer=mergeVal(loc,now,out);base=out;last=stab(out);
+  if(stab(mer)!==stab(now)){Object.assign(S,mer);remote=true;_render();remote=false}}
+ catch(e){toast('Salvataggio non riuscito ('+FB.err(e)+'): riprovo tra poco');setTimeout(save,4000)}
+ finally{saving=false;if(again){again=false;save()}}}
 const _render=render;
 window.render=render=function(){_render();if(!remote)save()};
 document.addEventListener('change',()=>save());
@@ -1123,6 +1148,8 @@ window.FBM={_u:null,
  listenDoc(c,id,cb,er){this._u2&&this._u2();this._u2=onSnapshot(doc(db,c,id),sn=>cb(fsGet(sn)),e=>{this._u2=null;er&&er(e)})},
  stop(){this._u&&this._u();this._u=null;this._u2&&this._u2();this._u2=null},
  save:async d=>setDoc(doc(db,'app','manut'),fsEnc(d)),
+ txMain:(b,l)=>txMerge(doc(db,'app','manut'),b,l),
+ txY:(y,b,l)=>txMerge(doc(db,'manutStorico',String(y)),b,l),
  getMain:async()=>fsGet(await getDoc(doc(db,'app','manut'))),
  getY:async y=>{const d=fsGet(await getDoc(doc(db,'manutStorico',String(y))));return d?(d.att||[]):[]},
  saveY:async(y,arr)=>setDoc(doc(db,'manutStorico',String(y)),fsEnc({att:arr})),
@@ -1136,11 +1163,11 @@ onAuthStateChanged(auth,user=>{
  unsub=onSnapshot(ref,async snap=>{
   if(!snap.exists()){if(un!=='admin')return blocco("L'amministratore deve aprire l'app la prima volta.");
    await setDoc(doc(db,'utenti',user.uid),{user:'admin'});
-   Object.assign(S,{utenti:{admin:{nome:'Amministratore',ruolo:'admin',uid:user.uid,must:true}}});S.user={nome:'Amministratore',ruolo:'admin'};FB.key='admin';last='';_render();save();pwSheet(true);return}
-  const d=snap.data(),txt=JSON.stringify(Object.fromEntries(KEYS.map(k=>[k,d[k]??S[k]??null])));
+   Object.assign(S,{utenti:{admin:{nome:'Amministratore',ruolo:'admin',uid:user.uid,must:true}}});S.user={nome:'Amministratore',ruolo:'admin'};FB.key='admin';base={};last='';_render();save();pwSheet(true);return}
+  const d=fsDec(snap.data()),txt=stab(Object.fromEntries(KEYS.map(k=>[k,d[k]??S[k]??null])));
   const ut=d.utenti||{},e=Object.entries(ut).find(([k,v])=>v.uid===user.uid)||(un&&ut[un]?[un,ut[un]]:null);
   if(!e)return blocco("Questo utente non corrisponde a nessuna persona dell'app. Chiedi all'amministratore.");
-  if(txt===last&&S.user)return;last=txt;Object.assign(S,JSON.parse(txt));
+  if(txt===last&&S.user)return;last=txt;{const srv=JSON.parse(txt),loc=S.user&&base?packO():null,mer=loc?mergeVal(base,loc,srv):srv;base=srv;Object.assign(S,clone(mer));if(loc&&stab(mer)!==txt)save()}
   const first=!S.user;FB.key=e[0];S.user={nome:e[1].nome,ruolo:e[1].ruolo,perm:e[1].perm||{}};
   if(first&&e[1].ruolo!=='admin'){S.selP=e[1].nome;S.tab='persone'}
   if(!S.persone.includes(S.selP))S.selP=S.persone[0];

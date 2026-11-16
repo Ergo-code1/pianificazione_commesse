@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.9.0 — 2026-11-16
+- Salvataggi sicuri anche con più persone insieme: ogni salvataggio (commesse/persone, manutenzione, storico) avviene in una transazione che fonde le proprie modifiche con quelle fatte nel frattempo dagli altri, invece di sovrascriverle.
+- Se un salvataggio non riesce (es. rete assente) viene ripetuto in automatico.
+- Storico: chiusure fatte da altri visibili senza ricaricare (aggiornamento ogni minuto).
+
 ## 2.8.9 — 2026-11-16
 - La manutenzione non resta più bloccata su «Caricamento»: se le procedure non arrivano si apre comunque (in sola lettura) e mostra il motivo.
 

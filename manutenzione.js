@@ -38,26 +38,36 @@ function oldApp(){if(!(M.appV&&cmpV(M.appV,myV())>0))return false;MN.old=true;
 // le procedure stanno in un documento a parte (manutDoc/_proc) per non superare il limite di 1 MB
 let lastP='';
 const stab=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.keys(v).sort().reduce((r,x)=>(r[x]=v[x],r),{}):v);
+const DEF=()=>({tipi:[],proc:[],imp:[],ass:[],att:[],vis:[],ric:[],anni:[],nextId:1});
+const curM=()=>{const o=JSON.parse(JSON.stringify(M));delete o.procSep;return o};
 function saveM(){if(MN.old||oldApp())return mt('App non aggiornata: modifiche non salvate. Chiudi e riapri l\'app.');
  if(MN.noProc||(M.std1&&!M.proc.length))return mt('Procedure non ancora caricate: modifica non salvata, riprova tra qualche secondo.');
- if(cmpV(myV(),M.appV)>0)M.appV=myV();clearTimeout(svT);svT=setTimeout(()=>{
- const o={...M};delete o.procSep;const d=stab(o);if(d===lastM)return;lastM=d;
- if(new Blob([d]).size>950000)mt('Attenzione: dati manutenzione vicini al limite di 1 MB');
- MN.sv={t:new Date().toLocaleTimeString(),st:'in corso',b:new Blob([d]).size};window.FBM.save(JSON.parse(d)).then(()=>{MN.sv.st='riuscito'}).catch(er=>{lastM='';MN.sv.st='NON riuscito: '+FB.err(er);mt('Salvataggio manutenzione NON riuscito: '+FB.err(er))})},400)}
+ if(cmpV(myV(),M.appV)>0)M.appV=myV();clearTimeout(svT);svT=setTimeout(doSaveM,400)}
+async function doSaveM(){svT=null;if(!MN.base)return;const loc=curM();if(stab(loc)===lastM)return;if(MN.saving){MN.again=1;return}MN.saving=1;
+ const b=new Blob([stab(loc)]).size;if(b>950000)mt('Attenzione: dati manutenzione vicini al limite di 1 MB');
+ MN.sv={t:new Date().toLocaleTimeString(),st:'in corso',b};
+ try{const out=await window.FBM.txMain(MN.base,loc);MN.sv.st='riuscito';
+  const now=curM(),mer=window.EPM.mergeVal(loc,now,out);MN.base=out;lastM=stab(out);
+  if(stab(mer)!==stab(now)){M=Object.assign(DEF(),mer);refresh()}}
+ catch(er){MN.sv.st='NON riuscito: '+FB.err(er);mt('Salvataggio manutenzione NON riuscito ('+FB.err(er)+'): riprovo tra poco');setTimeout(saveM,4000)}
+ finally{MN.saving=0;if(MN.again){MN.again=0;saveM()}}}
 // recupero procedure perse (v2.8.5-2.8.7): da manutDoc/_proc, oppure ricostruite da manut_std.json con gli stessi id (ordine nei tipi)
 async function recProc(){if(MN._rec)return;MN._rec=1;try{
- const L=await (await fetch('manut_std.json?v=2.8.8',{cache:'no-store'})).json();const nk=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+ const L=await (await fetch('manut_std.json?v=2.9.0',{cache:'no-store'})).json();const nk=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
  const out=[];M.tipi.forEach(t=>{const l=L.filter(x=>nk(x.comp)===nk(t.nome));t.procs.forEach((id,k)=>{const x=l[k];if(x)out.push({id,cod:x.cod,desc:x.desc,norma:x.norma,tipo:x.tipo,int:x.int,min:x.min,mat:x.mat,steps:x.steps,doc:x.loto?{id:'dloto',name:'Procedura_LOTO.pdf',type:'application/pdf'}:null})})});
  MN.recP=out}catch(er){mt('Recupero procedure non riuscito: '+(er.message||er));MN.recP=[]}
  MN.stage='procedure recuperate: '+(MN.recP||[]).length;MN._rec=0;const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))}
-function onRemote(d){const txt=stab(d||{});if(txt===lastM)return;lastM=txt;const keep=M.proc;M=Object.assign({tipi:[],proc:[],imp:[],ass:[],att:[],vis:[],ric:[],anni:[],nextId:1},d||{});MN.mainL=true;
+function onRemote(d){const txt=stab(d||{});if(txt===lastM)return;const loc=MN.base?curM():null;lastM=txt;const keep=M.proc;const srv=JSON.parse(txt);const mer=loc?window.EPM.mergeVal(MN.base,loc,srv):srv;MN.base=srv;M=Object.assign(DEF(),JSON.parse(JSON.stringify(mer)));MN.mainL=true;if(loc&&stab(mer)!==txt&&!svT)saveM();
  let fix=false;if(!M.proc||!M.proc.length){if(keep&&keep.length){M.proc=keep;fix=true}else if(M.std1){if(!MN.procL&&!MN.procTO){MN.stage='attendo procedure…';clearTimeout(MN._to);MN._to=setTimeout(()=>{MN.procTO=1;const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))},4000);return}if(MN.pdoc&&MN.pdoc.length){M.proc=MN.pdoc;fix=true}else if(MN.recP&&MN.recP.length){M.proc=MN.recP;fix=true}else{if(MN.recP===undefined){recProc();MN.stage='recupero procedure…';return}MN.noProc=true}}}
  delete M.procSep;M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];if(oldApp())return;migra();if(fix&&isR())setTimeout(()=>{lastM='';saveM()},0);if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
  const o=document.getElementById('mnOvl');if(o&&!o.hidden)return;
  if(!(document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)))refresh()}
 function onProc(d){MN.procL=true;MN.pdoc=d&&d.proc||null;if(MN.mainL&&(!M.proc||!M.proc.length)){const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))}}
 function start(){if(!window.FBM||window.FBM._u)return;MN.err=null;window.FBM.listenDoc&&window.FBM.listenDoc('manutDoc','_proc',onProc,er=>{MN.procErr=FB.err(er);mt('Procedure non leggibili: '+MN.procErr);onProc(null)});window.FBM.listen(d=>{if(d===null){MN.ready=true;if(isR()&&!M.tipi.length)seedBase();refresh();return}onRemote(d)},er=>{MN.err=FB.err(er);draw()})}
-async function storico(y){y=String(y);if(!H[y]){H[y]=await window.FBM.getY(y).catch(er=>{mt('Storico non leggibile: '+FB.err(er));return[]})}return H[y]}
+const HB={},HT={};
+async function storico(y,force){y=String(y);if(!H[y]||force||Date.now()-(HT[y]||0)>60000){const l=await window.FBM.getY(y).catch(er=>{mt('Storico non leggibile: '+FB.err(er));return null});if(l){const ob=HB[y];HB[y]=JSON.parse(JSON.stringify(l));HT[y]=Date.now();H[y]=H[y]&&ob&&!force?window.EPM.mergeVal(ob,H[y],l):l}else if(!H[y])H[y]=[]}return H[y]}
+// salva lo storico dell'anno fondendolo con le chiusure fatte da altri
+async function saveYm(y){y=String(y);const loc={att:JSON.parse(JSON.stringify(H[y]||[]))};const out=await window.FBM.txY(y,{att:HB[y]||[]},loc);const now=H[y]||[];H[y]=window.EPM.mergeVal(loc.att,now,out.att||[]);HB[y]=JSON.parse(JSON.stringify(out.att||[]));HT[y]=Date.now();return H[y]}
 async function blob(col,id){if(!id)return null;if(BL[id])return BL[id];const d=await window.FBM.getBlob(col,id).catch(()=>null);if(d)BL[id]=d;return d}
 
 // ---------- logica ----------
@@ -404,6 +414,7 @@ async function pdf(a,p,i,cmp){
  doc.save(`${(i.split(' ')[0]||'impianto')}_${p.cod}_${a.chiusa||a.due}.pdf`.replace(/[^\w.-]+/g,'_'))}
 
 // ---------- azioni ----------
+window.__MNT={get M(){return M},MN,saveM,storico,saveYm,H};// solo per test/diagnostica
 window.MNP={
  count(p){start();return M.att.filter(a=>a.due&&sameP(a.man,p)).length},
  html(p){start();if(MN.err)return `<div class="mn-pers mn-info" style="border-left-color:var(--accent)">🔧 Manutenzioni non leggibili: ${e_(MN.err)}. Avvisa l'amministratore (regole di Firestore).</div>`;if(!MN.ready)return '';const l=M.att.filter(a=>a.due&&sameP(a.man,p));if(!l.length)return '';
@@ -464,7 +475,7 @@ window.MNX={
   const a={id:c.id,vis:null,ass:c.ass,imp:c.imp,comp:c.comp,proc:c.proc,free:c.free||c._free||null,sub:c.sub||null,due:d,man:m,ok:c.ok,foto:c.foto,note:c.note||'',riaperta:tdy()};
   if(a.free&&!a.free.steps&&c._steps)a.free.steps=c._steps;
   const v={id:nid('v'),imp:a.imp||null,data:d,man:m,tit:a.free?a.free.titolo:null};M.vis.push(v);a.vis=v.id;
-  try{H[y]=arr.filter(x=>x.id!==id);await window.FBM.saveY(y,H[y])}catch(er){return mt('Non riaperta: '+FB.err(er))}
+  try{H[y]=arr.filter(x=>x.id!==id);await saveYm(y)}catch(er){return mt('Non riaperta: '+FB.err(er))}
   M.fatte=(M.fatte||[]).filter(x=>x.id!==id);M.att.push(a);LOG('Riaperta',a,'per il '+fd(d)+(m?' a '+m:''));saveM();closeO();mt('Attività riaperta per il '+fd(d))},
  meseSel(ym){MN.mese=ym;draw()},anno2(d){MN.anno2=String(+MN.anno2+d);draw()},
  async plMese(ym){const d=MN.pl.data.slice(8,10);const last=new Date(+ym.slice(0,4),+ym.slice(5,7),0).getDate();MN.pl.data=ym+'-'+String(Math.min(+d,last)).padStart(2,'0');MN.pl.sel=null;await storico(ym.slice(0,4));drawPlan()},
@@ -542,13 +553,13 @@ window.MNX={
   const fatto=k=>a.ok[k]&&(!p.steps[k].foto||(a.foto[k]||[]).length),orig=a.sub||p.steps.map((x,k)=>k),miss=orig.filter((o,k)=>!fatto(k));
   if(part){if(!miss.length)part=0;else a.ok=a.ok.map((v,k)=>fatto(k))}
   const c={...a,parziale:part?1:0,_mancanti:part?p.steps.filter((x,k)=>!fatto(k)).map(x=>x.t):null,chiusa:tdy(),esec:me(),_imp:a.imp?i.cod+' '+i.nome:'',_cat:a.cat||null,_cmp:CMP(a),_pcod:a.free?'Attività':p.cod,_pdesc:p.desc,_free:a.free||null,_norma:p.norma,_steps:p.steps.map(x=>({t:x.t,foto:x.foto}))};const y=c.chiusa.slice(0,4);
-  try{const arr=await storico(y);arr.push(c);await window.FBM.saveY(y,arr)}catch(er){return mt('Chiusura non salvata: '+FB.err(er))}
+  try{const arr=await storico(y,true);arr.push(c);await saveYm(y)}catch(er){return mt('Chiusura non salvata: '+FB.err(er))}
   M.att=M.att.filter(x=>x.id!==a.id);if(!(M.anni||[]).includes(y))(M.anni=M.anni||[]).push(y);
   (M.fatte=M.fatte||[]).push({id:c.id,y,imp:a.imp||null,man:a.man||me(),esec:me(),chiusa:c.chiusa,parziale:part?1:0,cod:c._pcod,desc:c._pdesc,cmp:CMP(a)});
   LOG(part?'Chiusa in parte':'Completata',a,(part?'mancano: '+c._mancanti.join(', '):'tutti i passi confermati')+' · da '+me());
   if(part&&!s){const r={id:nid('a'),vis:null,ass:null,imp:a.imp,comp:a.comp,proc:null,free:a.free||null,sub:miss,due:null,man:a.man||null,ok:miss.map(()=>false),foto:miss.map(()=>[]),note:'',orig:a.id};M.att.push(r);
    if(a.vis&&!M.att.some(x=>x.vis===a.vis))M.vis=M.vis.filter(x=>x.id!==a.vis);saveM();closeO();return mt('Chiusa in parte: i passi mancanti sono in «Da pianificare»')}
-  let msg=part?'Chiusa in parte':'✓ Attività completata';if(s){c._prev={last:s.last,next:s.next,evt:s.evt,incompleto:s.incompleto||null};try{const arr=H[y];const me_=arr&&arr.find(x=>x.id===c.id);if(me_)me_._prev=c._prev;window.FBM.saveY(y,arr)}catch(e){}s.last=c.chiusa;s.incompleto=part?{data:c.chiusa,passi:c._mancanti}:null;if(p.tipo==='cal'){s.next=addM(s.next&&s.next<=c.chiusa?s.next:c.chiusa,p.int)}else if(p.tipo==='ultima'){s.next=addM(c.chiusa,p.int)}else{s.evt=false}msg+=p.tipo==='evento'?' · in attesa del prossimo evento':(part?' · i passi mancanti restano da concludere, prossima manutenzione dal ':' · prossima richiesta dal ')+fd(s.next)}
+  let msg=part?'Chiusa in parte':'✓ Attività completata';if(s){c._prev={last:s.last,next:s.next,evt:s.evt,incompleto:s.incompleto||null};try{const arr=H[y];const me_=arr&&arr.find(x=>x.id===c.id);if(me_)me_._prev=c._prev;saveYm(y).catch(()=>{})}catch(e){}s.last=c.chiusa;s.incompleto=part?{data:c.chiusa,passi:c._mancanti}:null;if(p.tipo==='cal'){s.next=addM(s.next&&s.next<=c.chiusa?s.next:c.chiusa,p.int)}else if(p.tipo==='ultima'){s.next=addM(c.chiusa,p.int)}else{s.evt=false}msg+=p.tipo==='evento'?' · in attesa del prossimo evento':(part?' · i passi mancanti restano da concludere, prossima manutenzione dal ':' · prossima richiesta dal ')+fd(s.next)}
   if(a.vis&&!M.att.some(x=>x.vis===a.vis))M.vis=M.vis.filter(v=>v.id!==a.vis);
   saveM();closeO();mt(msg)},
  pdfOpen(){const a=M.att.find(x=>x.id===MN.ex),p=PA(a),i=IA(a);pdf(a,p,a.imp?i.cod+' '+i.nome+(i.cli?' ('+i.cli+')':''):'—',CMP(a))},
