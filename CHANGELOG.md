@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.15.1 — 2026-11-17
+- Scheda impianto: «Dismetti impianto» spostato in fondo alla scheda e colorato di rosso.
+
 ## 2.15.0 — 2026-11-17
 - Impianti: pulsante «Dismetti» (con conferma) che elimina attività aperte e manutenzioni in calendario dell'impianto; lo storico resta. «Ripristina impianto» per riattivarlo.
 - Spunta «Mostra dismessi» in Manutenzione → Impianti e Impostazioni → Impianti; senza spunta i dismessi sono nascosti (anche da Pianificazione e Inserimento rapido).
