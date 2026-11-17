@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.14.6 — 2026-11-17
+- Inserimento rapido: filtro zona per gli impianti già inseriti (come zona in alto, tutte, senza zona o una zona con le sottozone) e conteggio.
+
 ## 2.14.5 — 2026-11-17
 - Finestre: trascinando il mouse fuori dalla finestra non si chiudono più. L'inserimento rapido si chiude solo con ✕ o Annulla.
 
