@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.16.1 — 2026-11-17
+- Esecuzione attività: «Ricambi utilizzati» con spunta «Da riacquistare» (non spuntata di default), modificabile anche dopo; solo quelli spuntati vanno nell'elenco da acquistare.
+
 ## 2.16.0 — 2026-11-17
 - Scheda impianto: sezione «Documenti» (verbale prima verifica, dichiarazione CE/libretto, certificato di taratura, verbale verifica periodica, altro) con componente, data e scadenza; apri, nuova versione, modifica, elimina. Max 700 KB per file.
 - Documenti in scadenza (scaduti o entro la finestra) in Pianificazione → Prossime scadenze; in scheda arancione entro 60 giorni, rosso se scaduti.
