@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.16.3 — 2026-11-17
+- «Aggiungimi alle persone»: si sceglie il nome con cui comparire (diventa anche il nome dell'account).
+
 ## 2.16.2 — 2026-11-17
 - Persone e accessi: per ogni persona «Assegnabile anche in» altri reparti (es. Ingegneria e Manutenzione): compare negli elenchi di assegnazione di quei reparti.
 - Se l'amministratore non è tra le persone, pulsante «Aggiungimi alle persone» per potersi assegnare attività.
