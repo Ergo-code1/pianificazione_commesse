@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.15.0 — 2026-11-17
+- Impianti: pulsante «Dismetti» (con conferma) che elimina attività aperte e manutenzioni in calendario dell'impianto; lo storico resta. «Ripristina impianto» per riattivarlo.
+- Spunta «Mostra dismessi» in Manutenzione → Impianti e Impostazioni → Impianti; senza spunta i dismessi sono nascosti (anche da Pianificazione e Inserimento rapido).
+
 ## 2.14.9 — 2026-11-17
 - Manutenzione → Impianti (scheda impianto, «Da fare»): data ultima esecuzione e pulsante «Pianifica» anche qui; se già pianificata mostra la data.
 
