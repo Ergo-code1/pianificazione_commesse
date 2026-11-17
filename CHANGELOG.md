@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.14.9 — 2026-11-17
+- Manutenzione → Impianti (scheda impianto, «Da fare»): data ultima esecuzione e pulsante «Pianifica» anche qui; se già pianificata mostra la data.
+
 ## 2.14.8 — 2026-11-17
 - Configura impianto: accanto alla data di ultima esecuzione di ogni procedura, pulsante «Pianifica gg/mm/aaaa» che crea il prossimo intervento in base alla cadenza (raggruppato con le altre procedure dello stesso impianto nello stesso giorno). Se già pianificata mostra la data.
 
