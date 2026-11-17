@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.14.7 — 2026-11-17
+- Pianificazione: filtro Zona (con sottozone, o «Senza zona») applicato a riquadri, elenchi, calendario e griglia annuale.
+
 ## 2.14.6 — 2026-11-17
 - Inserimento rapido: filtro zona per gli impianti già inseriti (come zona in alto, tutte, senza zona o una zona con le sottozone) e conteggio.
 

@@ -206,21 +206,22 @@ const fBox=(h,n)=>`<div class="mn-fb">${fQ()}${h}${anyF()?`<button class="btn" o
 const dot=(t,c)=>`<span class="mn-st" style="color:${c}">${t}</span>`;
 
 const MESI=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
-function yCounts(y,imp){const pian=Array(12).fill(0),fatte=Array(12).fill(0);
- M.vis.filter(v=>v.data.startsWith(y)&&(!imp||v.imp===imp)).forEach(v=>pian[+v.data.slice(5,7)-1]++);
- const lo=new Set();M.att.filter(a=>!a.vis&&a.due&&a.due.startsWith(y)&&(!imp||a.imp===imp)).forEach(a=>{const k=a.due+a.imp;if(!lo.has(k)){lo.add(k);pian[+a.due.slice(5,7)-1]++}});
- const dn=new Set();(H[y]||[]).filter(a=>!imp||a.imp===imp).forEach(a=>{const k=a.vis||(a.imp+a.chiusa);if(!dn.has(k)){dn.add(k);fatte[+a.chiusa.slice(5,7)-1]++}});
+function yCounts(y,imp){const im=typeof imp==='function'?imp:(x=>!imp||x===imp);const pian=Array(12).fill(0),fatte=Array(12).fill(0);
+ M.vis.filter(v=>v.data.startsWith(y)&&im(v.imp)).forEach(v=>pian[+v.data.slice(5,7)-1]++);
+ const lo=new Set();M.att.filter(a=>!a.vis&&a.due&&a.due.startsWith(y)&&im(a.imp)).forEach(a=>{const k=a.due+a.imp;if(!lo.has(k)){lo.add(k);pian[+a.due.slice(5,7)-1]++}});
+ const dn=new Set();(H[y]||[]).filter(a=>im(a.imp)).forEach(a=>{const k=a.vis||(a.imp+a.chiusa);if(!dn.has(k)){dn.add(k);fatte[+a.chiusa.slice(5,7)-1]++}});
  return{pian,fatte}}
 function yearGrid(y,imp,fn,selM){const c=yCounts(y,imp),cur=tdy().slice(0,7);
  return `<div class="mn-yr">${MESI.map((m,k)=>{const ym=y+'-'+String(k+1).padStart(2,'0');return `<button class="mn-mo${ym===selM?' sel':''}${ym===cur?' cur':''}${ym<cur?' past':''}" onclick="MNX.${fn}('${ym}')"><b>${m}</b><span class="${c.pian[k]?'p':''}">${c.pian[k]} pianificate</span><span class="${c.fatte[k]?'f':''}">${c.fatte[k]} fatte</span></button>`}).join('')}</div>`}
+function zOk(id){const z=MN.pz;if(!z)return true;const i=id&&I(id);if(z==='_none')return !!i&&!(i.cat&&M.cat.some(c=>c.id===i.cat));return !!i&&catDesc(z).has(i.cat)}
 async function vPian(){const y=MN.anno2||(MN.anno2=tdy().slice(0,4));const cy=tdy().slice(0,4);await storico(y);await storico(cy);
- const t=tdy(),all=M.imp.map(i=>({i,...impStatus(i.id)}));const ord={r:0,g:1,b:2,n:3,v:4};
+ const t=tdy(),all=M.imp.filter(i=>zOk(i.id)).map(i=>({i,...impStatus(i.id)}));const ord={r:0,g:1,b:2,n:3,v:4};
  const pianR=all.filter(r=>r.toPlan&&!M.ass.some(s=>s.imp===r.i.id&&pend(s))).sort((a,b)=>ord[a.w[2]]-ord[b.w[2]]||((a.next||'9')<(b.next||'9')?-1:1));
- const ripA=M.att.filter(a=>!a.due);
- const late=M.att.filter(a=>a.due&&a.due<t);
- const plan=M.att.filter(a=>a.due&&a.due>=t);
- const mm=t.slice(0,7),done=(H[cy]||[]).filter(a=>a.chiusa.startsWith(mm)).sort((a,b)=>a.chiusa<b.chiusa?1:-1);
- const win=+M.winDays||90,lim=addD(t,win),nextL=M.ass.filter(s=>{const p=P(s.proc);return p&&!p._miss&&p.tipo!=='evento'&&s.next&&s.next>=t&&s.next<=lim&&!planned(s)&&!pend(s)&&I(s.imp)}).sort((a,b)=>a.next<b.next?-1:1);
+ const ripA=M.att.filter(a=>!a.due&&zOk(a.imp));
+ const late=M.att.filter(a=>a.due&&a.due<t&&zOk(a.imp));
+ const plan=M.att.filter(a=>a.due&&a.due>=t&&zOk(a.imp));
+ const mm=t.slice(0,7),done=(H[cy]||[]).filter(a=>a.chiusa.startsWith(mm)&&zOk(a.imp)).sort((a,b)=>a.chiusa<b.chiusa?1:-1);
+ const win=+M.winDays||90,lim=addD(t,win),nextL=M.ass.filter(s=>{const p=P(s.proc);return p&&!p._miss&&p.tipo!=='evento'&&s.next&&s.next>=t&&s.next<=lim&&!planned(s)&&!pend(s)&&I(s.imp)&&zOk(s.imp)}).sort((a,b)=>a.next<b.next?-1:1);
  const box=MN.box||'pian';
  const k=(key,l,n,col,sub)=>`<button class="mn-kpi" style="--c:${col}" onclick="MNX.box('${key}')" aria-pressed="${box===key}"><b>${n}</b><span>${l}</span>${sub?`<span style="font-size:11px">${sub}</span>`:''}</button>`;
  const ripImp=[...new Set(ripA.filter(a=>a.imp).map(a=>a.imp))];
@@ -232,14 +233,14 @@ async function vPian(){const y=MN.anno2||(MN.anno2=tdy().slice(0,4));const cy=td
  if(box==='late'){tit='In ritardo';lst=attList(late,isR())}
  if(box==='plan'){tit='Pianificate';lst=attList(plan,isR())}
  if(box==='done'){tit='Fatte questo mese';lst=list(done.map(a=>item(a.parziale?'var(--warn)':'var(--ok)',`${e_(a._pcod)} · ${e_(a._pdesc)}`,`<span><b>${fd(a.chiusa)}</b></span>${a._imp?`<span>${e_(a._imp)}</span>`:''}<span>👤 ${e_(a.esec)}</span>${a.parziale?'<span style="color:var(--warn);font-weight:600">chiusa in parte</span>':''}`,`<button class="btn sm" onclick="MNX.pdf('${cy}','${a.id}')">PDF</button>${isR()?`<button class="btn sm" onclick="MNX.riapri('${cy}','${a.id}')">Riapri</button><button class="btn sm" onclick="MNX.elFatta('${cy}','${a.id}')">Elimina</button>`:''}`)),'Nessuna attività completata questo mese.')}
- return `<div class="mn-kpis mn-k5 mn-k6">${k('pian','Da pianificare',pianR.length,'var(--accent)','impianti')}${k('rip','Da ripianificare',ripA.length,'#b4235a','tolte da te o con passi mancanti')}${k('late','In ritardo',late.length,'var(--warn)','data passata, non concluse')}${k('plan','Pianificate',plan.length,'var(--info)','da oggi in poi')}${k('prox','Prossime scadenze',nextL.length,'#2f7d6d','nei prossimi '+win+' giorni')}${k('done','Fatte',done.length,'var(--ok)','questo mese')}</div>
+ return (M.cat.length?`<div class="row" style="margin-bottom:10px"><label class="mn-fs">Zona<select onchange="MNX.pz(this.value)"><option value="">Tutte</option><option value="_none" ${MN.pz==='_none'?'selected':''}>Senza zona</option>${catOpts(MN.pz||'').replace(/^<option value="">[^<]*<\/option>/,'')}</select></label></div>`:'')+`<div class="mn-kpis mn-k5 mn-k6">${k('pian','Da pianificare',pianR.length,'var(--accent)','impianti')}${k('rip','Da ripianificare',ripA.length,'#b4235a','tolte da te o con passi mancanti')}${k('late','In ritardo',late.length,'var(--warn)','data passata, non concluse')}${k('plan','Pianificate',plan.length,'var(--info)','da oggi in poi')}${k('prox','Prossime scadenze',nextL.length,'#2f7d6d','nei prossimi '+win+' giorni')}${k('done','Fatte',done.length,'var(--ok)','questo mese')}</div>
  <div class="mn-calw" style="margin-bottom:14px">${cal()}</div>
- <div class="mn-calw" style="margin-bottom:14px"><div class="mn-calh"><button class="btn" onclick="MNX.anno2(-1)" aria-label="Anno precedente">‹</button><h3>Pianificate e fatte per mese · ${y}</h3><button class="btn" onclick="MNX.anno2(1)" aria-label="Anno successivo">›</button></div>${yearGrid(y,null,'meseSel',MN.mese)}</div>
+ <div class="mn-calw" style="margin-bottom:14px"><div class="mn-calh"><button class="btn" onclick="MNX.anno2(-1)" aria-label="Anno precedente">‹</button><h3>Pianificate e fatte per mese · ${y}</h3><button class="btn" onclick="MNX.anno2(1)" aria-label="Anno successivo">›</button></div>${yearGrid(y,MN.pz?zOk:null,'meseSel',MN.mese)}</div>
  <div><h3 style="margin-bottom:8px">${tit}</h3>${lst}</div>`}
 function cal(){const m=MN.mese||(MN.mese=tdy().slice(0,7));const [Y,Mo]=m.split('-').map(Number);
  const first=new Date(Y,Mo-1,1),start=new Date(first);start.setDate(1-((first.getDay()+6)%7));
- const ev={};M.vis.forEach(v=>(ev[v.data]=ev[v.data]||[]).push(v));
- const loose={};M.att.filter(a=>!a.vis&&a.due).forEach(a=>{const k=a.due+'|'+(a.imp||a.id);loose[k]=loose[k]||{data:a.due,imp:a.imp,n:0,man:a.man,tit:a.free?a.free.titolo:null,aid:a.id};loose[k].n++});
+ const ev={};M.vis.filter(v=>zOk(v.imp)).forEach(v=>(ev[v.data]=ev[v.data]||[]).push(v));
+ const loose={};M.att.filter(a=>!a.vis&&a.due&&zOk(a.imp)).forEach(a=>{const k=a.due+'|'+(a.imp||a.id);loose[k]=loose[k]||{data:a.due,imp:a.imp,n:0,man:a.man,tit:a.free?a.free.titolo:null,aid:a.id};loose[k].n++});
  Object.values(loose).forEach(x=>(ev[x.data]=ev[x.data]||[]).push({loose:1,...x}));
  const chip=v=>{const i=I(v.imp)||{cod:v.tit||'Attività',nome:''};if(!v.loose&&!v.imp&&!v.tit){const a0=M.att.find(a=>a.vis===v.id);if(a0&&a0.free)i.cod=a0.free.titolo}const n=v.loose?v.n:M.att.filter(a=>a.vis===v.id).length;const late=v.data<tdy();
   return `<button class="mn-chip" ${v.loose?'':`draggable="true" ondragstart="event.dataTransfer.setData('text/plain','${v.id}')"`} style="--c:${late?'var(--accent)':'var(--info)'}" onclick="event.stopPropagation();${v.loose?(v.imp?`MNX.impDett('${v.imp}')`:`MNX.esegui('${v.aid}')`):`MNX.visDett('${v.id}')`}" title="${e_(i.cod+' '+i.nome)}"><b>${e_(i.cod)}</b> <span>${n} att.${v.man?' · '+e_(v.man.split(' ')[0]):''}</span></button>`};
@@ -552,7 +553,7 @@ window.MNX={
   <b>Ultimo salvataggio:</b> ${MN.sv?`${MN.sv.t} · ${Math.round(MN.sv.b/1024)} KB · ${e_(MN.sv.st)}`:'nessuno da questa apertura'}<br>
   <b>Attività pianificate qui:</b> ${M.att.filter(a=>a.due).length}<br>${Object.entries(mans).map(([k,v])=>'«'+e_(k)+'»: '+v).join('<br>')}<br>
   <b>Sul server adesso:</b> ${srv}</div><div class="muted" style="font-size:12px">Fai uno screenshot di questa finestra (sul tuo PC e sul telefono del manutentore).</div>`)},
- f(k,v){MN.f[k]=v;draw()},sortI(v){MN.sortI=v;draw()},q(v){MN.f.q=v;MN.focus='mnQ';draw()},reset(){MN.f={imp:'',stato:'',man:'',proc:'',q:'',da:'',a:''};draw()},
+ f(k,v){MN.f[k]=v;draw()},pz(v){MN.pz=v||'';draw()},sortI(v){MN.sortI=v;draw()},q(v){MN.f.q=v;MN.focus='mnQ';draw()},reset(){MN.f={imp:'',stato:'',man:'',proc:'',q:'',da:'',a:''};draw()},
  anno(v){MN.anno=v;draw()},close:closeO,impDett,
  catAdd(par){const c={id:nid('k'),nome:par?'Nuovo sotto-livello':'Nuovo livello',par:par||null};M.cat.push(c);saveM();draw();setTimeout(()=>{const x=[...document.querySelectorAll('.mn-catr input')].find(e=>e.value===c.nome);if(x){x.focus();x.select()}},30)},
  catRen(id,v){if(v.trim()){CAT(id).nome=v.trim();saveM()}},
