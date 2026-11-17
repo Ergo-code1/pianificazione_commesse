@@ -3001,5 +3001,286 @@
     "i": "• Riaprire lentamente e verificare la tenuta."
    }
   ]
+ },
+ {
+  "cod": "PM087",
+  "desc": "Carroponte – Controllo mensile",
+  "comp": "Carroponte",
+  "norma": "D.Lgs. 81/08 art. 71; manuale costruttore",
+  "tipo": "cal",
+  "int": 1,
+  "avv": 7,
+  "min": 30,
+  "loto": false,
+  "est": 0,
+  "mat": "DPI: guanti, scarpe antinfortunistiche, casco\nAttrezzature: torcia",
+  "steps": [
+   {
+    "t": "Pulsantiera / radiocomando",
+    "foto": false,
+    "i": "• Involucro integro, pulsanti che tornano in posizione, cavo senza danni.\n• Arresto d'emergenza: ferma tutti i movimenti."
+   },
+   {
+    "t": "Movimenti e finecorsa",
+    "foto": false,
+    "i": "• Sollevamento, traslazione carrello e ponte regolari, senza strappi o rumori anomali.\n• Finecorsa salita (e discesa/traslazioni se presenti) intervengono."
+   },
+   {
+    "t": "Freni",
+    "foto": false,
+    "i": "• Il carico si ferma e resta fermo senza slittamenti."
+   },
+   {
+    "t": "Gancio",
+    "foto": false,
+    "i": "• Dispositivo di sicurezza (linguetta) presente e funzionante; gancio senza deformazioni o cricche visibili; ruota libera sul perno."
+   },
+   {
+    "t": "Fune o catena (visivo)",
+    "foto": false,
+    "i": "• Nessun filo rotto evidente, schiacciamento, nodo o ruggine; si avvolge correttamente sul tamburo."
+   },
+   {
+    "t": "Segnalazioni e targhe",
+    "foto": false,
+    "i": "• Portata leggibile sul ponte e sul paranco; segnalatori acustici/luminosi funzionanti."
+   },
+   {
+    "t": "Peso stampi e portata",
+    "foto": false,
+    "i": "• Il peso degli stampi più pesanti movimentati è indicato (sullo stampo o in elenco) ed è inferiore alla portata del carroponte e del paranco."
+   },
+   {
+    "t": "Via di corsa",
+    "foto": false,
+    "i": "• Nessun ostacolo, respingenti integri, nessun rumore anomalo delle ruote."
+   }
+  ]
+ },
+ {
+  "cod": "PM088",
+  "desc": "Carroponte – Verifica trimestrale funi, catene e ganci (registro)",
+  "comp": "Carroponte",
+  "norma": "D.Lgs. 81/08 Allegato VI punto 3.1.2; UNI ISO 4309 (funi)",
+  "tipo": "cal",
+  "int": 3,
+  "avv": 15,
+  "min": 60,
+  "loto": false,
+  "est": 0,
+  "mat": "Esecutore: persona competente interna (registrare sul registro di controllo)\nAttrezzature: calibro, metro, torcia, PLE o passerella\nDPI: guanti, casco, imbracatura per lavori in quota",
+  "steps": [
+   {
+    "t": "Messa in sicurezza",
+    "foto": false,
+    "i": "• Abbassare il gancio a terra senza carico e portare il carroponte nella zona di manutenzione, fuori dal passaggio di altri mezzi.\n• Sezionatore di linea del carroponte su OFF con il proprio lucchetto e cartellino «Non manovrare – manutenzione in corso».\n• Verificare l'assenza di energia: premendo i pulsanti della pulsantiera nessun movimento.\n• Delimitare l'area sottostante; lavori in quota solo da piattaforma (PLE) o passerella con parapetti/imbracatura."
+   },
+   {
+    "t": "Fune",
+    "foto": false,
+    "i": "• Svolgere tutta la fune a vuoto e controllarla per intero: fili rotti, riduzione di diametro (calibro), schiacciamenti, gabbie, nodi, corrosione, surriscaldamenti.\n• Confrontare con i criteri di scarto UNI ISO 4309 / manuale; annotare il diametro misurato."
+   },
+   {
+    "t": "Catena (se paranco a catena)",
+    "foto": false,
+    "i": "• Allungamento delle maglie (misura su più maglie), usura, cricche, deformazioni; confrontare con i limiti del costruttore."
+   },
+   {
+    "t": "Bozzello e pulegge",
+    "foto": false,
+    "i": "• Pulegge senza gole consumate o scheggiate, ruotano libere; ripari presenti."
+   },
+   {
+    "t": "Gancio",
+    "foto": false,
+    "i": "• Misurare l'apertura della bocca e confrontarla con il valore iniziale (scarto se aumento > 10% o secondo costruttore); cricche, usura della sella, sicura funzionante."
+   },
+   {
+    "t": "Attacchi e capicorda",
+    "foto": false,
+    "i": "• Morsetti/capicorda serrati e integri, attacco fisso della fune in ordine."
+   },
+   {
+    "t": "Golfari stampi e bilancini",
+    "foto": false,
+    "i": "• Golfari: filetto integro, avvitati fino in battuta, taglia adatta al peso dello stampo; golfari girevoli senza giochi o danni.\n• Bilancini/traverse per stampi a più punti di presa: targa di portata leggibile, nessuna deformazione o cricca."
+   },
+   {
+    "t": "Accessori di sollevamento",
+    "foto": false,
+    "i": "• Brache, catene, golfari e bilancini in uso con il carroponte: etichetta leggibile, nessun danno; scartare quelli non idonei."
+   },
+   {
+    "t": "Registro e rimessa in servizio",
+    "foto": false,
+    "i": "• Togliere lucchetto e cartellino, ridare tensione.\n• Provare tutti i movimenti a vuoto, finecorsa e arresto d'emergenza prima di rimettere in servizio.\n• Compilare il registro di controllo con data, esito e firma; segnalare subito eventuali elementi da sostituire."
+   }
+  ]
+ },
+ {
+  "cod": "PM089",
+  "desc": "Carroponte – Manutenzione semestrale (lubrificazione e serraggi)",
+  "comp": "Carroponte",
+  "norma": "Manuale costruttore",
+  "tipo": "cal",
+  "int": 6,
+  "avv": 30,
+  "min": 90,
+  "loto": false,
+  "est": 0,
+  "mat": "Materiali: grasso/olio indicati dal costruttore, chiavi, panni\nDPI: guanti, casco, imbracatura per lavori in quota\nAttrezzature: PLE o passerella",
+  "steps": [
+   {
+    "t": "Messa in sicurezza",
+    "foto": false,
+    "i": "• Abbassare il gancio a terra senza carico e portare il carroponte nella zona di manutenzione, fuori dal passaggio di altri mezzi.\n• Sezionatore di linea del carroponte su OFF con il proprio lucchetto e cartellino «Non manovrare – manutenzione in corso».\n• Verificare l'assenza di energia: premendo i pulsanti della pulsantiera nessun movimento.\n• Delimitare l'area sottostante; lavori in quota solo da piattaforma (PLE) o passerella con parapetti/imbracatura."
+   },
+   {
+    "t": "Lubrificazione",
+    "foto": false,
+    "i": "• Fune (lubrificante per funi), gancio/reggispinta, ingranaggi aperti, punti di ingrassaggio di carrello e ponte.\n• Controllare il livello dell'olio del riduttore di sollevamento e cercare perdite."
+   },
+   {
+    "t": "Serraggi",
+    "foto": false,
+    "i": "• Bulloneria di testate, carrello, paranco, respingenti e fermi di fine via di corsa."
+   },
+   {
+    "t": "Linea di alimentazione",
+    "foto": false,
+    "i": "• Blindo/festoni: carrelli portacavi scorrevoli, cavi senza danni, prese di corrente integre."
+   },
+   {
+    "t": "Ruote e rotaie",
+    "foto": false,
+    "i": "• Usura bordini e battistrada, allineamento; rotaie senza giunti sporgenti."
+   },
+   {
+    "t": "Rimessa in servizio",
+    "foto": false,
+    "i": "• Togliere lucchetto e cartellino, ridare tensione.\n• Provare tutti i movimenti a vuoto, finecorsa e arresto d'emergenza prima di rimettere in servizio."
+   }
+  ]
+ },
+ {
+  "cod": "PM090",
+  "desc": "Carroponte – Ispezione e manutenzione annuale ditta specializzata",
+  "comp": "Carroponte",
+  "norma": "Manuale costruttore; UNI ISO 9927-1",
+  "tipo": "cal",
+  "int": 12,
+  "avv": 60,
+  "min": 240,
+  "loto": false,
+  "est": 1,
+  "mat": "Esecutore: ditta specializzata/costruttore\nNota: allegare il rapporto; eventuali sostituzioni di fune, gancio, freni solo con ricambi originali",
+  "steps": [
+   {
+    "t": "Prenotazione",
+    "foto": false,
+    "i": "• Programmare l'intervento con la ditta specializzata."
+   },
+   {
+    "t": "Freni",
+    "foto": false,
+    "i": "• Misura usura ferodi/traferro, regolazione, prova di frenatura con carico."
+   },
+   {
+    "t": "Limitatore di carico",
+    "foto": false,
+    "i": "• Verifica dell'intervento del limitatore di carico."
+   },
+   {
+    "t": "Struttura",
+    "foto": false,
+    "i": "• Controllo visivo di travi, saldature e collegamenti; deformazioni."
+   },
+   {
+    "t": "Impianto elettrico",
+    "foto": false,
+    "i": "• Quadro, contattori, teleruttori, protezioni, messa a terra e collegamenti."
+   },
+   {
+    "t": "Riduttori e motori",
+    "foto": false,
+    "i": "• Rumorosità, giochi, perdite, cambio olio se previsto."
+   },
+   {
+    "t": "Rapporto",
+    "foto": false,
+    "i": "• Farsi lasciare il rapporto e allegarlo; aggiornare il registro di controllo."
+   }
+  ]
+ },
+ {
+  "cod": "PM091",
+  "desc": "Carroponte – Verifica periodica INAIL/soggetto abilitato (art. 71 c.11) – ogni 24 mesi",
+  "comp": "Carroponte",
+  "norma": "D.Lgs. 81/08 art. 71 c.11 e Allegato VII",
+  "tipo": "cal",
+  "int": 24,
+  "avv": 90,
+  "min": 120,
+  "loto": false,
+  "est": 1,
+  "mat": "Esecutore: INAIL (prima verifica) poi ASL/ARPA o soggetto abilitato\nNota: biennale per carroponte con più di 10 anni; per carroponte con 10 anni o meno usare PM092 (triennale)",
+  "steps": [
+   {
+    "t": "Prenotazione",
+    "foto": false,
+    "i": "• Richiedere la verifica all'ente (per la prima verifica: INAIL)."
+   },
+   {
+    "t": "Documenti",
+    "foto": false,
+    "i": "• Libretto/dichiarazione CE, manuale, registro di controllo trimestrale, verbali precedenti, rapporti della ditta."
+   },
+   {
+    "t": "Assistenza all'ispettore",
+    "foto": false,
+    "i": "• Carroponte disponibile, prove di carico se richieste (pesi campione a disposizione)."
+   },
+   {
+    "t": "Esito",
+    "foto": false,
+    "i": "• Archiviare il verbale e programmare le eventuali prescrizioni."
+   }
+  ]
+ },
+ {
+  "cod": "PM092",
+  "desc": "Carroponte – Verifica periodica INAIL/soggetto abilitato (art. 71 c.11) – ogni 36 mesi (10 anni o meno)",
+  "comp": "Carroponte",
+  "norma": "D.Lgs. 81/08 art. 71 c.11 e Allegato VII",
+  "tipo": "cal",
+  "int": 36,
+  "avv": 90,
+  "min": 120,
+  "loto": false,
+  "est": 1,
+  "mat": "Esecutore: INAIL (prima verifica) poi ASL/ARPA o soggetto abilitato\nNota: solo per carroponte con 10 anni o meno (settori diversi da costruzioni, siderurgico, portuale, estrattivo); compiuti 10 anni passare a PM091 (biennale). Si aggiunge al componente da Configura → + Procedura",
+  "steps": [
+   {
+    "t": "Prenotazione",
+    "foto": false,
+    "i": "• Richiedere la verifica all'ente (per la prima verifica: INAIL)."
+   },
+   {
+    "t": "Documenti",
+    "foto": false,
+    "i": "• Libretto/dichiarazione CE, manuale, registro di controllo trimestrale, verbali precedenti, rapporti della ditta."
+   },
+   {
+    "t": "Assistenza all'ispettore",
+    "foto": false,
+    "i": "• Carroponte disponibile, prove di carico se richieste (pesi campione a disposizione)."
+   },
+   {
+    "t": "Esito",
+    "foto": false,
+    "i": "• Archiviare il verbale e programmare le eventuali prescrizioni."
+   }
+  ],
+  "noTipo": 1
  }
 ]

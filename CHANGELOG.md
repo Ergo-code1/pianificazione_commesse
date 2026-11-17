@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.16.0 — 2026-11-17
+- Scheda impianto: sezione «Documenti» (verbale prima verifica, dichiarazione CE/libretto, certificato di taratura, verbale verifica periodica, altro) con componente, data e scadenza; apri, nuova versione, modifica, elimina. Max 700 KB per file.
+- Documenti in scadenza (scaduti o entro la finestra) in Pianificazione → Prossime scadenze; in scheda arancione entro 60 giorni, rosso se scaduti.
+- Diagnostica: spazio usato dai documenti.
+- Nuovo tipo «Carroponte» (PM087–PM091) aggiunto una sola volta; PM092 verifica periodica triennale (carroponte con 10 anni o meno) da aggiungere a mano al componente.
+
 ## 2.15.1 — 2026-11-17
 - Scheda impianto: «Dismetti impianto» spostato in fondo alla scheda e colorato di rosso.
 
