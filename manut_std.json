@@ -2651,5 +2651,375 @@
     "i": "• Rimontare le coperture, togliere il LOTO, riavviare e verificare il funzionamento.\n• Azzerare l'intervallo di manutenzione in Indicazione \\ Valore reale con il tasto OK."
    }
   ]
+ },
+ {
+  "cod": "PM077",
+  "desc": "Serbatoio in pressione – Controllo mensile",
+  "comp": "Serbatoio in pressione",
+  "norma": "D.Lgs. 81/08 art. 71; DM 329/2004; manuale costruttore",
+  "tipo": "cal",
+  "int": 1,
+  "avv": 7,
+  "min": 15,
+  "loto": false,
+  "est": 0,
+  "mat": "DPI: guanti, occhiali\nMateriali: secchio per condensa, panno, acqua saponata",
+  "steps": [
+   {
+    "t": "Scarico condensa",
+    "foto": false,
+    "i": "• Aprire lentamente lo scarico manuale finché esce solo aria.\n• Se lo scarico è automatico, verificare che intervenga davvero."
+   },
+   {
+    "t": "Controllo visivo",
+    "foto": false,
+    "i": "• Nessuna ruggine, ammaccatura o perdita su saldature e raccordi.\n• Targhetta leggibile."
+   },
+   {
+    "t": "Manometro",
+    "foto": false,
+    "i": "• Integro e leggibile; valore entro la pressione massima (PS) di targa."
+   },
+   {
+    "t": "Perdite",
+    "foto": false,
+    "i": "• Ascoltare i raccordi; passare acqua saponata su quelli dubbi."
+   }
+  ]
+ },
+ {
+  "cod": "PM078",
+  "desc": "Serbatoio in pressione – Manutenzione annuale",
+  "comp": "Serbatoio in pressione",
+  "norma": "D.Lgs. 81/08 art. 71; DM 329/2004; manuale costruttore",
+  "tipo": "cal",
+  "int": 12,
+  "avv": 60,
+  "min": 60,
+  "loto": false,
+  "est": 0,
+  "mat": "DPI: guanti, occhiali\nAttrezzature: chiavi, acqua saponata, guarnizioni di ricambio, manometro campione, blocca-valvola, lucchetto e cartellino\nNota: sostituzione o ritaratura della valvola di sicurezza solo da ditta qualificata con valvola certificata",
+  "steps": [
+   {
+    "t": "Controllo valvola di sicurezza (in pressione)",
+    "foto": false,
+    "i": "• Sigillo integro, taratura ≤ PS.\n• Con serbatoio in pressione azionare la leva a mano: deve aprire e richiudere senza perdite.\n• Se perde o non apre: chiamare ditta qualificata (non intervenire)."
+   },
+   {
+    "t": "Messa in sicurezza serbatoio",
+    "foto": false,
+    "i": "• Fermare il compressore e togliere tensione dal suo sezionatore, chiudendolo con il proprio lucchetto.\n• Chiudere la valvola di intercettazione compressore→serbatoio e quella verso la rete; bloccarle con blocca-valvola e cartellino «Non aprire – manutenzione in corso».\n• Scaricare l'aria dallo scarico condensa o dalla valvola di sfiato fino a 0 bar sul manometro.\n• Lasciare lo scarico aperto per tutto l'intervento.\n• Prima di toccare raccordi o aprire il serbatoio, ricontrollare che il manometro segni 0."
+   },
+   {
+    "t": "Manometro",
+    "foto": false,
+    "i": "• Confronto con manometro campione; sostituire se fuori tolleranza o vetro rotto."
+   },
+   {
+    "t": "Pressostato",
+    "foto": false,
+    "i": "• Verificare che il compressore si fermi sotto PS."
+   },
+   {
+    "t": "Ancoraggi e supporti",
+    "foto": false,
+    "i": "• Piedi e bulloni serrati, nessuna vibrazione anomala."
+   },
+   {
+    "t": "Interno e fondo",
+    "foto": false,
+    "i": "• Dove ispezionabile (foro scarico o passo d'uomo), controllare la corrosione."
+   },
+   {
+    "t": "Documenti",
+    "foto": false,
+    "i": "• Dichiarazione CE, libretto e verbali delle verifiche presenti e aggiornati."
+   },
+   {
+    "t": "Rimessa in servizio",
+    "foto": false,
+    "i": "• Togliere blocchi e cartellini, chiudere lo scarico, aprire le valvole poco per volta.\n• Prova di tenuta; annotare la pressione nelle note."
+   }
+  ]
+ },
+ {
+  "cod": "PM079",
+  "desc": "Serbatoio in pressione – Verifica periodica di funzionamento (DM 329/04)",
+  "comp": "Serbatoio in pressione",
+  "norma": "DM 329/2004 – intervallo secondo categoria PED e fluido",
+  "tipo": "cal",
+  "int": 36,
+  "avv": 90,
+  "min": 120,
+  "loto": false,
+  "est": 1,
+  "mat": "Documenti: libretto, verbali precedenti, certificato valvola di sicurezza\nEsecutore: INAIL/ASL o soggetto abilitato\nNota: serbatoi esclusi dalla riqualificazione periodica → disattivare",
+  "steps": [
+   {
+    "t": "Prenotazione",
+    "foto": false,
+    "i": "• Richiedere la verifica all'ente (INAIL/ASL o soggetto abilitato)."
+   },
+   {
+    "t": "Preparazione",
+    "foto": false,
+    "i": "• Libretto, verbali precedenti e certificato della valvola di sicurezza pronti."
+   },
+   {
+    "t": "Assistenza all'ispettore",
+    "foto": false,
+    "i": "• Rendere accessibili serbatoio, valvola e manometro."
+   },
+   {
+    "t": "Esito",
+    "foto": false,
+    "i": "• Archiviare il verbale e programmare le eventuali prescrizioni."
+   }
+  ]
+ },
+ {
+  "cod": "PM080",
+  "desc": "Serbatoio in pressione – Verifica di integrità decennale (DM 329/04)",
+  "comp": "Serbatoio in pressione",
+  "norma": "DM 329/2004",
+  "tipo": "cal",
+  "int": 120,
+  "avv": 180,
+  "min": 240,
+  "loto": false,
+  "est": 1,
+  "mat": "Esecutore: INAIL/ASL o soggetto abilitato\nMateriali: guarnizioni nuove, blocca-valvola, lucchetto e cartellino\nNota: serbatoi esclusi dalla riqualificazione periodica → disattivare",
+  "steps": [
+   {
+    "t": "Prenotazione",
+    "foto": false,
+    "i": "• Richiedere la verifica all'ente."
+   },
+   {
+    "t": "Messa in sicurezza serbatoio",
+    "foto": false,
+    "i": "• Fermare il compressore e togliere tensione dal suo sezionatore, chiudendolo con il proprio lucchetto.\n• Chiudere la valvola di intercettazione compressore→serbatoio e quella verso la rete; bloccarle con blocca-valvola e cartellino «Non aprire – manutenzione in corso».\n• Scaricare l'aria dallo scarico condensa o dalla valvola di sfiato fino a 0 bar sul manometro.\n• Lasciare lo scarico aperto per tutto l'intervento.\n• Prima di toccare raccordi o aprire il serbatoio, ricontrollare che il manometro segni 0."
+   },
+   {
+    "t": "Apertura e pulizia",
+    "foto": false,
+    "i": "• Aprire il serbatoio e pulire l'interno per ispezione visiva e misura spessori."
+   },
+   {
+    "t": "Assistenza alla verifica",
+    "foto": false,
+    "i": "• Ispezione interna, misura spessori, prova idraulica se richiesta."
+   },
+   {
+    "t": "Chiusura",
+    "foto": false,
+    "i": "• Guarnizioni nuove, prova di tenuta, archiviazione del verbale."
+   }
+  ]
+ },
+ {
+  "cod": "PM081",
+  "desc": "Compressore – Controllo e pulizia mensile",
+  "comp": "Compressore a vite",
+  "norma": "Manuale costruttore",
+  "tipo": "cal",
+  "int": 1,
+  "avv": 7,
+  "min": 35,
+  "loto": false,
+  "est": 0,
+  "mat": "DPI: guanti, occhiali, protezione udito\nAttrezzature: aria compressa per soffiaggio, panno, lucchetto e cartellino",
+  "steps": [
+   {
+    "t": "Display",
+    "foto": false,
+    "i": "• Nessun allarme o avviso di manutenzione.\n• Annotare le ore di funzionamento nelle note."
+   },
+   {
+    "t": "Olio e scarichi condensa",
+    "foto": false,
+    "i": "• Livello olio tra MIN e MAX.\n• Scarichi di compressore, separatore ed essiccatore: devono scaricare davvero."
+   },
+   {
+    "t": "Rumori, vibrazioni, temperatura",
+    "foto": false,
+    "i": "• Con macchina in marcia: nessuna anomalia, temperatura di mandata nei valori del costruttore.\n• Poi fermare la macchina."
+   },
+   {
+    "t": "Messa in sicurezza",
+    "foto": false,
+    "i": "• Sezionatore del compressore su OFF con il proprio lucchetto e cartellino.\n• Chiudere la valvola di uscita e scaricare la pressione interna fino a 0 bar.\n• Attendere il raffreddamento delle parti calde (olio, mandata)."
+   },
+   {
+    "t": "Prefiltri e radiatore",
+    "foto": false,
+    "i": "• Soffiare i prefiltri aria di aspirazione e il radiatore."
+   },
+   {
+    "t": "Locale e perdite",
+    "foto": false,
+    "i": "• Griglie di ventilazione libere, locale sotto 40 °C.\n• Nessuna perdita di olio o aria.\n• Togliere lucchetto e riavviare."
+   }
+  ]
+ },
+ {
+  "cod": "PM082",
+  "desc": "Compressore – Tagliando (12 mesi o 4000 h)",
+  "comp": "Compressore a vite",
+  "norma": "Manuale costruttore",
+  "tipo": "cal",
+  "int": 12,
+  "avv": 60,
+  "min": 180,
+  "loto": false,
+  "est": 1,
+  "mat": "Esecutore: assistenza autorizzata (mantiene la garanzia)\nRicambi: kit filtro aria, filtro olio, separatore aria/olio, olio, cinghie",
+  "steps": [
+   {
+    "t": "Prenotazione",
+    "foto": false,
+    "i": "• Programmare l'intervento con l'assistenza autorizzata."
+   },
+   {
+    "t": "Filtri",
+    "foto": false,
+    "i": "• Sostituzione filtro aria, filtro olio e separatore aria/olio."
+   },
+   {
+    "t": "Olio",
+    "foto": false,
+    "i": "• Cambio olio; smaltimento con FIR."
+   },
+   {
+    "t": "Cinghie / giunto",
+    "foto": false,
+    "i": "• Controllo, tensionamento o sostituzione."
+   },
+   {
+    "t": "Verifiche",
+    "foto": false,
+    "i": "• Sicurezze, pressostati, valvola di minima e termostatica."
+   },
+   {
+    "t": "Rapporto",
+    "foto": false,
+    "i": "• Farsi lasciare il rapporto di intervento e allegarlo."
+   }
+  ]
+ },
+ {
+  "cod": "PM083",
+  "desc": "Compressore – Revisione gruppo vite e motore (20.000–40.000 h)",
+  "comp": "Compressore a vite",
+  "norma": "Manuale costruttore",
+  "tipo": "cal",
+  "int": 48,
+  "avv": 90,
+  "min": 480,
+  "loto": false,
+  "est": 1,
+  "mat": "Esecutore: assistenza autorizzata\nNota: anticipare se le ore di funzionamento raggiungono il limite del costruttore",
+  "steps": [
+   {
+    "t": "Prenotazione",
+    "foto": false,
+    "i": "• Programmare con l'assistenza autorizzata."
+   },
+   {
+    "t": "Revisione",
+    "foto": false,
+    "i": "• Cuscinetti e tenute del gruppo vite, cuscinetti motore: revisione o sostituzione."
+   },
+   {
+    "t": "Prova di funzionamento",
+    "foto": false,
+    "i": "• Misura di portata e assorbimento; rapporto allegato."
+   }
+  ]
+ },
+ {
+  "cod": "PM084",
+  "desc": "Essiccatore – Controllo mensile",
+  "comp": "Compressore a vite",
+  "norma": "Manuale costruttore",
+  "tipo": "cal",
+  "int": 1,
+  "avv": 7,
+  "min": 15,
+  "loto": false,
+  "est": 0,
+  "mat": "DPI: guanti, occhiali\nAttrezzature: aria per soffiaggio, panno",
+  "steps": [
+   {
+    "t": "Punto di rugiada",
+    "foto": false,
+    "i": "• Display in zona verde."
+   },
+   {
+    "t": "Scaricatore condensa",
+    "foto": false,
+    "i": "• Pulire scaricatore e relativo filtro; verificare che scarichi."
+   },
+   {
+    "t": "Condensatore",
+    "foto": false,
+    "i": "• Soffiare il condensatore."
+   }
+  ]
+ },
+ {
+  "cod": "PM085",
+  "desc": "Essiccatore – Controllo perdite F-gas",
+  "comp": "Compressore a vite",
+  "norma": "Reg. UE 2024/573; DPR 146/2018",
+  "tipo": "cal",
+  "int": 12,
+  "avv": 60,
+  "min": 60,
+  "loto": false,
+  "est": 1,
+  "mat": "Esecutore: tecnico con certificazione F-gas\nNota: obbligatorio solo se la carica supera la soglia in CO₂ equivalente di targa; altrimenti disattivare",
+  "steps": [
+   {
+    "t": "Prenotazione",
+    "foto": false,
+    "i": "• Programmare con ditta certificata F-gas."
+   },
+   {
+    "t": "Controllo perdite",
+    "foto": false,
+    "i": "• Controllo eseguito e registrato sul libretto/banca dati."
+   }
+  ]
+ },
+ {
+  "cod": "PM086",
+  "desc": "Compressore – Filtri di linea (coalescenza e carbone attivo)",
+  "comp": "Compressore a vite",
+  "norma": "Manuale costruttore",
+  "tipo": "cal",
+  "int": 12,
+  "avv": 60,
+  "min": 20,
+  "loto": false,
+  "est": 0,
+  "mat": "Ricambi: cartucce filtri di linea\nAttrezzature: chiavi, lucchetto e cartellino",
+  "steps": [
+   {
+    "t": "Messa in sicurezza",
+    "foto": false,
+    "i": "• Chiudere le valvole a monte e a valle e scaricare il tratto a 0 bar."
+   },
+   {
+    "t": "Cartucce",
+    "foto": false,
+    "i": "• Sostituire le cartucce; controllare l'indicatore di intasamento."
+   },
+   {
+    "t": "Rimessa in servizio",
+    "foto": false,
+    "i": "• Riaprire lentamente e verificare la tenuta."
+   }
+  ]
  }
 ]
