@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.14.3 — 2026-11-17
+- Impostazioni → Impianti: filtro per zona (include le sottozone) e conteggio impianti mostrati.
+
 ## 2.14.2 — 2026-11-16
 - Inserimento rapido: clic sul ✓ verde di un impianto già inserito toglie quel componente con le sue procedure e attività aperte (dopo conferma; lo storico resta).
 
