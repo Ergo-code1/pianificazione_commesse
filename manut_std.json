@@ -2838,7 +2838,7 @@
    {
     "t": "Olio e scarichi condensa",
     "foto": false,
-    "i": "• Livello olio tra MIN e MAX.\n• Scarichi di compressore, separatore ed essiccatore: devono scaricare davvero."
+    "i": "• Livello olio tra MIN e MAX.\n• Scarichi di compressore e separatore: devono scaricare davvero."
    },
    {
     "t": "Rumori, vibrazioni, temperatura",
@@ -2864,46 +2864,51 @@
  },
  {
   "cod": "PM082",
-  "desc": "Compressore – Tagliando (12 mesi o 4000 h)",
+  "desc": "Compressore ed essiccatore – Intervento annuale fornitore esterno (tagliando + F-gas)",
   "comp": "Compressore a vite",
-  "norma": "Manuale costruttore",
+  "norma": "Manuale costruttore; Reg. UE 2024/573; DPR 146/2018",
   "tipo": "cal",
   "int": 12,
   "avv": 60,
-  "min": 180,
+  "min": 240,
   "loto": false,
   "est": 1,
-  "mat": "Esecutore: assistenza autorizzata (mantiene la garanzia)\nRicambi: kit filtro aria, filtro olio, separatore aria/olio, olio, cinghie",
+  "mat": "Esecutore: assistenza autorizzata (mantiene la garanzia); per il controllo F-gas tecnico con certificazione F-gas\nRicambi: kit filtro aria, filtro olio, separatore aria/olio, olio, cinghie\nNota: in alternativa ogni 4000 h; controllo F-gas obbligatorio solo se la carica dell'essiccatore supera la soglia in CO₂ equivalente di targa",
   "steps": [
    {
     "t": "Prenotazione",
     "foto": false,
-    "i": "• Programmare l'intervento con l'assistenza autorizzata."
+    "i": "• Programmare l'intervento con l'assistenza autorizzata (e con ditta certificata F-gas se diversa)."
    },
    {
-    "t": "Filtri",
+    "t": "Compressore – Filtri",
     "foto": false,
     "i": "• Sostituzione filtro aria, filtro olio e separatore aria/olio."
    },
    {
-    "t": "Olio",
+    "t": "Compressore – Olio",
     "foto": false,
     "i": "• Cambio olio; smaltimento con FIR."
    },
    {
-    "t": "Cinghie / giunto",
+    "t": "Compressore – Cinghie / giunto",
     "foto": false,
     "i": "• Controllo, tensionamento o sostituzione."
    },
    {
-    "t": "Verifiche",
+    "t": "Compressore – Verifiche",
     "foto": false,
     "i": "• Sicurezze, pressostati, valvola di minima e termostatica."
    },
    {
+    "t": "Essiccatore – Controllo perdite F-gas",
+    "foto": false,
+    "i": "• Se la carica supera la soglia: controllo perdite eseguito e registrato sul libretto/banca dati.\n• Se sotto soglia: annotare «non dovuto» nelle note."
+   },
+   {
     "t": "Rapporto",
     "foto": false,
-    "i": "• Farsi lasciare il rapporto di intervento e allegarlo."
+    "i": "• Farsi lasciare i rapporti di intervento e allegarli."
    }
   ]
  },
@@ -2940,7 +2945,7 @@
  {
   "cod": "PM084",
   "desc": "Essiccatore – Controllo mensile",
-  "comp": "Compressore a vite",
+  "comp": "Essiccatore",
   "norma": "Manuale costruttore",
   "tipo": "cal",
   "int": 1,
@@ -2964,31 +2969,6 @@
     "t": "Condensatore",
     "foto": false,
     "i": "• Soffiare il condensatore."
-   }
-  ]
- },
- {
-  "cod": "PM085",
-  "desc": "Essiccatore – Controllo perdite F-gas",
-  "comp": "Compressore a vite",
-  "norma": "Reg. UE 2024/573; DPR 146/2018",
-  "tipo": "cal",
-  "int": 12,
-  "avv": 60,
-  "min": 60,
-  "loto": false,
-  "est": 1,
-  "mat": "Esecutore: tecnico con certificazione F-gas\nNota: obbligatorio solo se la carica supera la soglia in CO₂ equivalente di targa; altrimenti disattivare",
-  "steps": [
-   {
-    "t": "Prenotazione",
-    "foto": false,
-    "i": "• Programmare con ditta certificata F-gas."
-   },
-   {
-    "t": "Controllo perdite",
-    "foto": false,
-    "i": "• Controllo eseguito e registrato sul libretto/banca dati."
    }
   ]
  },

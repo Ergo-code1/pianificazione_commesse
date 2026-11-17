@@ -62,7 +62,7 @@ async function recProc(){if(MN._rec)return;MN._rec=1;try{
  MN.stage='procedure recuperate: '+(MN.recP||[]).length;MN._rec=0;const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))}
 function onRemote(d){const txt=stab(d||{});if(txt===lastM)return;const loc=MN.base?curM():null;lastM=txt;const keep=M.proc;const srv=JSON.parse(txt);const mer=loc?window.EPM.mergeVal(MN.base,loc,srv):srv;MN.base=srv;M=Object.assign(DEF(),JSON.parse(JSON.stringify(mer)));MN.mainL=true;if(loc&&stab(mer)!==txt&&!svT)saveM();
  let fix=false;if(!M.proc||!M.proc.length){if(keep&&keep.length){M.proc=keep;fix=true}else if(M.std1){if(!MN.procL&&!MN.procTO){MN.stage='attendo procedure…';clearTimeout(MN._to);MN._to=setTimeout(()=>{MN.procTO=1;const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))},4000);return}if(MN.pdoc&&MN.pdoc.length){M.proc=MN.pdoc;fix=true}else if(MN.recP&&MN.recP.length){M.proc=MN.recP;fix=true}else{if(MN.recP===undefined){recProc();MN.stage='recupero procedure…';return}MN.noProc=true}}}
- delete M.procSep;M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];if(oldApp())return;migra();if(fix&&isR())setTimeout(()=>{lastM='';saveM()},0);if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);if(isR()&&!M.pressaV)setTimeout(updPressa,80);if(isR()&&!M.noUpl1)setTimeout(noUpl,400);if(isR()&&!M.scaf1)setTimeout(addScaf,700);if(isR()&&!M.hb1)setTimeout(addHB,1100);setTimeout(addPC,1500);if(isR()&&!M.avv1)setTimeout(setAvv,1500);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
+ delete M.procSep;M.vis=M.vis||[];M.ric=M.ric||[];M.cat=M.cat||[];M.fatte=M.fatte||[];if(oldApp())return;migra();if(fix&&isR())setTimeout(()=>{lastM='';saveM()},0);if(isR())setTimeout(restore,0);if(isR()&&!M.std1)setTimeout(importStd,50);if(isR()&&!M.pressaV)setTimeout(updPressa,80);if(isR()&&!M.noUpl1)setTimeout(noUpl,400);if(isR()&&!M.scaf1)setTimeout(addScaf,700);if(isR()&&!M.hb1)setTimeout(addHB,1100);setTimeout(addPC,1500);setTimeout(fixPC,2500);if(isR()&&!M.avv1)setTimeout(setAvv,1500);M.ass.forEach(s=>{if(s.next===undefined){const a=M.att.find(x=>x.ass===s.id);s.next=a?a.due:(s.start||null);s.last=s.last||null}});MN.ready=true;
  const o=document.getElementById('mnOvl');if(o&&!o.hidden)return;
  if(!(document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)))refresh()}
 function onProc(d){MN.procL=true;MN.pdoc=d&&d.proc||null;if(MN.mainL&&(!M.proc||!M.proc.length)){const m0=lastM;lastM='';onRemote(JSON.parse(m0||'{}'))}}
@@ -158,11 +158,23 @@ async function addHB(){if(M.hb1||MN._hb||!isR()||!M.proc.length)return;if(!M.sca
  M.hb1=1;saveM();refresh();if(out.length)mt('Aggiunte '+out.join(', ')+' (Termoregolatore HB-Therm)')}catch(er){}finally{MN._hb=0}}
 // una tantum (v2.14.8): procedure serbatoi in pressione e compressori
 async function addPC(){if(M.pc1||MN._pc||!isR()||!M.proc.length)return;if(!M.hb1){setTimeout(addPC,900);return}MN._pc=1;try{
- const TN=['Serbatoio in pressione','Compressore a vite'];const L=(await (await fetch('manut_std.json?v=2.14.8',{cache:'no-store'})).json()).filter(x=>TN.includes(x.comp));if(M.pc1||!L.length)return;
+ const TN=['Serbatoio in pressione','Compressore a vite','Essiccatore'];const L=(await (await fetch('manut_std.json?v=2.14.8b',{cache:'no-store'})).json()).filter(x=>TN.includes(x.comp));if(M.pc1||!L.length)return;
  const out=[];TN.forEach(nm=>{let t=M.tipi.find(x=>(x.nome||'').trim().toLowerCase()===nm.toLowerCase());if(!t){t={id:nid('t'),nome:nm,procs:[]};M.tipi.push(t)}
   L.filter(x=>x.comp===nm).forEach(x=>{if(M.proc.some(p=>p.desc===x.desc))return;const cod=M.proc.some(p=>p.cod===x.cod)?nextCod():x.cod;
    const p={id:nid('p'),cod,desc:x.desc,norma:x.norma,tipo:x.tipo,int:x.int,avv:x.avv,min:x.min,mat:x.mat,est:x.est?1:0,steps:JSON.parse(JSON.stringify(x.steps)),doc:null};M.proc.push(p);t.procs.push(p.id);out.push(cod)})});
- M.pc1=1;saveM();refresh();if(out.length)mt('Aggiunte '+out.join(', ')+' (serbatoi e compressori)')}catch(er){}finally{MN._pc=0}}
+ M.pc1=1;M.pc2=1;saveM();refresh();if(out.length)mt('Aggiunte '+out.join(', ')+' (serbatoi, compressori, essiccatori)')}catch(er){}finally{MN._pc=0}}
+// una tantum: tipo Essiccatore separato, tagliando + F-gas uniti in un solo intervento esterno annuale
+async function fixPC(){if(!M.pc1||M.pc2||MN._pc2||!isR()||!M.proc.length)return;MN._pc2=1;try{
+ const L=await (await fetch('manut_std.json?v=2.14.8b',{cache:'no-store'})).json();if(M.pc2)return;const S=c=>L.find(x=>x.cod===c);
+ const byD=d=>M.proc.find(p=>p.desc===d);const tC=M.tipi.find(x=>(x.nome||'').trim().toLowerCase()==='compressore a vite');
+ let tE=M.tipi.find(x=>(x.nome||'').trim().toLowerCase()==='essiccatore');if(!tE){tE={id:nid('t'),nome:'Essiccatore',procs:[]};M.tipi.push(tE)}
+ const setSteps=(p,x)=>{Object.assign(p,{desc:x.desc,norma:x.norma,min:x.min,mat:x.mat,steps:JSON.parse(JSON.stringify(x.steps))});M.att.filter(a=>a.proc===p.id).forEach(a=>{a.ok=p.steps.map((s,k)=>(a.ok||[])[k]||false);a.foto=p.steps.map((s,k)=>(a.foto||[])[k]||[])})};
+ const e=byD('Essiccatore – Controllo mensile');if(e){M.tipi.forEach(t=>{if(t!==tE)t.procs=t.procs.filter(id=>id!==e.id)});if(!tE.procs.includes(e.id))tE.procs.push(e.id)}
+ const c81=byD('Compressore – Controllo e pulizia mensile'),x81=S('PM081');if(c81&&x81)setSteps(c81,{...x81,desc:c81.desc});
+ const c82=byD('Compressore – Tagliando (12 mesi o 4000 h)'),x82=S('PM082');if(c82&&x82){setSteps(c82,x82);c82.est=1}
+ const f=byD('Essiccatore – Controllo perdite F-gas');if(f){M.tipi.forEach(t=>t.procs=t.procs.filter(id=>id!==f.id));const open=M.att.some(a=>a.proc===f.id);
+  if(!open){M.ass=M.ass.filter(a=>a.proc!==f.id);M.proc=M.proc.filter(p=>p.id!==f.id)}}
+ M.pc2=1;saveM();refresh();mt('Procedure compressori/essiccatori aggiornate')}catch(er){}finally{MN._pc2=0}}
 const EST=p=>p&&p.est?'<span style="color:#8a5300;font-weight:600">🏢 Fornitore esterno</span>':'';
 // una tantum: tempo di avviso su tutte le procedure (mensili 7 gg, trimestrali 15, semestrali 30, annuali e oltre 60)
 function setAvv(){if(M.avv1||!isR()||!M.proc.length)return;M.proc.forEach(p=>{if(p.avv==null||p.avv==='')p.avv=avvDef(p)});M.avv1=1;saveM()}

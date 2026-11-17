@@ -4,6 +4,7 @@
 - Pianificazione: filtro Zona (con sottozone, o «Senza zona») applicato a riquadri, elenchi, calendario e griglia annuale.
 - Procedure: spunta «Intervento fornitore esterno obbligatorio» (badge 🏢 in procedure e attività).
 - Nuovi tipi «Serbatoio in pressione» (PM077–PM080) e «Compressore a vite» (PM081–PM086), aggiunti automaticamente una sola volta; PM079, PM080, PM082, PM083, PM085 con fornitore esterno.
+- Tipo «Essiccatore» separato (PM084 interno). Tagliando compressore e controllo F-gas essiccatore uniti in PM082 «Intervento annuale fornitore esterno»; PM085 eliminata. Correzione automatica una sola volta sui dati già importati.
 
 ## 2.14.6 — 2026-11-17
 - Inserimento rapido: filtro zona per gli impianti già inseriti (come zona in alto, tutte, senza zona o una zona con le sottozone) e conteggio.
