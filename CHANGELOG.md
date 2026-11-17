@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.14.4 — 2026-11-17
+- Inserimento rapido: ogni nuova riga ha il suo menu Zona; di default usa la zona scelta in alto, ma si può cambiare riga per riga.
+
 ## 2.14.3 — 2026-11-17
 - Impostazioni → Impianti: filtro per zona (include le sottozone) e conteggio impianti mostrati.
 
