@@ -426,7 +426,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.16.1';
+const VERSIONE='2.16.2';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -801,7 +801,7 @@ const OPEN=new Set();const dk=k=>`data-pk="${esc(k)}" ${OPEN.has(k)?'open':''} o
 function pBox(p,e,A){const i=(S.pInfo||{})[p]||{},ar=pArea(p);
  const sum=[i.ente?i.ente:'senza reparto',i.resp?'resp. reparto':'',e&&e[1].perm&&e[1].perm.respOf&&Object.keys(e[1].perm.respOf).length?'resp. anche di '+Object.keys(e[1].perm.respOf).join(', '):'',e&&e[1].perm&&e[1].perm.manut?'impost. manutenzione':''].filter(Boolean).join(' · ');
  return`<details class="pbox" ${dk(p)}><summary>Ruolo e permessi <span class="muted">· ${esc(sum)}</span></summary>
- ${A?`<div class="pgrp"><b>Reparto</b><div class="muted" style="font-size:12px">La persona vede l'ambiente del suo reparto.</div><div class="evf"><label>Reparto<select data-pe="${esc(p)}"><option value="">— nessuno —</option>${S.enti.map(x=>`<option ${i.ente===x?'selected':''}>${esc(x)}</option>`).join('')}</select></label></div><label class="chkl" style="margin-top:6px"><input type="checkbox" data-pr="${esc(p)}" ${i.resp?'checked':''} ${i.ente?'':'disabled'}> Responsabile del reparto (gestisce le persone del suo reparto)</label></div>`:''}
+ ${A?`<div class="pgrp"><b>Reparto</b><div class="muted" style="font-size:12px">La persona vede l'ambiente del suo reparto.</div><div class="evf"><label>Reparto<select data-pe="${esc(p)}"><option value="">— nessuno —</option>${S.enti.map(x=>`<option ${i.ente===x?'selected':''}>${esc(x)}</option>`).join('')}</select></label></div><label class="chkl" style="margin-top:6px"><input type="checkbox" data-pr="${esc(p)}" ${i.resp?'checked':''} ${i.ente?'':'disabled'}> Responsabile del reparto (gestisce le persone del suo reparto)</label>${S.enti.filter(x=>x!==i.ente).length?`<div style="margin-top:8px"><div class="muted" style="font-size:12px">Assegnabile anche in (oltre al suo reparto):</div>${S.enti.filter(x=>x!==i.ente).map(x=>`<label class="chkl"><input type="checkbox" data-pa="${esc(p)}|${esc(x)}" ${(i.alsoE||[]).includes(x)?'checked':''}> ${esc(x)}</label>`).join('')}</div>`:''}</div>`:''}
  ${e?permHtml(e[0]):'<div class="pgrp muted">Senza accesso all\'app: crea l\'accesso per dare i permessi.</div>'}</details>`}
 document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.rsz){const [e,k]=t.dataset.rsz.split('|');S.repSez=S.repSez||{};const cur=[...repSez(e)];const nx=t.checked?[...cur,k]:cur.filter(x=>x!==k);S.repSez[e]=SEZ.map(x=>x[0]).filter(x=>nx.includes(x));render()}
  if(t&&t.dataset&&t.dataset.respof){const [u,e]=t.dataset.respof.split('|');const x=S.utenti[u];if(!x)return;const pm=x.perm||(x.perm={});const h=pm.respOf||(pm.respOf={});if(t.checked)h[e]=true;else delete h[e];render()}
@@ -851,7 +851,7 @@ const curEnte=()=>isAdm_()?(S.admEnte??'*'):(S.curE!=null&&S.curE!==myEnte()&&(a
 const inEnte=e=>curEnte()==='*'||(e||'')===curEnte();
 const cVis=c=>inEnte(c.ente);
 const evVis=e=>{const c=e.comm&&S.commesse.find(x=>x.id===e.comm);return c?cVis(c):inEnte(e.ente)};
-const visPers=()=>S.persone.filter(p=>inEnte(pEnte(p))||(S.user&&p===S.user.nome));
+const visPers=()=>S.persone.filter(p=>inEnte(pEnte(p))||(S.user&&p===S.user.nome)||(curEnte()!=='*'&&(((S.pInfo||{})[p]||{}).alsoE||[]).includes(curEnte())));
 const persOpts=cur=>{const pm=(S.user&&S.user.perm)||{},full=isAdm_()||isResp()||pm.add||pm.ing;const l=full?[...visPers()]:[S.user.nome,...Object.keys(pm.addFor||{}).filter(x=>S.persone.includes(x))];if(cur&&!l.includes(cur))l.push(cur);return l};
 const newEnte=()=>curEnte()==='*'?'':curEnte();
 const enteSel=()=>{const noE=S.commesse.some(c=>!c.ente)||S.persone.some(p=>!pEnte(p));return`<label class="esel"><span>Ente</span><select id="admEnte" aria-label="Ente da visualizzare"><option value="*" ${curEnte()==='*'?'selected':''}>Tutti gli enti</option>${S.enti.map(e=>`<option ${curEnte()===e?'selected':''}>${esc(e)}</option>`).join('')}${noE?`<option value="" ${curEnte()===''?'selected':''}>Senza ente</option>`:''}</select></label>`};
@@ -861,6 +861,7 @@ try{const v=localStorage.getItem('ep-admEnte');if(v!=null)S.admEnte=v}catch(e){}
 document.addEventListener('change',e=>{const t=e.target;if(!t||!t.dataset)return;
  if(t.id==='admEnte'){S.admEnte=t.value;try{localStorage.setItem('ep-admEnte',t.value)}catch(_){}S.selC=null;S.gSel='tutte';S.selM=null;render();return}
  if(t.dataset.pe!=null){S.pInfo=S.pInfo||{};const p=t.dataset.pe,i=S.pInfo[p]||(S.pInfo[p]={});i.ente=t.value;if(!t.value)i.resp=false;window.FB&&FB.syncResp&&FB.syncResp(p);render()}
+ else if(t.dataset.pa!=null){S.pInfo=S.pInfo||{};const [p,x]=t.dataset.pa.split('|'),i=S.pInfo[p]||(S.pInfo[p]={});const l=(i.alsoE||[]).filter(y=>y!==x);if(t.checked)l.push(x);i.alsoE=l;render()}
  else if(t.dataset.pr!=null){S.pInfo=S.pInfo||{};const p=t.dataset.pr,i=S.pInfo[p]||(S.pInfo[p]={});i.resp=t.checked;window.FB&&FB.syncResp&&FB.syncResp(p);render()}});
 function ini(p){return esc(p.split(' ').map(s=>s[0]||'').join('').slice(0,2).toUpperCase())}
 function prog(c){const LA=c.att.filter(a=>!a.sum),t=LA.length,d=LA.filter(a=>a.stato==='conclusa').length,pc=t?Math.round(d/t*100):0;return`<span class="pg"><span class="pgb"><i style="width:${pc}%"></i></span><span class="pgt">${d}/${t}</span></span>`}
@@ -1024,7 +1025,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  <input id="nNome" placeholder="Nome e cognome"><label class="chkl" style="color:var(--onink)"><input type="checkbox" id="nAcc" checked> Crea accesso all'app</label>
  <div class="muted" style="font-size:11px">Nome utente: prime 3 lettere del nome + prime 3 del cognome. Password iniziale <span class="mono">123</span>, da cambiare al primo accesso.</div>
  <div class="err" id="nErr"></div><button class="btn pri" id="nAdd">Aggiungi persona</button></div></aside>
- <section class="panel"><h2 style="margin-bottom:12px">${A?'Persone e accessi':'Persone di '+esc(myEnte())}</h2>${(()=>{const PF=S.pf||(S.pf={e:'',q:''});const tot=visPers().length,vis=visPers().filter(pfOk).length;return `<div class="pfbar">${A&&S.enti.length?`<label>Reparto<select onchange="S.pf.e=this.value;render()"><option value="">Tutti</option>${S.enti.map(x=>`<option ${PF.e===x?'selected':''}>${esc(x)}</option>`).join('')}<option value="__no" ${PF.e==='__no'?'selected':''}>Senza reparto</option></select></label>`:''}<label class="pfq">Cerca nome<input id="pfQ" type="search" value="${esc(PF.q)}" placeholder="Nome o cognome…" oninput="S.pf.q=this.value;S._fq=1;render()"></label>${PF.e||PF.q?`<button class="btn sm" onclick="S.pf={e:'',q:''};render()">Azzera</button>`:''}<span class="muted" style="font-size:12px">${vis===tot?tot+' persone':vis+' di '+tot+' persone'}</span></div>`})()}<div class="stack">
+ <section class="panel"><h2 style="margin-bottom:12px">${A?'Persone e accessi':'Persone di '+esc(myEnte())}</h2>${A&&S.user&&S.user.nome&&!S.persone.includes(S.user.nome)?`<div class="row" style="margin-bottom:12px"><span class="muted" style="font-size:13px;flex:1">Non sei tra le persone: non puoi assegnarti attività.</span><button class="btn sm pri" id="addMe">Aggiungimi alle persone</button></div>`:''}${(()=>{const PF=S.pf||(S.pf={e:'',q:''});const tot=visPers().length,vis=visPers().filter(pfOk).length;return `<div class="pfbar">${A&&S.enti.length?`<label>Reparto<select onchange="S.pf.e=this.value;render()"><option value="">Tutti</option>${S.enti.map(x=>`<option ${PF.e===x?'selected':''}>${esc(x)}</option>`).join('')}<option value="__no" ${PF.e==='__no'?'selected':''}>Senza reparto</option></select></label>`:''}<label class="pfq">Cerca nome<input id="pfQ" type="search" value="${esc(PF.q)}" placeholder="Nome o cognome…" oninput="S.pf.q=this.value;S._fq=1;render()"></label>${PF.e||PF.q?`<button class="btn sm" onclick="S.pf={e:'',q:''};render()">Azzera</button>`:''}<span class="muted" style="font-size:12px">${vis===tot?tot+' persone':vis+' di '+tot+' persone'}</span></div>`})()}<div class="stack">
  ${visPers().filter(pfOk).map(p=>{const e=us.find(([k,v])=>v.nome===p),n=allAtt().filter(a=>a.pers===p).length;
   const acc=e?`<span class="mono">${esc(e[0])}</span> · ${A?`<select data-ruolo="${esc(e[0])}"><option value="persona" ${e[1].ruolo!=='admin'?'selected':''}>Persona</option><option value="admin" ${e[1].ruolo==='admin'?'selected':''}>Amministratore</option></select>`:(e[1].ruolo==='admin'?'amministratore':pR(p)?'responsabile ente':'persona')} ${e[1].must?'<span class="pill p-warn">Primo accesso da fare</span>':'<span class="pill p-ok">Attivo</span>'}${e[1].email?' · '+esc(e[1].email):''}`:'senza accesso';
   return`<div class="irow"><span class="av">${ini(p)}</span><div style="min-width:0"><div class="cn">${esc(p)}</div><div class="muted" style="font-size:12px">${acc} · ${n} attività</div>${(A||(e&&permHtml(e[0])))?pBox(p,e,A):''}</div>
@@ -1041,6 +1042,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  ${S.voci.map((v,i)=>`<div class="irow rrow2"><span class="av">${i+1}</span><input data-vn="${i}" value="${esc(v)}" aria-label="Nome voce">${S.delV===i?`<div class="row"><button class="btn sm pri" data-vdel="${i}">Conferma</button><button class="btn sm" data-vno>Annulla</button></div>`:`<div class="row"><button class="btn sm" data-vmv="${i}|-1" ${i?'':'disabled'} aria-label="Su">▲</button><button class="btn sm" data-vmv="${i}|1" ${i<S.voci.length-1?'':'disabled'} aria-label="Giù">▼</button><button class="btn sm" data-vask="${i}">Elimina</button></div>`}</div>`).join('')}
  <div class="row"><input id="vNew" placeholder="Nuova voce (es. Collaudo)" style="flex:1"><button class="btn pri" id="vAdd">Aggiungi voce</button></div></div>`:''}</section></div>`;
  const busy=(b,p)=>{b.disabled=true;p.catch(e=>toast(FB.err(e))).finally(()=>render())};
+ $('#addMe')&&($('#addMe').onclick=()=>{const n=S.user.nome;if(!S.persone.includes(n))S.persone.push(n);render()});
  $('#nAdd').onclick=e=>{const nome=$('#nNome').value.trim();if(!nome)return $('#nErr').textContent='Inserisci nome e cognome.';if(S.persone.includes(nome))return $('#nErr').textContent='Questa persona esiste già.';
   S.persone.push(nome);if(newEnte()){S.pInfo=S.pInfo||{};S.pInfo[nome]={ente:newEnte()}}if($('#nAcc').checked)busy(e.target,FB.creaAccesso(nome));else render()};
  document.querySelectorAll('[data-mk]').forEach(b=>b.onclick=()=>busy(b,FB.creaAccesso(b.dataset.mk)));
@@ -1075,7 +1077,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.16.1"></script>
+<script src="manutenzione.js?v=2.16.2"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";

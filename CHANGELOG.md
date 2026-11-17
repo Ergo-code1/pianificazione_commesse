@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.16.2 — 2026-11-17
+- Persone e accessi: per ogni persona «Assegnabile anche in» altri reparti (es. Ingegneria e Manutenzione): compare negli elenchi di assegnazione di quei reparti.
+- Se l'amministratore non è tra le persone, pulsante «Aggiungimi alle persone» per potersi assegnare attività.
+
 ## 2.16.1 — 2026-11-17
 - Esecuzione attività: «Ricambi utilizzati» con spunta «Da riacquistare» (non spuntata di default), modificabile anche dopo; solo quelli spuntati vanno nell'elenco da acquistare.
 
