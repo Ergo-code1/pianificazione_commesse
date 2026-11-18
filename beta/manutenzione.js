@@ -207,19 +207,19 @@ const qm=(...s)=>!MN.f.q||s.join(' ').toLowerCase().includes(MN.f.q.toLowerCase(
 function attOk(a){const i=IA(a),p=PA(a);if(!p)return false;const f=MN.f;return(!f.imp||a.imp===f.imp)&&(!f.proc||a.proc===f.proc)&&(!f.man||(f.man==='-'?!a.man:a.man===f.man))&&(!f.stato||status(a)[2]===f.stato)&&qm(i.cod,i.nome,i.cli,CMP(a),p.cod,p.desc)}
 
 // ---------- viste ----------
-const LEAF=['manut','mpers','mimp','mric','msto','mlog','cimp','ccat','ctipi','cproc'];
-const HEAD={manut:['Pianificazione','Panoramica dell\'anno e calendario. In ogni manutenzione entrano solo le procedure già scadute alla data scelta.'],mpers:['Attività assegnate','Manutenzioni da eseguire, per persona e per impianto.'],mimp:['Impianti','Ultima e prossima manutenzione di ogni impianto. Aprilo per storico, note e ricambi.'],mric:['Segnalazioni','Note e ricambi necessari degli impianti, raccolti in un unico punto. Il responsabile segna gli acquisti e archivia.'],mlog:['Registro attività','Tutto quello che è successo alle attività: pianificazioni, assegnazioni, spostamenti, completamenti, attività tornate da ripianificare.'],msto:['Storico interventi','Attività eseguite, con rapporto PDF ed esportazione Excel.'],cimp:['Impianti','Anagrafica impianti e componenti.'],ccat:['Categorie impianti','Classificazione a livelli (es. Plant › Reparto › Tipologia). Ogni impianto si assegna a una categoria.'],ctipi:['Tipi componente','Le procedure del tipo valgono per tutti i componenti di quel tipo.'],cproc:['Procedure','Modelli di manutenzione: frequenza, passi da confermare, documento.']};
+const LEAF=['manut','mcar','mpers','mimp','mric','msto','mlog','cimp','ccat','ctipi','cproc'];
+const HEAD={mcar:['Carico persone','Ore di manutenzione e di supporto al plant per ogni manutentore, settimana per settimana, dai turni di Turni e ferie.'],manut:['Pianificazione','Panoramica dell\'anno e calendario. In ogni manutenzione entrano solo le procedure già scadute alla data scelta.'],mpers:['Attività assegnate','Manutenzioni da eseguire, per persona e per impianto.'],mimp:['Impianti','Ultima e prossima manutenzione di ogni impianto. Aprilo per storico, note e ricambi.'],mric:['Segnalazioni','Note e ricambi necessari degli impianti, raccolti in un unico punto. Il responsabile segna gli acquisti e archivia.'],mlog:['Registro attività','Tutto quello che è successo alle attività: pianificazioni, assegnazioni, spostamenti, completamenti, attività tornate da ripianificare.'],msto:['Storico interventi','Attività eseguite, con rapporto PDF ed esportazione Excel.'],cimp:['Impianti','Anagrafica impianti e componenti.'],ccat:['Categorie impianti','Classificazione a livelli (es. Plant › Reparto › Tipologia). Ogni impianto si assegna a una categoria.'],ctipi:['Tipi componente','Le procedure del tipo valgono per tutti i componenti di quel tipo.'],cproc:['Procedure','Modelli di manutenzione: frequenza, passi da confermare, documento.']};
 window.vManut=function(){start();if(!LEAF.includes(S.tab)){const v=document.getElementById('view');if(v)v.innerHTML='';return}draw()};
 function draw(){return(window.KS||(f=>f()))(draw0)}
 function draw0(){const v=document.getElementById('view');if(!v||!LEAF.includes(S.tab))return;
  if(MN.err){v.innerHTML=`<div class="panel"><b>Area manutenzione non accessibile.</b><p class="muted">${e_(MN.err)}. Controlla le regole di Firestore.</p></div>`;return}
  if(!MN.ready){v.innerHTML=`<div class="panel muted">Caricamento manutenzione… ${e_(MN.stage||'')}</div>`;setTimeout(()=>{if(!MN.ready)draw()},1500);return}
  if(MN.tab!==S.tab){MN.tab=S.tab;MN.f={imp:'',stato:'',man:'',proc:'',q:'',da:'',a:'',cat:''};if(S.tab!=='mimp')MN.impSel=null}
- const R=isR(),npb=`<button class="btn" onclick="MNX.np()">+ Intervento non programmato</button>`,lib=(R?`<button class="btn" onclick="MNX.newLib()">+ Altra attività</button>`:'')+npb,act={mimp:npb,msto:npb,manut:R?`${lib}<button class="btn pri" onclick="MNX.plan()">+ Pianifica manutenzione</button>`:npb,mpers:lib+`<button class="btn" onclick="MNX.diag()">Diagnostica</button>`,ccat:`<button class="btn pri" onclick="MNX.catAdd()">+ Livello principale</button>`,mric:'',cimp:`<button class="btn" onclick="MNX.qi()">Inserimento rapido</button><button class="btn pri" onclick="MNX.newImp()">+ Nuovo impianto</button>`,ctipi:`<button class="btn pri" onclick="MNX.newTipo()">+ Nuovo tipo</button>`,cproc:`<button class="btn pri" onclick="MNX.editProc()">+ Nuova procedura</button>`}[S.tab]||'';
+ const R=isR(),npb=`<button class="btn" onclick="MNX.np()">+ Intervento non programmato</button>`,lib=(R?`<button class="btn" onclick="MNX.newLib()">+ Altra attività</button>`:'')+npb,act={mimp:npb,msto:npb,manut:R?`${lib}<button class="btn" onclick="MNX.auto()">⚙ Pianificazione automatica</button><button class="btn pri" onclick="MNX.plan()">+ Pianifica manutenzione</button>`:npb,mpers:lib+`<button class="btn" onclick="MNX.diag()">Diagnostica</button>`,ccat:`<button class="btn pri" onclick="MNX.catAdd()">+ Livello principale</button>`,mric:'',cimp:`<button class="btn" onclick="MNX.qi()">Inserimento rapido</button><button class="btn pri" onclick="MNX.newImp()">+ Nuovo impianto</button>`,ctipi:`<button class="btn pri" onclick="MNX.newTipo()">+ Nuovo tipo</button>`,cproc:`<button class="btn pri" onclick="MNX.editProc()">+ Nuova procedura</button>`}[S.tab]||'';
  const hd=S.tab==='mimp'&&MN.impSel?null:HEAD[S.tab];
  v.innerHTML=`<div class="mnt">${MN.noProc?'<div class="mn-info" style="border-left-color:var(--accent)">Procedure non trovate: i dati sono in sola lettura. Avvisa l\'assistenza.</div>':''}${hd?`<div class="mn-head"><div><h2>${hd[0]}</h2><div class="muted">${hd[1]}</div></div><div class="row">${act}</div></div>`:''}<div id="mnBody"></div></div>`;
  const body=document.getElementById('mnBody');
- const r=({manut:vPian,mpers:vPers,mimp:vImpM,mric:vRic,msto:vSto,mlog:vLog,cimp:vImp,ccat:vCat,ctipi:vTipi,cproc:vProc})[S.tab]();
+ const r=({manut:vPian,mcar:vCar,mpers:vPers,mimp:vImpM,mric:vRic,msto:vSto,mlog:vLog,cimp:vImp,ccat:vCat,ctipi:vTipi,cproc:vProc})[S.tab]();
  if(r&&r.then){body.innerHTML='<div class="muted">Caricamento…</div>';r.then(h=>{if(document.getElementById('mnBody')===body){body.innerHTML=h;after()}})}else{body.innerHTML=r;after()}}
 function after(){if(MN.focus){const e=document.getElementById(MN.focus);if(e){e.focus();e.setSelectionRange?.(e.value.length,e.value.length)}MN.focus=null}}
 
@@ -254,7 +254,7 @@ function yCounts(y,imp){const im=typeof imp==='function'?imp:(x=>!imp||x===imp);
 function yearGrid(y,imp,fn,selM){const c=yCounts(y,imp),cur=tdy().slice(0,7);
  return `<div class="mn-yr">${MESI.map((m,k)=>{const ym=y+'-'+String(k+1).padStart(2,'0');return `<button class="mn-mo${ym===selM?' sel':''}${ym===cur?' cur':''}${ym<cur?' past':''}" onclick="MNX.${fn}('${ym}')"><b>${m}</b><span class="${c.pian[k]?'p':''}">${c.pian[k]} pianificate</span><span class="${c.fatte[k]?'f':''}">${c.fatte[k]} fatte</span></button>`}).join('')}</div>`}
 function zOk(id){const z=MN.pz;if(!z)return true;const i=id&&I(id);if(z==='_none')return !!i&&!(i.cat&&M.cat.some(c=>c.id===i.cat));return !!i&&catDesc(z).has(i.cat)}
-async function vPian(){const y=MN.anno2||(MN.anno2=tdy().slice(0,4));const cy=tdy().slice(0,4);await storico(y);await storico(cy);
+async function vPian(){await EPT.load();const y=MN.anno2||(MN.anno2=tdy().slice(0,4));const cy=tdy().slice(0,4);await storico(y);await storico(cy);
  const t=tdy(),all=M.imp.filter(i=>!i.dism&&zOk(i.id)).map(i=>({i,...impStatus(i.id)}));const ord={r:0,g:1,b:2,n:3,v:4};
  const pianR=all.filter(r=>r.toPlan&&!M.ass.some(s=>s.imp===r.i.id&&pend(s))).sort((a,b)=>ord[a.w[2]]-ord[b.w[2]]||((a.next||'9')<(b.next||'9')?-1:1));
  const ripA=M.att.filter(a=>!a.due&&zOk(a.imp));
@@ -274,7 +274,7 @@ async function vPian(){const y=MN.anno2||(MN.anno2=tdy().slice(0,4));const cy=td
  if(box==='late'){tit='In ritardo';lst=attList(late,isR())}
  if(box==='plan'){tit='Pianificate';lst=attList(plan,isR())}
  if(box==='done'){tit='Fatte questo mese';lst=list(done.map(a=>item(a.parziale?'var(--warn)':'var(--ok)',`${e_(a._pcod)} · ${e_(a._pdesc)}`,`<span><b>${fd(a.chiusa)}</b></span>${a._imp?`<span>${e_(a._imp)}</span>`:''}<span>👤 ${e_(a.esec)}</span>${a.parziale?'<span style="color:var(--warn);font-weight:600">chiusa in parte</span>':''}`,`<button class="btn sm" onclick="MNX.pdf('${cy}','${a.id}')">PDF</button>${isR()?`<button class="btn sm" onclick="MNX.riapri('${cy}','${a.id}')">Riapri</button><button class="btn sm" onclick="MNX.elFatta('${cy}','${a.id}')">Elimina</button>`:''}`)),'Nessuna attività completata questo mese.')}
- return (M.cat.length?`<div class="row" style="margin-bottom:10px"><label class="mn-fs">Zona<select onchange="MNX.pz(this.value)"><option value="">Tutte</option><option value="_none" ${MN.pz==='_none'?'selected':''}>Senza zona</option>${catOpts(MN.pz||'').replace(/^<option value="">[^<]*<\/option>/,'')}</select></label></div>`:'')+`<div class="mn-kpis mn-k5 mn-k6">${k('pian','Da pianificare',pianR.length,'var(--accent)','impianti')}${k('rip','Da ripianificare',ripA.length,'#b4235a','tolte da te o con passi mancanti')}${k('late','In ritardo',late.length,'var(--warn)','data passata, non concluse')}${k('plan','Pianificate',plan.length,'var(--info)','da oggi in poi')}${k('prox','Prossime scadenze',nextL.length+docS.length,'#2f7d6d','nei prossimi '+win+' giorni')}${k('done','Fatte',done.length,'var(--ok)','questo mese')}</div>
+ return anomH()+(M.cat.length?`<div class="row" style="margin-bottom:10px"><label class="mn-fs">Zona<select onchange="MNX.pz(this.value)"><option value="">Tutte</option><option value="_none" ${MN.pz==='_none'?'selected':''}>Senza zona</option>${catOpts(MN.pz||'').replace(/^<option value="">[^<]*<\/option>/,'')}</select></label></div>`:'')+`<div class="mn-kpis mn-k5 mn-k6">${k('pian','Da pianificare',pianR.length,'var(--accent)','impianti')}${k('rip','Da ripianificare',ripA.length,'#b4235a','tolte da te o con passi mancanti')}${k('late','In ritardo',late.length,'var(--warn)','data passata, non concluse')}${k('plan','Pianificate',plan.length,'var(--info)','da oggi in poi')}${k('prox','Prossime scadenze',nextL.length+docS.length,'#2f7d6d','nei prossimi '+win+' giorni')}${k('done','Fatte',done.length,'var(--ok)','questo mese')}</div>
  <div class="mn-calw" style="margin-bottom:14px">${cal()}</div>
  <div class="mn-calw" style="margin-bottom:14px"><div class="mn-calh"><button class="btn" onclick="MNX.anno2(-1)" aria-label="Anno precedente">‹</button><h3>Pianificate e fatte per mese · ${y}</h3><button class="btn" onclick="MNX.anno2(1)" aria-label="Anno successivo">›</button></div>${yearGrid(y,MN.pz?zOk:null,'meseSel',MN.mese)}</div>
  <div><h3 style="margin-bottom:8px">${tit}</h3>${lst}</div>`}
@@ -573,6 +573,150 @@ function drawQI(){const q=MN.qi,T_=M.tipi,EX=qiEx();const sc0=document.getElemen
  ${q.paste?`<div class="evf"><label>Incolla l'elenco, una riga per impianto. Da Excel (colonne separate) o con «;»: Nome | Descrizione | Commessa | Cliente. Testo semplice: il primo pezzo è il nome, il resto la descrizione<textarea id="mnQiP" rows="10"></textarea></label></div><div class="row" style="justify-content:flex-end"><button class="btn" onclick="MNX.qiPaste(false)">Annulla</button><button class="btn pri" onclick="MNX.qiPasteOk()">Aggiungi righe</button></div>`:''}<div class="row" style="justify-content:space-between"><div class="row"><button class="btn" onclick="MNX.qiRow(-1)">+ Riga</button><button class="btn" onclick="MNX.qiPaste(true)">Incolla elenco</button></div><div class="row"><button class="btn" onclick="MNX.close()">Annulla</button><button class="btn pri" onclick="MNX.qiOk()">Crea impianti</button></div></div>
  <div class="muted" style="font-size:12px">Ogni spunta aggiunge un componente di quel tipo con le sue procedure. Sugli impianti già inseriti la spunta aggiunge subito il componente (✓ verde = presente: cliccalo per toglierlo con le sue procedure); per togliere o duplicare usa «Configura».</div>`);
  const o=document.getElementById('mnOvl');const box=o&&o.firstElementChild;if(box){box.style.width='100%';box.style.maxWidth='none';box.style.minHeight='calc(100vh - 24px)';box.style.alignContent='start'}if(o){o.style.padding='12px'}const sc=document.getElementById('mnQiS');if(sc)sc.scrollTop=st0;if(o)o.scrollTop=ot0}
+// ---------- turni da «Turni e ferie» + pianificazione automatica + carico persone (v2.23.0) ----------
+// Il riepilogo turni lo scrive l'app Turni e ferie (ergoplan/rep_<id>, un doc per reparto di ingegneria e manutenzione).
+// «Sincronizza turni» lo legge con un utente di Turni e ferie e lo copia in Ergo Plan (manutDoc/_turni), visibile a tutti.
+const AP_WORK=['M','P','N','G'],AP_LAB={M:'Mattina',P:'Pomeriggio',N:'Notte',G:'Giornata'},AP_GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+const AP={step:'par',res:null};
+const apNk=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z ]/g,' ').replace(/\s+/g,' ').trim();
+function apGuess(n){const L=S.persone||[],k=apNk(n),w=k.split(' ').sort().join(' ');return L.find(p=>apNk(p)===k)||L.find(p=>apNk(p).split(' ').sort().join(' ')===w)||L.find(p=>{const q=apNk(p).split(' ');return q.length>1&&q.every(x=>k.split(' ').includes(x))})||''}
+// --- riepilogo turni (cache condivisa) ---
+const EPT={d:null,ld:0,
+ async load(force){if(this.d&&!force&&Date.now()-this.ld<300000)return this.d;try{const x=await window.FBM.getBlob('manutDoc','_turni');this.d=x||null;this.ld=Date.now()}catch(e){}return this.d},
+ rows(){const T=this.d;if(!T||!T.p)return[];return Object.entries(T.p).map(([k,x])=>({k,n:x.n,rep:x.rep,ep:({...((M.autoP||{}).map||{}),...((AP.p||{}).map||{})})[x.n]||x.ep||apGuess(x.n),s:String(x.s||'').split(','),t:String(x.t||'').split(',')}))},
+ idx(d){const T=this.d;if(!T)return -1;const i=Math.round((new Date(d+'T12:00:00')-new Date(T.da+'T12:00:00'))/864e5);return i>=0&&i<T.n?i:-1},
+ row(ep){return this.rows().find(r=>r.ep&&sameP(r.ep,ep))},
+ // turno lavorato (M/P/N/G) o '' se assente/riposo/fuori periodo
+ work(r,d){const i=this.idx(d);if(!r||i<0)return'';const s=r.s[i]||'',t=r.t[i]||'';return AP_WORK.includes(s)&&t.startsWith(s)?s:''},
+ // assenza da mostrare (ferie, mutua, corso…): testo o ''
+ abs(r,d){const i=this.idx(d);if(!r||i<0)return'';const s=r.s[i]||'',t=r.t[i]||'';if(!t||AP_WORK.includes(s)&&t.startsWith(s))return'';return t}};
+window.EPT={abs:(p,d)=>EPT.abs(EPT.row(p),d),load:f=>EPT.load(f),ready:()=>!!EPT.d};
+async function tfLogin(){const u=prompt('Utente dell\'app Turni e ferie (serve solo per leggere i turni):');if(!u)return false;const pw=prompt('Password di '+u+':');if(!pw)return false;
+ try{await window.FBM.tfLogin(u.trim(),pw);return true}catch(er){mt('Accesso a Turni e ferie non riuscito: '+FB.err(er));return false}}
+async function syncTurni(){if(!isR())return mt('Solo il responsabile può sincronizzare');mt('Leggo i turni…');let x;
+ try{x=await window.FBM.tfRead()}catch(er){if(er&&er.code==='tf-login'){if(!await tfLogin())return;try{x=await window.FBM.tfRead()}catch(e2){return mt('Turni non leggibili: '+FB.err(e2))}}else return mt('Turni non leggibili: '+FB.err(er))}
+ if(!x||!x.p)return mt('Riepilogo non trovato: in Turni e ferie un responsabile o l\'admin deve salvare una modifica (serve la Rev. 15.9.1)');
+ const map=(M.autoP||{}).map||{};Object.values(x.p).forEach(r=>{r.ep=map[r.n]||apGuess(r.n)});
+ try{await window.FBM.putBlob('manutDoc','_turni',{...x,sinc:new Date().toISOString(),da_chi:me()||''});EPT.d=x;EPT.ld=Date.now()}catch(er){return mt('Turni non salvati in Ergo Plan: '+FB.err(er))}
+ mt('Turni sincronizzati: '+Object.keys(x.p).length+' persone, aggiornati in Turni e ferie il '+new Date(x.agg).toLocaleString('it-IT'));refresh();if(document.getElementById('mnOvl')&&!document.getElementById('mnOvl').hidden&&AP.p)drawAP()}
+const tAge=()=>{const T=EPT.d;if(!T)return'<span style="color:var(--accent)">Turni mai sincronizzati</span>';const h=(Date.now()-new Date(T.sinc||T.agg))/36e5;
+ return `<span class="muted" style="${h>24?'color:var(--accent)':''}">Turni sincronizzati il ${new Date(T.sinc||T.agg).toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'})}${h>24?' · da aggiornare':''}</span>`};
+// --- parametri ---
+function apDef(){const t=tdy(),o=M.autoP||{};return{da:o.da&&o.da>=t?o.da:t,a:o.a&&o.a>t?o.a:addM(t,2),cat:o.cat!=null?o.cat:(MN.pz&&MN.pz!=='_none'?MN.pz:''),rep:o.rep||'',
+ pm:o.pm!=null?o.pm:50,maxT:o.maxT||1,maxF:o.maxF||3,tol:o.tol!=null?o.tol:15,turni:o.turni||['N','P','M','G'],gg:o.gg||[0,1,2,3,4,5,6],ggPref:o.ggPref||[6,0],
+ est:!!o.est,evt:o.evt!==false,map:o.map||{},pp:o.pp||{},minDef:o.minDef||30}}
+const PPof=(o,ep)=>{const x=(o.pp||{})[ep]||{};return{pm:x.pm!=null?x.pm:o.pm,prev:x.prev!==false,off:!!x.off}};
+const repRows=o=>EPT.rows().filter(r=>(!o.rep||r.rep===o.rep)&&r.ep);
+const minOf=(p,o)=>+p.min||(o||M.autoP||{}).minDef||30;
+// --- simulazione: non scrive nulla ---
+function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};
+ const zone=o.cat?catDesc(o.cat):null,imps=M.imp.filter(i=>!i.dism&&(!zone||zone.has(i.cat)));
+ const pers=repRows(o).filter(r=>{const q=PPof(o,r.ep);return !q.off&&q.prev&&q.pm>0}).map(r=>({r,ep:r.ep,cap:Math.round(8*60*PPof(o,r.ep).pm/100)}));res.pers=pers;
+ const used={},cntT={},cntF={};
+ // ore già occupate da manutenzioni pianificate prima (non toccate)
+ M.att.forEach(a=>{if(!a.due||a.chiusa||!a.man||a.due<o.da||a.due>o.a)return;const k=a.man+'|'+a.due;used[k]=(used[k]||0)+minOf(PA(a)||{},o)});
+ const dueOf=s=>{const p=P(s.proc);if(pend(s))return tdy();if(p.tipo==='evento')return s.evt?tdy():null;return s.next||tdy()};
+ const days=[];for(let d=o.da;d<=o.a;d=addD(d,1))days.push(d);
+ const groups=[];
+ imps.forEach(i=>{let it=M.ass.filter(s=>s.imp===i.id&&P(s.proc)&&!P(s.proc)._miss&&!planned(s)).map(s=>({s,p:P(s.proc),due:dueOf(s)})).filter(x=>x.due&&x.due<=o.a);
+  it.filter(x=>x.p.est&&!o.est).forEach(x=>res.skip.push({i,p:x.p,why:'fornitore esterno'}));it=it.filter(x=>!x.p.est||o.est);
+  it.filter(x=>x.p.tipo==='evento'&&!o.evt).forEach(x=>res.skip.push({i,p:x.p,why:'a evento'}));it=it.filter(x=>x.p.tipo!=='evento'||o.evt);
+  it.sort((a,b)=>a.due<b.due?-1:1);while(it.length){const d0=it[0].due,lim=addD(d0<o.da?o.da:d0,o.tol);const g=it.filter(x=>x.due<=lim);it=it.filter(x=>x.due>lim);groups.push({i,it:g,due:d0,min:g.reduce((t,x)=>t+minOf(x.p,o),0)})}});
+ groups.sort((a,b)=>a.due<b.due?-1:a.due>b.due?1:b.min-a.min);
+ const tOrd=t=>{const k=o.turni.indexOf(t);return k<0?99:k};
+ groups.forEach(g=>{const from=addD(g.due,-o.tol)<o.da?o.da:addD(g.due,-o.tol),to=addD(g.due,o.tol);let best=null;
+  for(const d of days){if(d<from)continue;const wd=new Date(d+'T12:00:00').getDay();if(!o.gg.includes(wd)||(cntF[d]||0)>=o.maxF)continue;
+   for(const x of pers){const t=EPT.work(x.r,d);if(!t||!o.turni.includes(t))continue;const k=d+'|'+t,u=used[x.ep+'|'+d]||0,nT=cntT[k]||new Set();
+    if(!nT.has(x.ep)&&nT.size>=o.maxT)continue;if(u+g.min>x.cap&&!(u===0&&g.min>x.cap&&x.cap>=120))continue;
+    const sc=(d>to?1000:0)+(o.ggPref.includes(wd)?0:40)+tOrd(t)*10+((res.carico[x.ep]||0)/Math.max(x.cap,1))*5+days.indexOf(d)*0.5+(d<g.due?3:0);
+    if(!best||sc<best.sc)best={sc,d,t,x}}
+   if(best&&best.sc<40&&d>=g.due)break}
+  if(!best){g.it.forEach(x=>res.skip.push({i:g.i,p:x.p,why:'nessun manutentore libero nel periodo'}));return}
+  const k=best.d+'|'+best.t;(cntT[k]=cntT[k]||new Set()).add(best.x.ep);used[best.x.ep+'|'+best.d]=(used[best.x.ep+'|'+best.d]||0)+g.min;cntF[best.d]=(cntF[best.d]||0)+1;
+  res.carico[best.x.ep]=(res.carico[best.x.ep]||0)+g.min;
+  res.vis.push({imp:g.i.id,data:best.d,turno:best.t,man:best.x.ep,min:g.min,due:g.due,late:best.d>g.due,ids:g.it.map(x=>x.s.id)})});
+ res.vis.sort((a,b)=>a.data<b.data?-1:a.data>b.data?1:a.turno<b.turno?-1:1);return res}
+// --- maschera parametri ---
+function drawAP(){const o=AP.p;if(AP.step==='res')return drawAPres();
+ const reps=[...new Set(EPT.rows().map(r=>r.rep))],rows=EPT.rows().filter(r=>!o.rep||r.rep===o.rep);
+ const chk=(v,l,arr)=>`<label class="mn-chk" style="display:inline-flex!important;margin-right:10px"><input type="checkbox" ${o[arr].includes(v)?'checked':''} onchange="MNX.apArr('${arr}',${typeof v==='number'?v:`'${v}'`},this.checked)"> ${l}</label>`;
+ const num=(k,l,min,max,s)=>`<label>${l}<input type="number" min="${min}" max="${max}" value="${o[k]}" onchange="MNX.apSet('${k}',+this.value)">${s?`<span class="muted" style="font-size:12px">${s}</span>`:''}</label>`;
+ const q_=s=>e_(s).replace(/'/g,"\\'");
+ const prow=r=>{const ep=r.ep,q=PPof(o,ep||'');return `<tr><td>${e_(r.n)}</td><td><select onchange="MNX.apMap('${q_(r.n)}',this.value)"><option value="">— non abbinata —</option>${(S.persone||[]).map(p=>`<option ${p===ep?'selected':''}>${e_(p)}</option>`).join('')}</select></td>
+  ${ep?`<td><input type="number" min="0" max="100" step="5" value="${q.pm}" style="width:64px" ${q.off||!q.prev?'disabled':''} onchange="MNX.apPP('${q_(ep)}','pm',+this.value)"> <span class="muted" style="font-size:12px">/ ${100-q.pm}</span></td>
+  <td style="text-align:center"><input type="checkbox" ${q.prev&&!q.off?'checked':''} ${q.off?'disabled':''} onchange="MNX.apPP('${q_(ep)}','prev',this.checked)"></td><td style="text-align:center"><input type="checkbox" ${q.off?'checked':''} onchange="MNX.apPP('${q_(ep)}','off',this.checked)"></td>`:'<td colspan="3" class="muted">abbina a una persona</td>'}</tr>`};
+ ovl(`<div class="mn-oh"><h2>Pianificazione automatica</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div>
+ <div class="muted" style="font-size:13px">Scegli i parametri e premi «Simula»: vedi la proposta, poi decidi se confermarla o rifarla. Finché non confermi non viene salvato nulla.</div>
+ <div class="mn-step"><b>1 · Manutentori e turni</b>
+  <div class="row"><button class="btn" onclick="MNX.syncT()">🔄 Sincronizza turni</button>${tAge()}</div>
+  ${EPT.d?`<div class="evf"><label>Reparto<select onchange="MNX.apSet('rep',this.value)"><option value="">Tutti</option>${reps.map(r=>`<option ${o.rep===r?'selected':''}>${e_(r)}</option>`).join('')}</select></label>
+  ${num('pm','% del turno per manutenzione (predefinita)',0,100,'il resto è supporto al plant: guasti e cambi modello')}</div>
+  <div style="overflow-x:auto"><table class="mn-tab" style="width:100%;font-size:13px;border-collapse:collapse"><thead><tr><th style="text-align:left">Turni e ferie</th><th style="text-align:left">Persona Ergo Plan</th><th>% manut. / supporto</th><th>Preventiva</th><th>Escludi da tutto</th></tr></thead><tbody>${rows.map(prow).join('')||'<tr><td colspan="5" class="muted">Nessuna persona</td></tr>'}</tbody></table></div>
+  <div class="muted" style="font-size:12px">Preventiva tolta: la persona non riceve manutenzioni programmate ma resta nel carico come supporto. Escludi da tutto: nessuna attività automatica e fuori dal carico.</div>`:''}
+ </div>
+ <div class="mn-step"><b>2 · Cosa pianificare</b><div class="evf">
+  <label>Dal<input type="date" value="${o.da}" onchange="MNX.apSet('da',this.value)"></label><label>Al<input type="date" value="${o.a}" onchange="MNX.apSet('a',this.value)"></label>
+  <label>Impianti (zona)<select onchange="MNX.apSet('cat',this.value)">${catOpts(o.cat,'Tutti gli impianti')}</select></label>
+  ${num('tol','Tolleranza sulla scadenza (± giorni)',0,60,'raggruppa le procedure vicine in un solo fermo')}
+  ${num('minDef','Durata se la procedura non la indica (min)',5,480)}</div>
+  <label class="mn-chk"><input type="checkbox" ${o.est?'checked':''} onchange="MNX.apSet('est',this.checked)"> Includi gli interventi con fornitore esterno</label>
+  <label class="mn-chk"><input type="checkbox" ${o.evt?'checked':''} onchange="MNX.apSet('evt',this.checked)"> Includi le procedure a evento già segnalate</label>
+ </div>
+ <div class="mn-step"><b>3 · Supporto alla produzione e fermi</b><div class="evf">
+  ${num('maxT','Manutentori in programmata per turno (max)',1,10,'gli altri del turno restano su guasti e cambi')}
+  ${num('maxF','Impianti fermi per manutenzione al giorno (max)',1,20)}</div>
+  <div>Turni utilizzabili <span class="muted" style="font-size:12px">(preferenza: ${o.turni.map(t=>AP_LAB[t]).join(' › ')})</span><br>${AP_WORK.map(t=>chk(t,AP_LAB[t],'turni')).join('')}</div>
+  <div>Giorni utilizzabili<br>${[1,2,3,4,5,6,0].map(d=>chk(d,AP_GG[d],'gg')).join('')}</div>
+  <div>Giorni preferiti per i fermi <span class="muted" style="font-size:12px">(meno produzione)</span><br>${[1,2,3,4,5,6,0].map(d=>chk(d,AP_GG[d],'ggPref')).join('')}</div>
+ </div>
+ <div class="row" style="justify-content:flex-end"><button class="btn" onclick="MNX.close()">Annulla</button><button class="btn" onclick="MNX.apSave()">Salva parametri</button><button class="btn pri" ${EPT.d?'':'disabled'} onclick="MNX.apRun()">Simula</button></div>`)}
+function drawAPres(){const r=AP.res,o=AP.p;const by={};r.vis.forEach(v=>(by[v.data]=by[v.data]||[]).push(v));
+ const tot=r.vis.reduce((t,v)=>t+v.ids.length,0),late=r.vis.filter(v=>v.late).length,sk={};r.skip.forEach(x=>(sk[x.why]=sk[x.why]||[]).push(x));
+ ovl(`<div class="mn-oh"><h2>Proposta di pianificazione</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div>
+ <div class="mn-info">${r.vis.length} fermi impianto · ${tot} procedure · dal ${fd(o.da)} al ${fd(o.a)}${late?` · <b style="color:var(--accent)">${late} oltre la scadenza</b>`:''}<br><span class="muted" style="font-size:12px">${o.maxT} per turno in programmata; max ${o.maxF} fermi al giorno. Il carico completo è nella pagina «Carico persone».</span></div>
+ <div><b>Manutenzione aggiunta per persona</b><div class="row" style="gap:6px 14px;font-size:13px">${r.pers.map(x=>`<span>${e_(x.ep)} (${PPof(o,x.ep).pm}%): <b>${hh(r.carico[x.ep]||0)}</b></span>`).join('')}</div></div>
+ <div class="mn-list">${Object.keys(by).sort().map(d=>`<div style="padding:6px 0;border-top:1px solid var(--line)"><b>${AP_GG[new Date(d+'T12:00:00').getDay()]} ${fd(d)}</b>${by[d].map(v=>{const i=I(v.imp);return `<div style="display:grid;grid-template-columns:90px 1fr auto;gap:8px;font-size:13px;padding:2px 0"><span>${AP_LAB[v.turno]}</span><span>${e_(i.cod)} · ${e_(i.nome)} <span class="muted">· ${v.ids.length} proc. · ${v.min} min · scad. ${fd(v.due)}</span>${v.late?' <span style="color:var(--accent)">dopo la scadenza</span>':''}</span><span>${e_(v.man)}</span></div>`}).join('')}</div>`).join('')||'<div class="mn-empty muted">Niente da pianificare con questi parametri</div>'}</div>
+ ${r.skip.length?`<details><summary style="cursor:pointer;color:var(--accent)">${r.skip.length} procedure non pianificate</summary><div style="font-size:13px">${Object.entries(sk).map(([k,l])=>`<div style="margin-top:6px"><b>${e_(k)}</b> (${l.length})<br><span class="muted">${l.slice(0,40).map(x=>e_(x.i.cod+' '+x.p.cod)).join(', ')}${l.length>40?'…':''}</span></div>`).join('')}</div></details>`:''}
+ <div class="row" style="justify-content:flex-end"><button class="btn" onclick="MNX.apBack()">↺ Rifai con altri parametri</button><button class="btn pri" ${r.vis.length?'':'disabled'} onclick="MNX.apOk()">Conferma e pianifica</button></div>`)}
+const hh=m=>(Math.round(m/6)/10).toString().replace('.',',')+' h';
+// --- anomalie: manutenzioni pianificate con persona non in turno ---
+function anomalie(){if(!EPT.d)return[];const t=tdy();return M.vis.filter(v=>v.data>=t&&v.man).map(v=>{const r=EPT.row(v.man);if(!r||EPT.idx(v.data)<0)return null;
+ if(!M.att.some(a=>a.vis===v.id&&!a.chiusa))return null;const w=EPT.work(r,v.data);if(w&&(!v.turno||v.turno===w))return null;
+ return{v,why:w?'in turno '+AP_LAB[w]+' invece di '+AP_LAB[v.turno]:(EPT.abs(r,v.data)||'riposo')}}).filter(Boolean)}
+function anomH(){const L=anomalie();if(!L.length)return'';return `<div class="mn-info" style="border-left-color:var(--accent)"><b>${L.length} manutenzioni con il manutentore non disponibile</b>${L.slice(0,15).map(x=>{const i=I(x.v.imp);return `<div style="font-size:13px;cursor:pointer" onclick="MNX.visDett('${x.v.id}')">${fd(x.v.data)} · ${e_(i?i.cod+' '+i.nome:'')} · ${e_(x.v.man)}: <b>${e_(x.why)}</b></div>`}).join('')}${L.length>15?'<div class="muted">…</div>':''}</div>`}
+// --- pagina «Carico persone» ---
+async function vCar(){if(!isR())return '<div class="panel muted">Pagina riservata al responsabile della manutenzione.</div>';await EPT.load();
+ const o=apDef(),t=tdy();MN.car=MN.car||{da:t,sett:8};const C=MN.car;const lun=d=>{const x=new Date(d+'T12:00:00');x.setDate(x.getDate()-((x.getDay()+6)%7));return isoL(x)};
+ const w0=lun(C.da),W=[...Array(C.sett)].map((_,k)=>addD(w0,k*7));
+ const rows=repRows(o).filter(r=>!PPof(o,r.ep).off);
+ const cell=(r,w)=>{let ore=0,man=0,ass=0;for(let k=0;k<7;k++){const d=addD(w,k);if(EPT.work(r,d))ore+=8;else if(EPT.abs(r,d))ass++}
+  M.att.forEach(a=>{if(a.due&&!a.chiusa&&a.due>=w&&a.due<=addD(w,6)&&sameP(a.man,r.ep))man+=minOf(PA(a)||{},o)/60});
+  const q=PPof(o,r.ep),tg=ore*q.pm/100,pc=ore?Math.round(man/ore*100):0,col=!ore?'var(--off)':man>tg*1.1?'var(--accent)':man<tg*0.5&&q.prev?'var(--warn)':'var(--ok)';
+  return `<td style="padding:4px 6px;border-left:1px solid var(--line);font-size:12px;white-space:nowrap"><div><b style="color:${col}">${String(Math.round(man*10)/10).replace('.',',')} h</b> manut.</div><div class="muted">${String(Math.round((ore-man)*10)/10).replace('.',',')} h supporto</div><div class="muted">${ore} h turno · ${pc}%${ass?` · <span style="color:var(--accent)">${ass} gg assente</span>`:''}</div></td>`};
+ return `<div class="row" style="margin-bottom:10px"><button class="btn" onclick="MNX.syncT()">🔄 Sincronizza turni</button>${tAge()}</div>
+ <div class="row" style="margin-bottom:10px"><label>Dalla settimana del <input type="date" value="${C.da}" onchange="MNX.car('da',this.value)"></label><label>Settimane <input type="number" min="1" max="26" value="${C.sett}" style="width:60px" onchange="MNX.car('sett',+this.value)"></label><span class="muted" style="font-size:12px">Reparto: ${e_(o.rep||'tutti')} · obiettivo per persona dai parametri della pianificazione automatica</span></div>
+ ${!EPT.d?'<div class="mn-empty muted">Sincronizza i turni per vedere il carico.</div>':`<div style="overflow-x:auto"><table style="border-collapse:collapse;width:100%"><thead><tr><th style="text-align:left;padding:4px 6px">Persona</th>${W.map(w=>`<th style="padding:4px 6px;font-size:12px;border-left:1px solid var(--line)">${fd(w).slice(0,5)}</th>`).join('')}</tr></thead>
+ <tbody>${rows.map(r=>{const q=PPof(o,r.ep);return `<tr style="border-top:1px solid var(--line)"><td style="padding:4px 6px"><b>${e_(r.ep)}</b><div class="muted" style="font-size:12px">${q.prev?q.pm+'% manut. / '+(100-q.pm)+'% supporto':'solo supporto'}</div></td>${W.map(w=>cell(r,w)).join('')}</tr>`}).join('')||`<tr><td class="muted">Nessuna persona</td></tr>`}</tbody></table></div>
+ <div class="muted" style="font-size:12px;margin-top:6px">Ore turno = giorni lavorati × 8 h. Manutenzione = durata delle procedure pianificate nella settimana. Supporto = il resto (guasti, cambi modello, produzione). Rosso: oltre l'obiettivo; giallo: meno della metà.</div>`}`}
+const APX={
+ async auto(){AP.p=apDef();AP.step='par';AP.res=null;await EPT.load(true);drawAP()},
+ syncT(){return syncTurni()},
+ apSet(k,v){AP.p[k]=v;drawAP()},
+ apArr(k,v,on){const l=AP.p[k].filter(x=>x!==v);if(on)l.push(v);if(k==='turni')l.sort((a,b)=>AP_WORK.indexOf(a)-AP_WORK.indexOf(b));AP.p[k]=l;drawAP()},
+ apMap(n,v){AP.p.map={...AP.p.map,[n]:v};drawAP()},
+ apPP(ep,k,v){const pp={...AP.p.pp},x={...(pp[ep]||{})};x[k]=v;pp[ep]=x;AP.p.pp=pp;drawAP()},
+ apSave(){M.autoP=JSON.parse(JSON.stringify(AP.p));saveM();mt('Parametri salvati')},
+ apRun(){const o=AP.p;if(!EPT.d)return mt('Sincronizza prima i turni');if(o.a<o.da)return mt('Il periodo non è valido');if(!o.turni.length||!o.gg.length)return mt('Scegli almeno un turno e un giorno');
+  const r=apSim(o);if(!r.pers.length)return mt('Nessun manutentore disponibile per la preventiva');AP.res=r;AP.step='res';drawAP()},
+ apBack(){AP.step='par';drawAP()},
+ apOk(){const r=AP.res;if(!r||!r.vis.length)return;if(MN.old||MN.noProc)return mt('Dati non modificabili ora: riprova');let n=0,f=0;
+  r.vis.forEach(x=>{const i=I(x.imp);if(!i||i.dism)return;const ss=M.ass.filter(s=>x.ids.includes(s.id)&&!planned(s));if(!ss.length)return;
+   const v={id:nid('v'),imp:x.imp,data:x.data,man:x.man,turno:x.turno,auto:true};M.vis.push(v);f++;
+   ss.forEach(s=>{const p0=pend(s);let a;if(p0){p0.due=x.data;p0.vis=v.id;p0.man=x.man;a=p0}else a=newAtt(s,x.data,v.id,x.man);s.man=x.man;LOG(p0?'Ripianificata':'Pianificata',a,'il '+fd(x.data)+' ('+AP_LAB[x.turno]+') a '+x.man+' · pianificazione automatica');n++});
+   if(!i.avviato)i.avviato=x.data});
+  M.autoP=JSON.parse(JSON.stringify(AP.p));saveM();closeO();mt('Pianificati '+f+' fermi con '+n+' procedure')},
+ car(k,v){MN.car[k]=v;draw()}
+};
 
 // ===== Ergo Plan Beta: simulazione =====
 const offB=d=>typeof offD==='function'?offD(d):[0,6].includes(new Date(d+'T12:00:00').getDay());
@@ -918,4 +1062,5 @@ window.MNX={simula,
  xls(){if(!window.XLSX)return mt('Excel non disponibile');const rows=(MN._sto||[]).map(a=>({Data:fd(a.chiusa),Impianto:a._imp,Cliente:I(a.imp)?.cli||'',Componente:a._cmp,Procedura:a._pcod,Descrizione:a._pdesc,'Eseguita da':a.esec,'Passi confermati':a.ok.filter(Boolean).length+'/'+a.ok.length,Foto:a.foto.flat().length,Note:a.note}));
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Interventi '+MN.anno);XLSX.writeFile(wb,'Manutenzioni_'+MN.anno+'.xlsx')}
 };
+Object.assign(window.MNX,APX);
 })();
