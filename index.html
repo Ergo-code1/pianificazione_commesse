@@ -427,7 +427,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.18.5';
+const VERSIONE='2.18.6';
 // mantiene la posizione di scorrimento durante i ridisegni
 let _ksD=0,_ksT=null;
 function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrollX,tab=S.tab+'|'+S.gView,sel='.gwrap,.tablewrap,.list,.mn-box,#mnOvl,#gOvl,.dep,[data-ks]',old=[...document.querySelectorAll(sel)].map(e=>[e.scrollLeft,e.scrollTop]);
@@ -563,7 +563,7 @@ function vCommesse(){
  $('#cDel2')&&($('#cDel2').onclick=()=>{S.commesse=S.commesse.filter(x=>x!==c);S.eventi=S.eventi.filter(e=>e.comm!==c.id);S.commesse.filter(x=>!x.chiusa).sort((a,b)=>a.prio-b.prio).forEach((x,i)=>x.prio=i+1);S.delC=null;S.selC=null;toastP('Commessa eliminata');render()});
  $('#togC')&&($('#togC').onclick=()=>{S.showC=!S.showC;render()});
  arcBind();
- document.querySelectorAll('[data-toev]').forEach(b=>b.onclick=()=>{const a=findAtt(b.dataset.toev);S.eventi.push({id:S.nextId++,nome:a.nome,data:a.fin||todayL(),comm:c.id,rif:a.id});toastP('Aggiunto agli eventi: '+a.nome);render()});
+ document.querySelectorAll('[data-toev]').forEach(b=>b.onclick=()=>{const a=findAtt(b.dataset.toev);S.eventi.push({id:S.nextId++,nome:a.nome,data:a.fin||a.ini||todayL(),comm:c.id,rif:a.id});toastP('Aggiunto agli eventi: '+a.nome);render()});
  document.querySelectorAll('[data-gf]').forEach(b=>b.onclick=()=>{const [ci,ai]=b.dataset.gf.split('|');gForm(ci,ai)});
  const sec=document.querySelectorAll('#view .panel')[1];
  if(sec&&!can('edit'))sec.querySelectorAll('table input,table select,[data-del],[data-arc],[data-gf]').forEach(x=>x.disabled=true);
@@ -1112,7 +1112,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.18.5"></script>
+<script src="manutenzione.js?v=2.18.6"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";

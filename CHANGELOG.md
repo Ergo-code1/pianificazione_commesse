@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.18.6 — 2026-11-18
+- «Invia a eventi»: usa la data di fine dell'attività, o l'inizio se manca la fine (non più la data di oggi).
+
 ## 2.18.5 — 2026-11-18
 - Gantt: trascinando una barra la durata in giorni lavorativi resta uguale.
 
