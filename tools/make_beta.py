@@ -58,7 +58,7 @@ SIM=r"""
 const offB=d=>typeof offD==='function'?offD(d):[0,6].includes(new Date(d+'T12:00:00').getDay());
 const wkB=d=>{let x=d;while(offB(x))x=addD(x,1);return x};
 const nxB=d=>wkB(addD(d,1));
-const poolB=()=>{let p=(PERS()||[]).filter(x=>x&&!/yassine/i.test(x));if(!p.length)p=[...new Set([...M.att.map(a=>a.man),...(M.fatte||[]).map(a=>a.esec||a.man)].filter(x=>x&&!/yassine/i.test(x)))];return p.length?p:[me()||'Manutentore']};
+const poolB=()=>{let p=(PERS()||[]).filter(x=>x&&!/yassine|alessandro/i.test(x));if(!p.length)p=[...new Set([...M.att.map(a=>a.man),...(M.fatte||[]).map(a=>a.esec||a.man)].filter(x=>x&&!/yassine|alessandro/i.test(x)))];return p.length?p:[me()||'Manutentore']};
 const okB=()=>isR()&&MN.base&&MN.mainL&&!MN.noProc&&M.proc.length&&!MN.old;
 // futuro: ogni procedura ha la sua prossima esecuzione pianificata. Una visita per impianto e mese, max 4 visite al giorno (festivi esclusi)
 function pianSim(){if(!okB())return -1;const t=tdy(),pool=poolB(),rnd=()=>pool[Math.floor(Math.random()*pool.length)],MAX=4,cnt={};
