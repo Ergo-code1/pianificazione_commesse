@@ -1205,6 +1205,9 @@ document.addEventListener('click',()=>save());
 function blocco(t){S.user=null;$('#app').innerHTML=`<div class="login"><h1>Ergo Plan Beta</h1><span class="muted">${t}</span><button class="btn" id="lgout">Esci</button></div>`;$('#lgout').onclick=()=>FB.logout()}
 window.FB={msg:'',key:null,
  // Beta: copia la produzione (solo lettura) in beta_*; app/stato per ultimo
+ async betaReset(){window.__rip=1;try{unsub&&unsub();unsub=null}catch(e){}try{window.FBM&&FBM.stop&&FBM.stop()}catch(e){}
+  for(const c of ['manutStorico','manutDoc','manutFoto']){const qs=await getDocs(bcol(db,c));for(const x of qs.docs)await deleteDoc(x.ref)}
+  await deleteDoc(bdoc(db,'app','manut'));await deleteDoc(bdoc(db,'app','stato'));location.reload()},
  async betaInit(prog){const P=[['manutStorico'],['manutDoc'],['manutFoto']];
   for(const [c] of P){prog('Copia '+c+'…');const qs=await getDocs(collection(db,c));for(const x of qs.docs)await setDoc(bdoc(db,c,x.id),x.data())}
   prog('Copia manutenzioni…');const m=await getDoc(doc(db,'app','manut'));if(m.exists())await setDoc(bdoc(db,'app','manut'),m.data());

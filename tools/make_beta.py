@@ -23,6 +23,9 @@ s=rep(s,"""if(!snap.exists()){if(un!=='admin')return blocco("L'amministratore de
    return;""")
 s=rep(s,"window.FB={msg:'',key:null,","""window.FB={msg:'',key:null,
  // Beta: copia la produzione (solo lettura) in beta_*; app/stato per ultimo
+ async betaReset(){window.__rip=1;try{unsub&&unsub();unsub=null}catch(e){}try{window.FBM&&FBM.stop&&FBM.stop()}catch(e){}
+  for(const c of ['manutStorico','manutDoc','manutFoto']){const qs=await getDocs(bcol(db,c));for(const x of qs.docs)await deleteDoc(x.ref)}
+  await deleteDoc(bdoc(db,'app','manut'));await deleteDoc(bdoc(db,'app','stato'));location.reload()},
  async betaInit(prog){const P=[['manutStorico'],['manutDoc'],['manutFoto']];
   for(const [c] of P){prog('Copia '+c+'…');const qs=await getDocs(collection(db,c));for(const x of qs.docs)await setDoc(bdoc(db,c,x.id),x.data())}
   prog('Copia manutenzioni…');const m=await getDoc(doc(db,'app','manut'));if(m.exists())await setDoc(bdoc(db,'app','manut'),m.data());
@@ -55,13 +58,13 @@ SIM=r"""
 async function simula(man){
  if(MN._sim)return;if(!isR())return man&&mt('Solo il responsabile manutenzione può aggiornare la simulazione');
  if(!MN.base||!MN.mainL||MN.noProc||!M.proc.length||MN.old)return man&&mt('Dati non ancora caricati: riprova tra qualche secondo');
- const t=tdy();if(man){if(M.simA===t)return mt('Simulazione già aggiornata a oggi');if(!confirm(M.simA?'Aggiornare la simulazione dal '+fd(M.simA)+' a oggi?':'Eseguire la simulazione degli ultimi 12 mesi?'))return}
+ const t=tdy();if(man){if(M.simA===t){if(confirm('Simulazione già aggiornata a oggi.\n\nVuoi RIPARTIRE DA ZERO? La Beta viene cancellata e ricopiata da Ergo Plan, poi la simulazione viene rifatta.'))FB.betaReset().catch(er=>mt('Reset non riuscito: '+FB.err(er)));return}if(!confirm(M.simA?'Aggiornare la simulazione dal '+fd(M.simA)+' a oggi?':'Eseguire la simulazione degli ultimi 12 mesi?'))return}
  MN._sim=1;try{
  const from=M.simA?addD(M.simA,1):addM(t,-12);
  let pool=(PERS()||[]).filter(Boolean);if(!pool.length)pool=[...new Set([...M.att.map(a=>a.man),...(M.fatte||[]).map(a=>a.esec||a.man)].filter(Boolean))];if(!pool.length)pool=[me()||'Manutentore'];
  const rnd=()=>pool[Math.floor(Math.random()*pool.length)],wk=d=>{const x=new Date(d+'T12:00:00');while(x.getDay()===0||x.getDay()===6)x.setDate(x.getDate()+1);return isoL(x)};
- const add={},drop=new Set();let n=0;
- for(const s of M.ass){const p=P(s.proc);if(!p||p._miss||p.est||p.tipo==='evento'||!(+p.int))continue;const i=I(s.imp);if(!i||i.dism)continue;
+ const add={},drop=new Set();let n=0;const AS=JSON.parse(JSON.stringify(M.ass)),IM=JSON.parse(JSON.stringify(M.imp)),II=id=>IM.find(x=>x.id===id);
+ for(const s of AS){const p=P(s.proc);if(!p||p._miss||p.est||p.tipo==='evento'||!(+p.int))continue;const i=II(s.imp);if(!i||i.dism)continue;
   const pa=M.att.find(a=>a.ass===s.id);if(pa&&pa.due&&pa.due>=t)continue;
   let d=s.next&&s.next>=from?s.next:from,k=0,did=0;
   while(d<=t&&k++<240){const ch=wk(d);if(ch>t)break;const mn=rnd();
@@ -71,6 +74,7 @@ async function simula(man){
  for(const y of Object.keys(add)){const arr=await storico(y,true);if(!arr)throw new Error('storico '+y+' non leggibile');
   {const all=arr.concat(add[y]),g={};all.forEach(a=>{const k=String(a.chiusa).slice(5,7);g[k]=(g[k]||0)+JSON.stringify(a).length});const mx=Math.max(...Object.values(g));if(mx>900000)throw new Error('lo storico di un mese del '+y+' supererebbe 1 MB')}}
  for(const y of Object.keys(add).sort()){const arr=H[y];arr.push(...add[y]);await saveYm(y);if(!(M.anni||[]).includes(y))(M.anni=M.anni||[]).push(y)}
+ M.ass=AS;M.imp=IM;
  if(drop.size){M.att=M.att.filter(a=>!drop.has(a.id));M.vis=M.vis.filter(v=>M.att.some(a=>a.vis===v.id))}
  M.simA=t;(M.log=M.log||[]).push({t:new Date().toISOString().slice(0,16).replace('T',' '),chi:me()||'sistema',az:'Simulazione',att:null,imp:null,cod:'',man:null,txt:n+' attività simulate dal '+fd(from)+' al '+fd(t)});
  saveM();refresh();mt('Simulazione: '+n+' attività fatte dal '+fd(from)+' a oggi')}
