@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.17.1 — 2026-11-18
+- Nuova segnalazione: filtro Zona (con sottozone) per trovare l'impianto.
+
 ## 2.17.0 — 2026-11-18
 - Manutenzione: la scheda «Ricambi» diventa «Segnalazioni»: note e ricambi necessari degli impianti in un unico punto, con filtri (aperte, note, ricambi da acquistare/acquistati, archiviate), zona e impianto. «+ Nuova segnalazione» per tutti.
 - Il responsabile segna i ricambi acquistati (nell'attività di origine compare «acquistato il … da …») e archivia/ripristina le segnalazioni.
