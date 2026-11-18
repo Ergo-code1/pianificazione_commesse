@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.21.0 — 2026-11-18
+- Manutenzione: procedure Moretto PM093–PM105 (fascicolo MP, trimestrali, 10 min) e 62 macchine nella categoria «Impianto materia prima (Moretto)».
+
 ## Beta — 2026-11-18
 - Nuovo ambiente Ergo Plan Beta (/beta/), generato con tools/make_beta.py: dati separati (collezioni beta_*), copia iniziale da Ergo Plan, simulazione 12 mesi delle manutenzioni non svolte (escluse fornitore ed evento), 5 tocchi sul titolo per aggiornarla a oggi.
 

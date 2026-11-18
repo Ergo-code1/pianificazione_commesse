@@ -3282,5 +3282,732 @@
    }
   ],
   "noTipo": 1
+ },
+ {
+  "cod": "PM093",
+  "desc": "Centralina Dolphin – Manutenzione programmata trimestrale (controllo/sostituzione)",
+  "comp": "Centralina Dolphin",
+  "norma": "Fascicolo Moretto MP – Allegato A",
+  "tipo": "cal",
+  "int": 3,
+  "avv": 15,
+  "min": 10,
+  "loto": false,
+  "mat": "",
+  "steps": [
+   {
+    "t": "Selettore sblocco porta",
+    "foto": false
+   },
+   {
+    "t": "Tubazioni flessibili",
+    "foto": false
+   },
+   {
+    "t": "Componenti elettrici",
+    "foto": false
+   },
+   {
+    "t": "Filtro regolatore",
+    "foto": false
+   },
+   {
+    "t": "Pressostato",
+    "foto": false
+   },
+   {
+    "t": "Fotocellule",
+    "foto": false
+   },
+   {
+    "t": "Guarnizioni",
+    "foto": false
+   },
+   {
+    "t": "Allarme",
+    "foto": false
+   },
+   {
+    "t": "Organi di movimentazione",
+    "foto": false
+   },
+   {
+    "t": "Cilindri",
+    "foto": false
+   }
+  ],
+  "mp": 1,
+  "matr": [
+   "M0014147",
+   "M0014146"
+  ]
+ },
+ {
+  "cod": "PM094",
+  "desc": "Depolveratore – Manutenzione programmata trimestrale (controllo/sostituzione)",
+  "comp": "Depolveratore",
+  "norma": "Fascicolo Moretto MP – Allegato A",
+  "tipo": "cal",
+  "int": 3,
+  "avv": 15,
+  "min": 10,
+  "loto": false,
+  "mat": "",
+  "steps": [
+   {
+    "t": "Cartuccia",
+    "foto": false
+   },
+   {
+    "t": "Guarnizioni",
+    "foto": false
+   },
+   {
+    "t": "Eventuali usure",
+    "foto": false
+   },
+   {
+    "t": "Componenti quadro elettrico",
+    "foto": false
+   },
+   {
+    "t": "Collegamento tubazioni",
+    "foto": false
+   },
+   {
+    "t": "Sensori",
+    "foto": false
+   },
+   {
+    "t": "Valvole rompivuoto",
+    "foto": false
+   },
+   {
+    "t": "Buratto - Cestello",
+    "foto": false
+   },
+   {
+    "t": "Soffiante",
+    "foto": false
+   },
+   {
+    "t": "Ionizzatore",
+    "foto": false
+   },
+   {
+    "t": "Motoriduttore",
+    "foto": false
+   },
+   {
+    "t": "Sicurezza",
+    "foto": false
+   }
+  ],
+  "mp": 1,
+  "matr": [
+   "Z201107520"
+  ]
+ },
+ {
+  "cod": "PM095",
+  "desc": "Deumidificatore (Dryer) – Manutenzione programmata trimestrale (controllo/sostituzione)",
+  "comp": "Deumidificatore (Dryer)",
+  "norma": "Fascicolo Moretto MP – Allegato A",
+  "tipo": "cal",
+  "int": 3,
+  "avv": 15,
+  "min": 10,
+  "loto": false,
+  "mat": "",
+  "steps": [
+   {
+    "t": "Filtro processo",
+    "foto": false
+   },
+   {
+    "t": "Zeoliti",
+    "foto": false
+   },
+   {
+    "t": "Scambiatore",
+    "foto": false
+   },
+   {
+    "t": "Tubazioni mandata",
+    "foto": false
+   },
+   {
+    "t": "Resistenze processo/rigenerazione",
+    "foto": false
+   },
+   {
+    "t": "Sensore Dew Point",
+    "foto": false
+   },
+   {
+    "t": "Componenti elettrici (quadro elettrico)",
+    "foto": false
+   },
+   {
+    "t": "Tenuta cassetto",
+    "foto": false
+   },
+   {
+    "t": "Scambiatore",
+    "foto": false
+   },
+   {
+    "t": "Sonde",
+    "foto": false
+   },
+   {
+    "t": "Termostati",
+    "foto": false
+   },
+   {
+    "t": "Set temperatura",
+    "foto": false
+   },
+   {
+    "t": "Valore Dew Point",
+    "foto": false
+   },
+   {
+    "t": "Aggiornamento software",
+    "foto": false
+   }
+  ],
+  "mp": 1,
+  "matr": [
+   "Z200810827",
+   "Z200810828",
+   "M979574",
+   "M973431",
+   "M89.03521",
+   "M89.03522",
+   "M00.12644",
+   "M00.12645",
+   "Z201105991",
+   "Z201100769",
+   "Z201100770",
+   "Z201100771"
+  ]
+ },
+ {
+  "cod": "PM096",
+  "desc": "Dew point portatile – Manutenzione programmata trimestrale (controllo/sostituzione)",
+  "comp": "Dew point portatile",
+  "norma": "Fascicolo Moretto MP – Allegato A",
+  "tipo": "cal",
+  "int": 3,
+  "avv": 15,
+  "min": 10,
+  "loto": false,
+  "mat": "",
+  "steps": [
+   {
+    "t": "Igrometro",
+    "foto": false
+   },
+   {
+    "t": "Porta sonda",
+    "foto": false
+   },
+   {
+    "t": "Lettura",
+    "foto": false
+   },
+   {
+    "t": "Componenti elettrici",
+    "foto": false
+   }
+  ],
+  "mp": 1,
+  "matr": [
+   "Z200610719"
+  ]
+ },
+ {
+  "cod": "PM097",
+  "desc": "Dosatore volumetrico DVM – Manutenzione programmata trimestrale (controllo/sostituzione)",
+  "comp": "Dosatore volumetrico DVM",
+  "norma": "Fascicolo Moretto MP – Allegato A",
+  "tipo": "cal",
+  "int": 3,
+  "avv": 15,
+  "min": 10,
+  "loto": false,
+  "mat": "",
+  "steps": [
+   {
+    "t": "Coclea",
+    "foto": false
+   },
+   {
+    "t": "Cuscinetto coclea",
+    "foto": false
+   },
+   {
+    "t": "Serranda di scarico",
+    "foto": false
+   },
+   {
+    "t": "Portina di scarico",
+    "foto": false
+   },
+   {
+    "t": "Portina di taratura",
+    "foto": false
+   },
+   {
+    "t": "Motore - riduttore",
+    "foto": false
+   },
+   {
+    "t": "Componenti elettrici",
+    "foto": false
+   },
+   {
+    "t": "Scheda di controllo",
+    "foto": false
+   }
+  ],
+  "mp": 1,
+  "matr": [
+   "Z200812472",
+   "Z200512562",
+   "Z200601290",
+   "Z200601291",
+   "Z200601292",
+   "Z200812473",
+   "Z201105067"
+  ]
+ },
+ {
+  "cod": "PM098",
+  "desc": "Filtro a ciclone – Manutenzione programmata trimestrale (controllo/sostituzione)",
+  "comp": "Filtro a ciclone",
+  "norma": "Fascicolo Moretto MP – Allegato A",
+  "tipo": "cal",
+  "int": 3,
+  "avv": 15,
+  "min": 10,
+  "loto": false,
+  "mat": "",
+  "steps": [
+   {
+    "t": "Filtro",
+    "foto": false
+   },
+   {
+    "t": "Pulizia filtro",
+    "foto": false
+   },
+   {
+    "t": "Filtro scarico pompa",
+    "foto": false
+   },
+   {
+    "t": "Prefiltro protezione aspirazione",
+    "foto": false
+   },
+   {
+    "t": "Tubazioni aria",
+    "foto": false
+   },
+   {
+    "t": "Valvola by-pass",
+    "foto": false
+   },
+   {
+    "t": "Attacchi rapidi",
+    "foto": false
+   },
+   {
+    "t": "Tubo flessibile",
+    "foto": false
+   }
+  ],
+  "mp": 1,
+  "matr": [
+   "M00.11899",
+   "M00.12248",
+   "M00.13277"
+  ]
+ },
+ {
+  "cod": "PM099",
+  "desc": "Gruppo di riscaldamento – Manutenzione programmata trimestrale (controllo/sostituzione)",
+  "comp": "Gruppo di riscaldamento",
+  "norma": "Fascicolo Moretto MP – Allegato A",
+  "tipo": "cal",
+  "int": 3,
+  "avv": 15,
+  "min": 10,
+  "loto": false,
+  "mat": "",
+  "steps": [
+   {
+    "t": "Sonde temperatura",
+    "foto": false
+   },
+   {
+    "t": "Termostato sicurezza",
+    "foto": false
+   },
+   {
+    "t": "Tubazioni",
+    "foto": false
+   },
+   {
+    "t": "Resistenze",
+    "foto": false
+   },
+   {
+    "t": "Componenti elettrici (quadro elettrico)",
+    "foto": false
+   },
+   {
+    "t": "Tenute e guarnizioni",
+    "foto": false
+   },
+   {
+    "t": "Scheda controllo",
+    "foto": false
+   },
+   {
+    "t": "Set temperatura",
+    "foto": false
+   }
+  ],
+  "mp": 1,
+  "matr": [
+   "M00.11729",
+   "M00.11191",
+   "M00.11697",
+   "M00.11707",
+   "M00.11916",
+   "M00.11917",
+   "M00.11918",
+   "M00.11919",
+   "M00.11920",
+   "M00.11921",
+   "M00.11922",
+   "M00.11923",
+   "M00.11925",
+   "M00.11926"
+  ]
+ },
+ {
+  "cod": "PM100",
+  "desc": "Refrigeratore – Manutenzione programmata trimestrale (controllo/sostituzione)",
+  "comp": "Refrigeratore",
+  "norma": "Fascicolo Moretto MP – Allegato A",
+  "tipo": "cal",
+  "int": 3,
+  "avv": 15,
+  "min": 10,
+  "loto": false,
+  "mat": "",
+  "steps": [
+   {
+    "t": "Filtro acqua",
+    "foto": false
+   },
+   {
+    "t": "Filtro Freon",
+    "foto": false
+   },
+   {
+    "t": "Filtri aria",
+    "foto": false
+   },
+   {
+    "t": "Valvola termostatica",
+    "foto": false
+   },
+   {
+    "t": "Valvola centrifuga",
+    "foto": false
+   },
+   {
+    "t": "Valvola solenoide",
+    "foto": false
+   },
+   {
+    "t": "Valvola sicurezza acqua",
+    "foto": false
+   },
+   {
+    "t": "Valvola sfiato aria",
+    "foto": false
+   },
+   {
+    "t": "Valvola di non ritorno",
+    "foto": false
+   },
+   {
+    "t": "Valvola riduttrice pressione",
+    "foto": false
+   },
+   {
+    "t": "Pressostati",
+    "foto": false
+   },
+   {
+    "t": "Motore ventilatore/cinghie",
+    "foto": false
+   },
+   {
+    "t": "Tubazioni (circuito frigo/circuito acqua)",
+    "foto": false
+   },
+   {
+    "t": "Condensatore",
+    "foto": false
+   },
+   {
+    "t": "Spia del liquido/indicatore umidità",
+    "foto": false
+   },
+   {
+    "t": "Flussostato",
+    "foto": false
+   },
+   {
+    "t": "Componenti elettrici",
+    "foto": false
+   },
+   {
+    "t": "Vasca caricamento",
+    "foto": false
+   },
+   {
+    "t": "Ricevitore di liquido",
+    "foto": false
+   }
+  ],
+  "mp": 1,
+  "matr": [
+   "Z201005605"
+  ]
+ },
+ {
+  "cod": "PM101",
+  "desc": "Ricevitore – Manutenzione programmata trimestrale (controllo/sostituzione)",
+  "comp": "Ricevitore",
+  "norma": "Fascicolo Moretto MP – Allegato A",
+  "tipo": "cal",
+  "int": 3,
+  "avv": 15,
+  "min": 10,
+  "loto": false,
+  "mat": "",
+  "steps": [
+   {
+    "t": "Filtro",
+    "foto": false
+   },
+   {
+    "t": "Filtro portina",
+    "foto": false
+   },
+   {
+    "t": "Tenuta e guarnizioni",
+    "foto": false
+   },
+   {
+    "t": "Elettrovalvole",
+    "foto": false
+   },
+   {
+    "t": "Componenti elettrici",
+    "foto": false
+   },
+   {
+    "t": "Sensore magnetico",
+    "foto": false
+   },
+   {
+    "t": "Tubazioni",
+    "foto": false
+   },
+   {
+    "t": "Valvola di scarico",
+    "foto": false
+   },
+   {
+    "t": "Scheda controllo",
+    "foto": false
+   }
+  ],
+  "mp": 1,
+  "matr": [
+   "M00.12468",
+   "M00.12470",
+   "M00.12474",
+   "M00.12475",
+   "M00.12476",
+   "M00.12477",
+   "M00.12478",
+   "M00.11503",
+   "M00.12501",
+   "M00.12502",
+   "M00.12504",
+   "M00.12505",
+   "M00.12506",
+   "M00.12507"
+  ]
+ },
+ {
+  "cod": "PM102",
+  "desc": "Server di rete One Wire – Manutenzione programmata trimestrale (controllo/sostituzione)",
+  "comp": "Server di rete One Wire",
+  "norma": "Fascicolo Moretto MP – Allegato A",
+  "tipo": "cal",
+  "int": 3,
+  "avv": 15,
+  "min": 10,
+  "loto": false,
+  "mat": "",
+  "steps": [
+   {
+    "t": "Collegamenti di rete",
+    "foto": false
+   },
+   {
+    "t": "Verifica scheda di rete",
+    "foto": false
+   },
+   {
+    "t": "Aggiornamento versione software",
+    "foto": false
+   }
+  ],
+  "mp": 1,
+  "matr": [
+   "M00.4719",
+   "M00.4720"
+  ]
+ },
+ {
+  "cod": "PM103",
+  "desc": "Unità aspirante – Manutenzione programmata trimestrale (controllo/sostituzione)",
+  "comp": "Unità aspirante",
+  "norma": "Fascicolo Moretto MP – Allegato A",
+  "tipo": "cal",
+  "int": 3,
+  "avv": 15,
+  "min": 10,
+  "loto": false,
+  "mat": "",
+  "steps": [
+   {
+    "t": "Componenti quadro elettrico",
+    "foto": false
+   },
+   {
+    "t": "Valvole limitatrici",
+    "foto": false
+   },
+   {
+    "t": "Soffiante",
+    "foto": false
+   },
+   {
+    "t": "Filtro",
+    "foto": false
+   },
+   {
+    "t": "Scheda controllo",
+    "foto": false
+   }
+  ],
+  "mp": 1,
+  "matr": [
+   "Z20116039"
+  ]
+ },
+ {
+  "cod": "PM104",
+  "desc": "Unità aspirante VRS – Manutenzione programmata trimestrale (controllo/sostituzione)",
+  "comp": "Unità aspirante VRS",
+  "norma": "Fascicolo Moretto MP – Allegato A",
+  "tipo": "cal",
+  "int": 3,
+  "avv": 15,
+  "min": 10,
+  "loto": false,
+  "mat": "",
+  "steps": [
+   {
+    "t": "Componenti quadro elettrico",
+    "foto": false
+   },
+   {
+    "t": "Valvole limitatrici",
+    "foto": false
+   },
+   {
+    "t": "Tenuta valvola DUO",
+    "foto": false
+   },
+   {
+    "t": "Soffiante",
+    "foto": false
+   },
+   {
+    "t": "Filtro",
+    "foto": false
+   },
+   {
+    "t": "Scheda controllo",
+    "foto": false
+   }
+  ],
+  "mp": 1,
+  "matr": [
+   "M00.12793"
+  ]
+ },
+ {
+  "cod": "PM105",
+  "desc": "Unità aspirante VTS – Manutenzione programmata trimestrale (controllo/sostituzione)",
+  "comp": "Unità aspirante VTS",
+  "norma": "Fascicolo Moretto MP – Allegato A",
+  "tipo": "cal",
+  "int": 3,
+  "avv": 15,
+  "min": 10,
+  "loto": false,
+  "mat": "",
+  "steps": [
+   {
+    "t": "Componenti quadro elettrico",
+    "foto": false
+   },
+   {
+    "t": "Valvole limitatrici",
+    "foto": false
+   },
+   {
+    "t": "Soffiante",
+    "foto": false
+   },
+   {
+    "t": "Filtro",
+    "foto": false
+   },
+   {
+    "t": "Scheda controllo",
+    "foto": false
+   }
+  ],
+  "mp": 1,
+  "matr": [
+   "M00.12720",
+   "M00.12718",
+   "M00.12722"
+  ]
  }
 ]
