@@ -27,6 +27,21 @@ s=rep(s,"window.FB={msg:'',key:null,","""window.FB={msg:'',key:null,
   for(const [c] of P){prog('Copia '+c+'…');const qs=await getDocs(collection(db,c));for(const x of qs.docs)await setDoc(bdoc(db,c,x.id),x.data())}
   prog('Copia manutenzioni…');const m=await getDoc(doc(db,'app','manut'));if(m.exists())await setDoc(bdoc(db,'app','manut'),m.data());
   prog('Copia pianificazione…');const st=await getDoc(doc(db,'app','stato'));if(!st.exists())throw new Error('dati di Ergo Plan non trovati');await setDoc(bdoc(db,'app','stato'),st.data())},""")
+# storico diviso per mese (beta_manutStorico/{anno}_MM): ogni documento resta sotto 1 MB
+s=rep(s,"txY:(y,b,l)=>txMerge(bdoc(db,'manutStorico',String(y)),b,l),",
+"""txY:async(y,b,l)=>{y=String(y);const mo=a=>String(a&&a.chiusa||'').slice(5,7)||'00',grp=arr=>{const g={};(arr||[]).forEach(a=>(g[mo(a)]=g[mo(a)]||[]).push(a));return g};
+  const lg=await getDoc(bdoc(db,'manutStorico',y)),leg=lg.exists()&&((fsDec(lg.data()).att)||[]).length>0;
+  const gb=grp(b&&b.att),gl=grp(l&&l.att),out=[];
+  for(const m of new Set([...Object.keys(gb),...Object.keys(gl)])){const bb={att:gb[m]||[]},ll={att:gl[m]||[]};
+   if(!leg&&stab(bb)===stab(ll)&&FBM._ym&&FBM._ym[y+'_'+m]){out.push(...FBM._ym[y+'_'+m]);continue}
+   const r=await txMerge(bdoc(db,'manutStorico',y+'_'+m),bb,ll);FBM._ym=FBM._ym||{};FBM._ym[y+'_'+m]=r.att||[];out.push(...(r.att||[]))}
+  if(leg)await setDoc(bdoc(db,'manutStorico',y),{att:[],spostato:1});
+  return{att:out}},""")
+s=rep(s,"getY:async y=>{const d=fsGet(await getDoc(bdoc(db,'manutStorico',String(y))));return d?(d.att||[]):[]},",
+"""getY:async y=>{y=String(y);const ps=['',...Array.from({length:13},(x,i)=>'_'+String(i).padStart(2,'0'))];
+  const ds=await Promise.all(ps.map(p=>getDoc(bdoc(db,'manutStorico',y+p)).then(fsGet)));const mp=new Map();FBM._ym=FBM._ym||{};
+  ds.forEach((d,i)=>{const a=d?(d.att||[]):[];if(i)FBM._ym[y+ps[i]]=a;a.forEach(x=>mp.set(x.id,x))});return[...mp.values()]},""")
+s=rep(s,"saveY:async(y,arr)=>RIP()||setDoc(bdoc(db,'manutStorico',String(y)),fsEnc({att:arr})),","saveY:async(y,arr)=>RIP()||FBM.txY(y,{att:[]},{att:arr}),")
 # pulsante nascosto: 5 tocchi sul titolo
 s=rep(s,"<h1>Ergo Plan Beta <span class=\"rev\">v${VERSIONE}</span></h1><div cl","<h1 onclick=\"window.betaTap&&betaTap()\">Ergo Plan Beta <span class=\"rev\">v${VERSIONE}</span></h1><div cl")
 s=rep(s,'<script src="manutenzione.js','<script>window.betaTap=(()=>{let n=0,t=0;return()=>{const k=Date.now();n=k-t<1500?n+1:1;t=k;if(n>=5){n=0;window.MNX&&MNX.simula&&MNX.simula(true)}}})();</script>\n<script src="manutenzione.js')
@@ -54,7 +69,7 @@ async function simula(man){
    s.last=ch;s.incompleto=null;s.next=addM(p.tipo==='cal'?d:ch,p.int);d=s.next;n++;did=1;if(!i.avviato||i.avviato>ch)i.avviato=ch}
   if(did&&pa)drop.add(pa.id)}
  for(const y of Object.keys(add)){const arr=await storico(y,true);if(!arr)throw new Error('storico '+y+' non leggibile');
-  if(new Blob([JSON.stringify(arr.concat(add[y]))]).size>900000)throw new Error('lo storico '+y+' supererebbe 1 MB');}
+  {const all=arr.concat(add[y]),g={};all.forEach(a=>{const k=String(a.chiusa).slice(5,7);g[k]=(g[k]||0)+JSON.stringify(a).length});const mx=Math.max(...Object.values(g));if(mx>900000)throw new Error('lo storico di un mese del '+y+' supererebbe 1 MB')}}
  for(const y of Object.keys(add).sort()){const arr=H[y];arr.push(...add[y]);await saveYm(y);if(!(M.anni||[]).includes(y))(M.anni=M.anni||[]).push(y)}
  if(drop.size){M.att=M.att.filter(a=>!drop.has(a.id));M.vis=M.vis.filter(v=>M.att.some(a=>a.vis===v.id))}
  M.simA=t;(M.log=M.log||[]).push({t:new Date().toISOString().slice(0,16).replace('T',' '),chi:me()||'sistema',az:'Simulazione',att:null,imp:null,cod:'',man:null,txt:n+' attività simulate dal '+fd(from)+' al '+fd(t)});

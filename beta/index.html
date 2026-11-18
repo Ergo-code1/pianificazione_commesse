@@ -1252,10 +1252,19 @@ window.FBM={_u:null,
  stop(){this._u&&this._u();this._u=null;this._u2&&this._u2();this._u2=null},
  save:async d=>RIP()||setDoc(bdoc(db,'app','manut'),fsEnc(d)),
  txMain:(b,l)=>txMerge(bdoc(db,'app','manut'),b,l),
- txY:(y,b,l)=>txMerge(bdoc(db,'manutStorico',String(y)),b,l),
+ txY:async(y,b,l)=>{y=String(y);const mo=a=>String(a&&a.chiusa||'').slice(5,7)||'00',grp=arr=>{const g={};(arr||[]).forEach(a=>(g[mo(a)]=g[mo(a)]||[]).push(a));return g};
+  const lg=await getDoc(bdoc(db,'manutStorico',y)),leg=lg.exists()&&((fsDec(lg.data()).att)||[]).length>0;
+  const gb=grp(b&&b.att),gl=grp(l&&l.att),out=[];
+  for(const m of new Set([...Object.keys(gb),...Object.keys(gl)])){const bb={att:gb[m]||[]},ll={att:gl[m]||[]};
+   if(!leg&&stab(bb)===stab(ll)&&FBM._ym&&FBM._ym[y+'_'+m]){out.push(...FBM._ym[y+'_'+m]);continue}
+   const r=await txMerge(bdoc(db,'manutStorico',y+'_'+m),bb,ll);FBM._ym=FBM._ym||{};FBM._ym[y+'_'+m]=r.att||[];out.push(...(r.att||[]))}
+  if(leg)await setDoc(bdoc(db,'manutStorico',y),{att:[],spostato:1});
+  return{att:out}},
  getMain:async()=>fsGet(await getDoc(bdoc(db,'app','manut'))),
- getY:async y=>{const d=fsGet(await getDoc(bdoc(db,'manutStorico',String(y))));return d?(d.att||[]):[]},
- saveY:async(y,arr)=>RIP()||setDoc(bdoc(db,'manutStorico',String(y)),fsEnc({att:arr})),
+ getY:async y=>{y=String(y);const ps=['',...Array.from({length:13},(x,i)=>'_'+String(i).padStart(2,'0'))];
+  const ds=await Promise.all(ps.map(p=>getDoc(bdoc(db,'manutStorico',y+p)).then(fsGet)));const mp=new Map();FBM._ym=FBM._ym||{};
+  ds.forEach((d,i)=>{const a=d?(d.att||[]):[];if(i)FBM._ym[y+ps[i]]=a;a.forEach(x=>mp.set(x.id,x))});return[...mp.values()]},
+ saveY:async(y,arr)=>RIP()||FBM.txY(y,{att:[]},{att:arr}),
  putBlob:async(c,id,o)=>RIP()||setDoc(bdoc(db,c,id),fsEnc(o)),
  getBlob:async(c,id)=>fsGet(await getDoc(bdoc(db,c,id))),
  delBlob:(c,id)=>deleteDoc(bdoc(db,c,id))};

@@ -581,7 +581,7 @@ async function simula(man){
    s.last=ch;s.incompleto=null;s.next=addM(p.tipo==='cal'?d:ch,p.int);d=s.next;n++;did=1;if(!i.avviato||i.avviato>ch)i.avviato=ch}
   if(did&&pa)drop.add(pa.id)}
  for(const y of Object.keys(add)){const arr=await storico(y,true);if(!arr)throw new Error('storico '+y+' non leggibile');
-  if(new Blob([JSON.stringify(arr.concat(add[y]))]).size>900000)throw new Error('lo storico '+y+' supererebbe 1 MB');}
+  {const all=arr.concat(add[y]),g={};all.forEach(a=>{const k=String(a.chiusa).slice(5,7);g[k]=(g[k]||0)+JSON.stringify(a).length});const mx=Math.max(...Object.values(g));if(mx>900000)throw new Error('lo storico di un mese del '+y+' supererebbe 1 MB')}}
  for(const y of Object.keys(add).sort()){const arr=H[y];arr.push(...add[y]);await saveYm(y);if(!(M.anni||[]).includes(y))(M.anni=M.anni||[]).push(y)}
  if(drop.size){M.att=M.att.filter(a=>!drop.has(a.id));M.vis=M.vis.filter(v=>M.att.some(a=>a.vis===v.id))}
  M.simA=t;(M.log=M.log||[]).push({t:new Date().toISOString().slice(0,16).replace('T',' '),chi:me()||'sistema',az:'Simulazione',att:null,imp:null,cod:'',man:null,txt:n+' attività simulate dal '+fd(from)+' al '+fd(t)});
