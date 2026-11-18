@@ -163,6 +163,7 @@ aside .av{background:rgb(255 255 255/.12);color:var(--hi)}
 .irow{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--soft)}
 @media(max-width:560px){.irow{grid-template-columns:36px minmax(0,1fr)}.irow>:last-child{grid-column:1/-1}}
 /* gantt */
+.gld{font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}.gld.l1{background:color-mix(in srgb,var(--ok) 25%,transparent)}.gld.l2{background:color-mix(in srgb,#e67e22 45%,transparent)}.gld.l3{background:color-mix(in srgb,#c0392b 55%,transparent);color:#fff}.glg i.gld{display:inline-block;width:14px;height:10px}.gn.gcar{background:var(--soft)}
 .gwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
 .gantt{display:grid;grid-auto-rows:38px;position:relative;min-width:max-content}
 .gn{grid-column:1;position:sticky;left:0;z-index:2;background:var(--surface);padding:4px 10px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-size:12.5px;min-width:0}
@@ -426,7 +427,19 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.17.2';
+const VERSIONE='2.18.0';
+// mantiene la posizione di scorrimento durante i ridisegni
+let _ksD=0,_ksT=null;
+function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrollX,tab=S.tab+'|'+S.gView,sel='.gwrap,.tablewrap,.list,.mn-box,#mnOvl,#gOvl,.dep,[data-ks]',old=[...document.querySelectorAll(sel)].map(e=>[e.scrollLeft,e.scrollTop]);
+ const b=document.body,h=b.scrollHeight;b.style.minHeight=h+'px';
+ try{return fn()}finally{_ksD=0;const sameT=_ksT===null||_ksT===tab;_ksT=tab;
+  if(sameT){const nw=[...document.querySelectorAll(sel)];nw.forEach((e,i)=>{if(old[i]){e.scrollLeft=old[i][0];e.scrollTop=old[i][1]}})}
+  window.scrollTo(x,y);requestAnimationFrame(()=>{b.style.minHeight='';if(Math.abs(window.scrollY-y)>2)window.scrollTo(x,y)})}}
+// sposta le attività collegate (che seguono) dello stesso numero di giorni
+function depShift(a,oldIni,oldFin){if(!a||!oldFin||!a.fin)return 0;const dd=Math.round((toD(a.fin)-toD(oldFin))/864e5);if(!dd)return 0;
+ const c=S.commesse.find(x=>x.att.includes(a));if(!c)return 0;const seen=new Set([a.id]);let n=0;
+ const go=id=>c.att.forEach(b=>{if(seen.has(b.id)||!(b.dip||[]).includes(id))return;seen.add(b.id);if(b.ini&&b.fin){b.ini=addD(b.ini,dd);b.fin=addD(b.fin,dd);n++}go(b.id)});
+ go(a.id);if(n)toastP(a.nome+': spostate anche '+n+' attività collegate ('+(dd>0?'+':'')+dd+' gg)');return n}
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -485,7 +498,8 @@ function groups(){const A=isAdm_(),o=[];if(!S.user)return o;const pm=S.user.perm
  const st=[['imp',A?'Persone e accessi':'Persone ente'],['master','Masterplan'],['cimp','Impianti'],['ccat','Categorie impianti'],['ctipi','Tipi componente'],['cproc','Procedure']].filter(([k])=>A?(k!=='master'||!anyM):(k==='imp'&&isResp())||(['cimp','ccat','ctipi','cproc'].includes(k)&&mR));
  if(st.length)o.push({id:'set',l:'Impostazioni',t:st});
  return o}
-function render(){
+function render(){return KS(render0)}
+function render0(){
  if(S.repSez&&S.repSezV!==2&&S.user&&S.user.ruolo==='admin'){S.repSezV=2}
  S.commesse.forEach(cCalc);
  if(!S.user){renderLogin();return}
@@ -558,7 +572,7 @@ function bindAttInputs(){
  document.querySelectorAll('[data-f]').forEach(el=>el.onchange=()=>{const a=findAtt(el.dataset.id),f=el.dataset.f;
   if(f==='attiva'){a.attiva=el.value==='1';if(!a.attiva&&!a.manca)a.manca='Da specificare';render();return}
   if(f==='bud'||f==='cons'){a[f]=el.value===''?null:+el.value;render();return}
-  a[f]=el.value;});
+  const oi=a.ini,of=a.fin;a[f]=el.value;if(a.ini&&a.fin&&a.fin<a.ini){if(f==='ini')a.fin=a.ini;else a.ini=a.fin}if(depShift(a,oi,of))render()});
 }
 
 function vPersone(){
@@ -580,7 +594,7 @@ function vPersone(){
  document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const a=findAtt(b.dataset.up);a.prio=Math.max(1,a.prio-1);render()});
  document.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>{const a=findAtt(b.dataset.dn);a.prio++;render()});
  document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{findAtt(b.dataset.id).stato=b.dataset.st;render()});
- document.querySelectorAll('[data-pd]').forEach(el=>el.onchange=()=>{const [id,f]=el.dataset.pd.split('|'),a=findAtt(id);a[f]=el.value;if(a.ini&&a.fin&&a.fin<a.ini){if(f==='ini')a.fin=a.ini;else a.ini=a.fin}render()});
+ document.querySelectorAll('[data-pd]').forEach(el=>el.onchange=()=>{const [id,f]=el.dataset.pd.split('|'),a=findAtt(id),oi=a.ini,of=a.fin;a[f]=el.value;if(a.ini&&a.fin&&a.fin<a.ini){if(f==='ini')a.fin=a.ini;else a.ini=a.fin}depShift(a,oi,of);render()});
  const pl=$('#plist');document.querySelectorAll('[data-po]').forEach(b=>b.onclick=()=>{S.pOrd=b.dataset.po;render()});
  if(pl&&window.Sortable&&lista.length>1&&S.pOrd==='prio')Sortable.create(pl,{animation:160,delay:280,delayOnTouchOnly:false,touchStartThreshold:6,filter:'button,input',preventOnFilter:false,ghostClass:'drag-ghost',chosenClass:'drag-chosen',
   onEnd:()=>{[...pl.querySelectorAll('[data-aid]')].forEach((el,i)=>{const a=findAtt(el.dataset.aid);if(a)a.prio=i+1});render()}});
@@ -758,7 +772,7 @@ function gForm(cid,aid){if(!(aid?can('edit'):can('add')))return;const c=S.commes
   const i=$('#gfI').value,f=$('#gfF').value;if(!i||!f)return $('#gfE').textContent='Inserisci inizio e fine.';if(f<i)return $('#gfE').textContent='La fine è prima dell\'inizio.';
   const v={nome:n,pers:$('#gfP').value,ini:i,fin:f,bud:$('#gfO').value===''?null:+$('#gfO').value,attiva:$('#gfA').value==='1',dip:[...document.querySelectorAll('.gfDep:checked')].map(x=>+x.value)};
   if(!v.attiva&&!(a&&a.manca))v.manca='Da specificare';
-  if(a)Object.assign(a,v);else{const na={id:S.nextId++,liv:0,stato:'da fare',prio:9,cons:null,...v},pid=$('#gfPos').value;
+  if(a){const oi=a.ini,of=a.fin;Object.assign(a,v);depShift(a,oi,of)}else{const na={id:S.nextId++,liv:0,stato:'da fare',prio:9,cons:null,...v},pid=$('#gfPos').value;
    if(pid){const pi=c.att.findIndex(x=>x.id==pid);na.liv=(c.att[pi].liv||0)+1;c.att.splice(pi+1+cSub(c,pi).length,0,na)}else c.att.push(na)}
   close();render()}}
 const can=p=>!!S.user&&(S.user.ruolo==='admin'||!!(S.user.perm||{})[p]||(['add','edit','commesse'].includes(p)&&((isResp()&&curEnte()===myEnte())||altE().includes(curEnte())))||(p==='add'&&Object.keys((S.user.perm||{}).addFor||{}).length>0));
@@ -828,7 +842,7 @@ function gDrag(){if(!can('edit'))return;const G=document.querySelector('.gantt')
     const mv=e=>{if(e.pointerId!==pid)return;const dx=e.clientX-x0;if(Math.abs(dx)>3)moved=true;dd=Math.round(dx/w);if(rs)bar.style.marginRight=(-dd*w)+'px';else bar.style.transform=`translateX(${dd*w}px)`};
     const up=e=>{if(e.pointerId!==pid)return;removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);act=null;bar.classList.remove('gdrag');bar.dataset.nc=1;
      if(!moved||!dd){bar.style.transform='';bar.style.marginRight='';return}
-     if(rs){const f=addD(a.fin,dd);a.fin=f<a.ini?a.ini:f}else{a.ini=addD(a.ini,dd);a.fin=addD(a.fin,dd)}toastP(a.nome+': '+fmt(a.ini)+' → '+fmt(a.fin));render()};
+     const oi=a.ini,of=a.fin;if(rs){const f=addD(a.fin,dd);a.fin=f<a.ini?a.ini:f}else{a.ini=addD(a.ini,dd);a.fin=addD(a.fin,dd)}toastP(a.nome+': '+fmt(a.ini)+' → '+fmt(a.fin));depShift(a,oi,of);render()};
     addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up)})})});
  // disegna le date trascinando sulle celle della riga
  G.querySelectorAll('.gcell[data-gr]').forEach(cell=>cell.addEventListener('pointerdown',ev=>{const pid=ev.pointerId;
@@ -837,7 +851,7 @@ function gDrag(){if(!can('edit'))return;const G=document.querySelector('.gantt')
    const paint=()=>{const lo=Math.min(+i0,i1),hi=Math.max(+i0,i1);pv.style.gridColumn=`${lo+2}/${hi+3}`;pv.textContent=fmt(D[lo])+' → '+fmt(D[hi])};paint();
    const mv=e=>{if(e.pointerId!==pid)return;const el=document.elementFromPoint(e.clientX,e.clientY),c2=el&&el.closest('.gcell[data-gr]');if(c2&&c2.style.gridRow===row){i1=+c2.dataset.gr.split('|')[2];paint()}};
    const up=e=>{if(e.pointerId!==pid)return;removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);act=null;pv.remove();
-    const lo=Math.min(+i0,i1),hi=Math.max(+i0,i1);a.ini=D[lo];a.fin=D[hi];toastP(a.nome+': '+fmt(a.ini)+' → '+fmt(a.fin));render()};
+    const lo=Math.min(+i0,i1),hi=Math.max(+i0,i1),oi=a.ini,of=a.fin;a.ini=D[lo];a.fin=D[hi];toastP(a.nome+': '+fmt(a.ini)+' → '+fmt(a.fin));depShift(a,oi,of);render()};
    addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up)})}))}
 
 // --- Enti / reparti: ogni ente ha il suo ambiente (commesse, attività, persone, eventi) ---
@@ -875,6 +889,18 @@ function ganttData(X){X=X||{};const P=X.per!=null?X.per:S.gPer;
  const ev=S.eventi.filter(e=>cs.some(c=>c.id===e.comm)&&(!X.from||e.data>=X.from)&&(!X.to||e.data<=X.to));
  const ds=rows.flatMap(a=>[a.ini,a.fin]).concat(ev.map(e=>e.data)).sort();
  return{cs,rows,ev,P,inP,start:X.from||ds[0],end:X.to||ds[ds.length-1]}}
+function gCarico(cs){const PL=(S.gPer&&S.gPer!=='tutte'&&S.gPer!=='__none')?[S.gPer]:visPers();
+ const rows=PL.map(p=>({p,L:cs.flatMap(c=>c.att.filter(a=>!a.sum&&a.pers===p&&a.ini&&a.fin&&a.stato!=='conclusa').map(a=>({a,c})))})).filter(x=>x.L.length);
+ if(!rows.length)return'<div class="muted">Nessuna attività aperta con date per le persone selezionate.</div>';
+ const all=rows.flatMap(x=>x.L.flatMap(({a})=>[a.ini,a.fin])).sort();let start=addD(todayL(),-7);if(all[0]>start)start=all[0];let end=all[all.length-1];const y1=addD(start,120);if(end<y1)end=y1;end=addD(end,7);
+ const s0=toD(start),n=Math.round((toD(end)-s0)/DAY)+1,days=[...Array(n)].map((_,i)=>new Date(+s0+i*DAY)),D=days.map(isoL),col=d=>Math.max(2,Math.round((toD(d)-s0)/DAY)+2),ED=can('edit');
+ const ms=[];days.forEach((d,i)=>{const k=d.getFullYear()+'-'+d.getMonth();if(!ms.length||ms[ms.length-1].k!==k)ms.push({k,d,s:i,n:1});else ms[ms.length-1].n++});
+ let out=`<div class="gn gh" style="grid-row:1/3">Persona</div>`+ms.map(m=>`<div class="gm" style="grid-column:${m.s+2}/span ${m.n}"><span>${m.n>=4?m.d.toLocaleDateString('it-IT',{month:'long',year:'numeric'}):''}</span></div>`).join('')+days.map((d,i)=>`<div class="gd ${[0,6].includes(d.getDay())?'we':''} ${D[i]===todayL()?'td':''}" style="grid-column:${i+2}"><b>${d.getDate()}</b><span>${'DLMMGVS'[d.getDay()]}</span></div>`).join(''),r=3;
+ rows.forEach(({p,L})=>{const cnt=D.map((d,i)=>[0,6].includes(days[i].getDay())?0:L.filter(({a})=>a.ini<=d&&a.fin>=d).length),mx=Math.max(...cnt),ov=cnt.filter(x=>x>1).length;
+  out+=`<div class="gn gcar" style="grid-row:${r}"><span class="cn"><b>${esc(p)}</b></span><span class="muted">${L.length} attività${ov?' · <b style="color:var(--bad,#c0392b)">'+ov+' gg sovrapposti</b>':''}</span></div>`+cnt.map((k,i)=>`<div class="gcell gld l${Math.min(k,3)} ${[0,6].includes(days[i].getDay())?'we':''}" style="grid-row:${r};grid-column:${i+2}" title="${fmt(D[i])}: ${k} attività">${k>1?k:''}</div>`).join('');r++;
+  L.sort((x,y)=>x.a.ini.localeCompare(y.a.ini)).forEach(({a,c})=>{const k=a.stato==='in corso'?'b-run':a.attiva?'b-ok':'b-off';
+   out+=`<div class="gn" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};padding-left:22px"><span class="cn">${esc(a.nome)}</span><span class="muted"><span class="code">${c.id}</span> ${esc(c.nome)}</span></div>`+days.map((d,i)=>`<div class="gcell ${[0,6].includes(d.getDay())?'we':''}" style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+(a.fin>=start?`<div class="gbar ${k}" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};grid-column:${col(a.ini)}/${col(a.fin)+1}" title="${esc(a.nome)} · ${fmt(a.ini)}–${fmt(a.fin)}"></div>`:'');r++})});
+ return`<div class="gwrap"><div class="gantt" style="grid-template-columns:var(--gnw) repeat(${n},var(--gdw))">${out}</div></div><div class="glg"><span><i class="gld l1"></i>1 attività</span><span><i class="gld l2"></i>2 attività</span><span><i class="gld l3"></i>3 o più</span></div>`}
 function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');let {cs,start,end}=ganttData();if(!start&&cs.some(c=>visAtt(c).length)){start=todayL();end=addD(start,30)}if(start){const t7=addD(todayL(),-7);if(t7<start)start=t7;const y1=addD(start,365);end=addD(end,21);if(end<y1)end=y1}
  let body=`<div class="muted">Nessuna attività con date. Aggiungine una:</div><div class="gempty">${cs.map(c=>`<button class="btn" data-gadd="${c.id}">+ ${c.id}</button>`).join('')}</div>`;
  if(start){const s0=toD(start),n=Math.round((toD(end)-s0)/DAY)+1,col=d=>Math.round((toD(d)-s0)/DAY)+2;
@@ -892,6 +918,7 @@ function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');let 
   body=`<div class="gwrap"><div class="gantt" style="grid-template-columns:var(--gnw) repeat(${n},var(--gdw))">${out}</div></div>
   <div class="glg"><span><i class="b-ok"></i>Attiva</span><span><i class="b-off"></i>Non attiva</span><span><i class="b-run"></i>In corso</span><span><i class="b-done"></i>Conclusa</span><span><i class="dia"></i>Gate</span></div>`}
  if(!S.gView)S.gView=window.innerWidth<700?'lista':'diagramma';
+ if(S.gView==='carico')body=gCarico(cs);
  if(S.gView==='lista'){body=cs.map(c=>{const ev=S.eventi.filter(e=>e.comm===c.id&&evVis(e)).sort((a,b)=>a.data.localeCompare(b.data));
   return`<div class="gl"><div class="glh"><span class="code">${c.id}</span><span class="cn">${esc(c.nome)}</span>${AD?`<button class="gadd" data-gadd="${c.id}">+ Attività</button>`:''}</div>
   ${visAtt(c).map(a=>{const ia=c.att.indexOf(a),canIn=ia>0&&(a.liv||0)<=(c.att[ia-1].liv||0);return`<div class="gli ${a.sum?'gls':''}" style="--lv:${a.liv||0}">
@@ -899,7 +926,7 @@ function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');let 
    <div class="glb" ${ED?`data-gedit="${c.id}|${a.id}"`:''}><div class="cn">${esc(a.nome)}</div><div class="glm"><span class="mono">${a.ini?fmt(a.ini)+' → '+fmt(a.fin):'senza date'}</span>${a.sum?'':`<span>${esc(a.pers||'non assegnata')}</span>`}</div></div>
    ${a.sum?'':statoPill(a)}</div>`}).join('')||'<div class="muted" style="padding:8px 0">Nessuna attività.</div>'}
   ${ev.map(e=>`<div class="gli glg2"><span class="gdia2"></span><div class="glb"><div class="cn">${esc(e.nome)}</div><div class="glm"><span class="mono">${fmt(e.data)}</span><span>gate</span></div></div></div>`).join('')}</div>`}).join('')}
-$('#view').innerHTML=`<section class="panel"><div class="row" style="justify-content:space-between;margin-bottom:14px"><div class="row"><h2>Gantt</h2><div class="seg"><button data-gv="lista" aria-pressed="${S.gView==='lista'}">Elenco</button><button data-gv="diagramma" aria-pressed="${S.gView==='diagramma'}">Diagramma</button></div>
+$('#view').innerHTML=`<section class="panel"><div class="row" style="justify-content:space-between;margin-bottom:14px"><div class="row"><h2>Gantt</h2><div class="seg"><button data-gv="lista" aria-pressed="${S.gView==='lista'}">Elenco</button><button data-gv="diagramma" aria-pressed="${S.gView==='diagramma'}">Diagramma</button><button data-gv="carico" aria-pressed="${S.gView==='carico'}">Per persona</button></div>
  <select id="gSel"><option value="tutte">Tutte le commesse</option>${[...S.commesse].filter(cVis).sort((a,b)=>a.prio-b.prio).map(c=>`<option value="${c.id}" ${S.gSel===c.id?'selected':''}>${c.id} · ${esc(c.nome)}${c.chiusa?' (chiusa)':''}</option>`).join('')}</select>
  <select id="gPer" class="gper" aria-label="Filtra per persona"><option value="tutte">Tutte le persone</option>${visPers().map(p=>`<option ${S.gPer===p?'selected':''}>${esc(p)}</option>`).join('')}<option value="__none" ${S.gPer==='__none'?'selected':''}>Non assegnate</option></select></div>
  <div class="row"><button class="btn pri" id="xDlg">Esporta…</button></div></div>${body}
@@ -907,7 +934,7 @@ $('#view').innerHTML=`<section class="panel"><div class="row" style="justify-con
  $('#gSel').onchange=e=>{S.gSel=e.target.value;render()};
  $('#gPer').onchange=e=>{S.gPer=e.target.value;render()};
  gDrag();
- const w=$('.gwrap'),t=$('.gd.td');if(w&&t)w.scrollLeft=Math.max(0,t.offsetLeft-w.querySelector('.gh').offsetWidth-60);
+ const w=$('.gwrap'),t=$('.gwrap .gd.td');if(w&&t)w.scrollLeft=Math.max(0,t.offsetLeft-w.querySelector('.gh').offsetWidth-60);
  document.querySelectorAll('[data-gadd]').forEach(b=>b.onclick=()=>gForm(b.dataset.gadd));
  document.querySelectorAll('[data-gv]').forEach(b=>b.onclick=()=>{S.gView=b.dataset.gv;render()});
  document.querySelectorAll('[data-gmv]').forEach(b=>b.onclick=e=>{e.stopPropagation();const [ci,ai,d]=b.dataset.gmv.split('|');cMove(S.commesse.find(c=>c.id===ci),ai,+d)});
@@ -1077,7 +1104,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.17.2"></script>
+<script src="manutenzione.js?v=2.18.0"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";

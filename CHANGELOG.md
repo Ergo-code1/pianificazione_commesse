@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.18.0 — 2026-11-18
+- La pagina non torna più in cima dopo segnalazioni o modifiche: resta la posizione di scorrimento (anche orizzontale nel Gantt).
+- Commesse/Gantt: spostando un'attività (date, trascinamento, scheda) le attività collegate «⛓ dopo» che seguono si spostano degli stessi giorni, a catena.
+- Gantt: nuova vista «Per persona» con il carico giornaliero (1/2/3+ attività, giorni sovrapposti evidenziati) e le attività aperte di ciascuno.
+
 ## 2.17.2 — 2026-11-18
 - Segnalazioni: pulsante «Modifica» (autore o responsabile, se non archiviata) in elenco, scheda impianto ed esecuzione attività.
 
