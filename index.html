@@ -431,7 +431,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.19.3';
+const VERSIONE='2.19.4';
 // mantiene la posizione di scorrimento durante i ridisegni
 let _ksD=0,_ksT=null;
 function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrollX,tab=S.tab+'|'+S.gView,sel='.gwrap,.tablewrap,.list,.mn-box,#mnOvl,#gOvl,.dep,[data-ks]',old=[...document.querySelectorAll(sel)].map(e=>[e.scrollLeft,e.scrollTop]);
@@ -776,9 +776,10 @@ function gForm(cid,aid){if(!(aid?can('edit'):can('add')))return;const c=S.commes
  <label>Budget ore<input id="gfO" type="number" min="0" step="0.5" value="${a?.bud??''}"></label>
  <label>Condizioni<select id="gfA" ${a&&a.dip&&a.dip.length?'disabled title="Gestite dalle attività collegate"':''}><option value="1">Attiva</option><option value="0" ${a&&!a.attiva?'selected':''}>Non attiva</option></select></label>
  <div style="grid-column:1/-1;display:grid;gap:6px"><div class="rh" style="margin:0">⛓ Si attiva quando sono concluse</div><div class="dep">${c.att.filter(x=>!x.sum&&x!==a).map(x=>`<label><input type="checkbox" class="gfDep" value="${x.id}" ${a&&a.dip&&a.dip.includes(x.id)?'checked':''}> ${esc(x.nome)}${x.stato==='conclusa'?' <span class="muted">(conclusa)</span>':''}</label>`).join('')||'<span class="muted">Nessun\'altra attività nella commessa.</span>'}</div><span class="muted" style="font-size:11px">Se ne scegli almeno una, la riga resta non attiva finché non sono tutte concluse, poi si attiva da sola.</span></div>`}</div>
- <div class="err" id="gfE"></div><div class="row"><button class="btn pri" id="gfS">${a?'Salva':'Aggiungi alla commessa'}</button><button class="btn" id="gfX">Annulla</button>${a?'<button class="btn" id="gfD" style="margin-left:auto">Elimina</button>':''}</div></div>`;
+ <div class="err" id="gfE"></div><div class="row"><button class="btn pri" id="gfS">${a?'Salva':'Aggiungi alla commessa'}</button><button class="btn" id="gfX">Annulla</button>${a?'<button class="btn" id="gfAr" style="margin-left:auto" title="Archivia (con le eventuali sottovoci)">🗄 Archivia</button><button class="btn" id="gfD">Elimina</button>':''}</div></div>`;
  o.hidden=false;const close=()=>{o.hidden=true};$('#gfX').onclick=close;
  if($('#gfDu')){const cF=()=>{if($('#gfI').value&&$('#gfDu').value)$('#gfF').value=wdEnd($('#gfI').value,$('#gfDu').value)};$('#gfI').onchange=cF;$('#gfDu').oninput=cF;$('#gfF').onchange=()=>{$('#gfDu').value=wdN($('#gfI').value,$('#gfF').value)}}setTimeout(()=>$('#gfN').focus(),30);
+ if(a)$('#gfAr').onclick=()=>{if(!confirm('Archiviare «'+a.nome+'»'+(cSub(c,c.att.indexOf(a)).length?' e le sue sottovoci':'')+'?'))return;close();arcPut(c,a.id)};
  if(a)$('#gfD').onclick=()=>{if($('#gfD').dataset.ok){const i=c.att.indexOf(a),sub=cSub(c,i);c.att.splice(i,1+sub.length);close();render()}else{$('#gfD').dataset.ok=1;$('#gfD').textContent=sm?'Conferma (elimina anche le sottovoci)':'Conferma eliminazione'}};
  $('#gfS').onclick=()=>{const n=$('#gfN').value.trim();if(!n)return $('#gfE').textContent='Scrivi il nome.';
   if(sm){a.nome=n;close();render();return}
@@ -1137,7 +1138,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.19.3"></script>
+<script src="manutenzione.js?v=2.19.4"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";

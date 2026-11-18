@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.19.4 — 2026-11-18
+- Gantt: «🗄 Archivia» nella scheda dell'attività (clic sul nome o sulla barra).
+
 ## 2.19.3 — 2026-11-18
 - Gantt: pallino colorato dello stato accanto al nome di ogni attività (diagramma, elenco, per persona).
 - Gantt: la larghezza dei giorni si adatta per mostrare un mese intero (31 giorni) nello schermo.
