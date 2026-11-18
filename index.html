@@ -426,7 +426,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.16.3';
+const VERSIONE='2.17.0';
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
@@ -463,7 +463,7 @@ function statoPill(a){
  if(a.stato==='in corso')return'<span class="pill p-run">In corso</span>';
  return a.attiva?'<span class="pill p-ok">Attiva</span>':'<span class="pill p-off">Non attiva</span>';}
 
-const SEZ=[['commesse','Commesse'],['persone','Attività assegnate'],['gantt','Gantt'],['ore','Ore'],['eventi','Eventi'],['master','Masterplan'],['manut','Pianificazione manutenzioni'],['mpers','Attività manutenzione'],['mimp','Impianti'],['mric','Ricambi'],['msto','Storico manutenzioni']];
+const SEZ=[['commesse','Commesse'],['persone','Attività assegnate'],['gantt','Gantt'],['ore','Ore'],['eventi','Eventi'],['master','Masterplan'],['manut','Pianificazione manutenzioni'],['mpers','Attività manutenzione'],['mimp','Impianti'],['mric','Segnalazioni'],['msto','Storico manutenzioni']];
 const SEZL=Object.fromEntries(SEZ);
 const SEZ_ING=['commesse','persone','gantt','ore','eventi'],SEZ_MAN=['manut','mpers','mimp','mric','msto'];
 const repSez=e=>((S.repSez&&S.repSez[e])||(/manut/i.test(e||'')?SEZ_MAN:SEZ_ING)).filter(k=>k!=='mlog');
@@ -1077,7 +1077,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.16.3"></script>
+<script src="manutenzione.js?v=2.17.0"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";

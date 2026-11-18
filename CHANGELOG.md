@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.17.0 — 2026-11-18
+- Manutenzione: la scheda «Ricambi» diventa «Segnalazioni»: note e ricambi necessari degli impianti in un unico punto, con filtri (aperte, note, ricambi da acquistare/acquistati, archiviate), zona e impianto. «+ Nuova segnalazione» per tutti.
+- Il responsabile segna i ricambi acquistati (nell'attività di origine compare «acquistato il … da …») e archivia/ripristina le segnalazioni.
+- Esecuzione attività: «Segnala nota» per l'impianto. Scheda impianto: riquadro «Segnalazioni».
+
 ## 2.16.3 — 2026-11-17
 - «Aggiungimi alle persone»: si sceglie il nome con cui comparire (diventa anche il nome dell'account).
 
