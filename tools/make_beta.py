@@ -52,15 +52,27 @@ s=rep(s,'<script src="manutenzione.js','<script>window.betaTap=(()=>{let n=0,t=0
 open(os.path.join(B,'index.html'),'w',encoding='utf-8').write(s)
 m=open(os.path.join(R,'manutenzione.js'),encoding='utf-8').read()
 m=m.replace("fetch('manut_std.json","fetch('../manut_std.json").replace("fetch('Procedura_LOTO.pdf","fetch('../Procedura_LOTO.pdf")
-m=rep(m,"function start(){","function start(){MN._simT||(MN._simT=setInterval(()=>{if(M.simA)return clearInterval(MN._simT);simula(false)},5000));")
+m=rep(m,"function start(){","function start(){MN._simT||(MN._simT=setInterval(()=>{if(M.simA&&M.planA===tdy())return clearInterval(MN._simT);if(M.simA){const k=pianSim();if(k>=0){clearInterval(MN._simT);saveM();refresh();mt('Simulazione: '+k+' attività pianificate')}return}simula(false)},5000));")
 SIM=r"""
+
+// pianifica le procedure in scadenza o scadute (escluse fornitore ed evento): una visita per impianto e data, manutentore a caso
+function pianSim(){if(!isR()||!MN.base||!MN.mainL||MN.noProc||!M.proc.length||MN.old)return -1;const t=tdy();
+ let pool=(PERS()||[]).filter(Boolean);if(!pool.length)pool=[me()||'Manutentore'];const rnd=()=>pool[Math.floor(Math.random()*pool.length)];
+ const wk=d=>{const x=new Date(d+'T12:00:00');while(x.getDay()===0||x.getDay()===6)x.setDate(x.getDate()+1);return isoL(x)};
+ const g={};let n=0;
+ for(const s of M.ass){const p=P(s.proc);if(!p||p._miss||p.est||p.tipo==='evento'||!(+p.int))continue;const i=I(s.imp);if(!i||i.dism||planned(s))continue;
+  if(s.next&&s.next>addD(t,avvOf(p)))continue;const d=wk(s.next&&s.next>t?s.next:addD(t,1));(g[s.imp+'|'+d]=g[s.imp+'|'+d]||[]).push(s)}
+ for(const k of Object.keys(g)){const [imp,d]=k.split('|'),man=rnd(),v={id:nid('v'),imp,data:d,man};M.vis.push(v);
+  g[k].forEach(s=>{const r=pend(s);if(r){r.due=d;r.vis=v.id;r.man=man}else newAtt(s,d,v.id,man);s.man=man;n++});const i=I(imp);if(!i.avviato)i.avviato=d}
+ M.planA=t;if(n)(M.log=M.log||[]).push({t:new Date().toISOString().slice(0,16).replace('T',' '),chi:me()||'sistema',az:'Simulazione',att:null,imp:null,cod:'',man:null,txt:n+' attività pianificate'});return n}
 // ===== Ergo Plan Beta: simulazione delle manutenzioni fatte (ultimi 12 mesi, poi aggiornabile a oggi) =====
 // Esclude: procedure a evento, interventi con fornitore esterno, impianti dismessi, attività già pianificate da oggi in poi.
 async function simula(man){
  if(MN._sim)return;if(!isR())return man&&mt('Solo il responsabile manutenzione può aggiornare la simulazione');
  if(!MN.base||!MN.mainL||MN.noProc||!M.proc.length||MN.old)return man&&mt('Dati non ancora caricati: riprova tra qualche secondo');
- const t=tdy();if(man){if(M.simA===t){if(confirm('Simulazione già aggiornata a oggi.\n\nVuoi RIPARTIRE DA ZERO? La Beta viene cancellata e ricopiata da Ergo Plan, poi la simulazione viene rifatta.'))(FB.betaReset?FB.betaReset():Promise.reject(new Error('pagina non aggiornata, ricaricala e riprova'))).catch(er=>alert('Reset non riuscito: '+(er.message||FB.err(er))));return}if(!confirm(M.simA?'Aggiornare la simulazione dal '+fd(M.simA)+' a oggi?':'Eseguire la simulazione degli ultimi 12 mesi?'))return}
+ const t=tdy();if(man){if(M.simA===t&&M.planA===t){if(confirm('Simulazione già aggiornata a oggi.\n\nVuoi RIPARTIRE DA ZERO? La Beta viene cancellata e ricopiata da Ergo Plan, poi la simulazione viene rifatta.'))(FB.betaReset?FB.betaReset():Promise.reject(new Error('pagina non aggiornata, ricaricala e riprova'))).catch(er=>alert('Reset non riuscito: '+(er.message||FB.err(er))));return}if(!confirm(M.simA?'Aggiornare la simulazione dal '+fd(M.simA)+' a oggi?':'Eseguire la simulazione degli ultimi 12 mesi?'))return}
  MN._sim=1;try{
+ if(M.simA===t){const k=pianSim();saveM();refresh();MN._sim=0;return mt('Simulazione: '+k+' attività pianificate')}
  const from=M.simA?addD(M.simA,1):addM(t,-12);
  let pool=(PERS()||[]).filter(Boolean);if(!pool.length)pool=[...new Set([...M.att.map(a=>a.man),...(M.fatte||[]).map(a=>a.esec||a.man)].filter(Boolean))];if(!pool.length)pool=[me()||'Manutentore'];
  const rnd=()=>pool[Math.floor(Math.random()*pool.length)],wk=d=>{const x=new Date(d+'T12:00:00');while(x.getDay()===0||x.getDay()===6)x.setDate(x.getDate()+1);return isoL(x)};
@@ -77,8 +89,8 @@ async function simula(man){
  for(const y of Object.keys(add).sort()){const arr=H[y];arr.push(...add[y]);await saveYm(y);if(!(M.anni||[]).includes(y))(M.anni=M.anni||[]).push(y)}
  M.ass=AS;M.imp=IM;
  if(drop.size){M.att=M.att.filter(a=>!drop.has(a.id));M.vis=M.vis.filter(v=>M.att.some(a=>a.vis===v.id))}
- M.simA=t;(M.log=M.log||[]).push({t:new Date().toISOString().slice(0,16).replace('T',' '),chi:me()||'sistema',az:'Simulazione',att:null,imp:null,cod:'',man:null,txt:n+' attività simulate dal '+fd(from)+' al '+fd(t)});
- saveM();refresh();mt('Simulazione: '+n+' attività fatte dal '+fd(from)+' a oggi')}
+ M.simA=t;const np=pianSim();(M.log=M.log||[]).push({t:new Date().toISOString().slice(0,16).replace('T',' '),chi:me()||'sistema',az:'Simulazione',att:null,imp:null,cod:'',man:null,txt:n+' attività simulate dal '+fd(from)+' al '+fd(t)});
+ saveM();refresh();mt('Simulazione: '+n+' attività fatte dal '+fd(from)+' a oggi, '+Math.max(np,0)+' pianificate')}
  catch(er){mt('Simulazione NON riuscita: '+(er.message||FB.err(er)))}finally{MN._sim=0}}
 """
 m=rep(m,"window.MNX=",SIM+"window.MNX=")
