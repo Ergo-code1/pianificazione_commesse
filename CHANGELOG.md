@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.23.2 — 2026-11-18
+- Pianificazione automatica e Carico persone: solo le persone dei reparti di manutenzione (non più ingegneria).
+
 ## 2.23.1 — 2026-11-18
 - Sincronizza turni: legge un riepilogo per reparto (scritto in Turni e ferie da admin, responsabili e direttori) e li unisce.
 

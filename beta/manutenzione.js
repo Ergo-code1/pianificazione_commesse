@@ -606,7 +606,8 @@ function apDef(){const t=tdy(),o=M.autoP||{};return{da:o.da&&o.da>=t?o.da:t,a:o.
  pm:o.pm!=null?o.pm:50,maxT:o.maxT||1,maxF:o.maxF||3,tol:o.tol!=null?o.tol:15,turni:o.turni||['N','P','M','G'],gg:o.gg||[0,1,2,3,4,5,6],ggPref:o.ggPref||[6,0],
  est:!!o.est,evt:o.evt!==false,map:o.map||{},pp:o.pp||{},minDef:o.minDef||30}}
 const PPof=(o,ep)=>{const x=(o.pp||{})[ep]||{};return{pm:x.pm!=null?x.pm:o.pm,prev:x.prev!==false,off:!!x.off}};
-const repRows=o=>EPT.rows().filter(r=>(!o.rep||r.rep===o.rep)&&r.ep);
+const isManR=r=>/manutenz/i.test(r.rep||'');
+const repRows=o=>EPT.rows().filter(r=>isManR(r)&&(!o.rep||r.rep===o.rep)&&r.ep);
 const minOf=(p,o)=>+p.min||(o||M.autoP||{}).minDef||30;
 // --- simulazione: non scrive nulla ---
 function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};
@@ -638,7 +639,7 @@ function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};
  res.vis.sort((a,b)=>a.data<b.data?-1:a.data>b.data?1:a.turno<b.turno?-1:1);return res}
 // --- maschera parametri ---
 function drawAP(){const o=AP.p;if(AP.step==='res')return drawAPres();
- const reps=[...new Set(EPT.rows().map(r=>r.rep))],rows=EPT.rows().filter(r=>!o.rep||r.rep===o.rep);
+ const reps=[...new Set(EPT.rows().filter(isManR).map(r=>r.rep))],rows=EPT.rows().filter(r=>isManR(r)&&(!o.rep||r.rep===o.rep));
  const chk=(v,l,arr)=>`<label class="mn-chk" style="display:inline-flex!important;margin-right:10px"><input type="checkbox" ${o[arr].includes(v)?'checked':''} onchange="MNX.apArr('${arr}',${typeof v==='number'?v:`'${v}'`},this.checked)"> ${l}</label>`;
  const num=(k,l,min,max,s)=>`<label>${l}<input type="number" min="${min}" max="${max}" value="${o[k]}" onchange="MNX.apSet('${k}',+this.value)">${s?`<span class="muted" style="font-size:12px">${s}</span>`:''}</label>`;
  const q_=s=>e_(s).replace(/'/g,"\\'");
@@ -649,7 +650,7 @@ function drawAP(){const o=AP.p;if(AP.step==='res')return drawAPres();
  <div class="muted" style="font-size:13px">Scegli i parametri e premi «Simula»: vedi la proposta, poi decidi se confermarla o rifarla. Finché non confermi non viene salvato nulla.</div>
  <div class="mn-step"><b>1 · Manutentori e turni</b>
   <div class="row"><button class="btn" onclick="MNX.syncT()">🔄 Sincronizza turni</button>${tAge()}</div>
-  ${EPT.d?`<div class="evf"><label>Reparto<select onchange="MNX.apSet('rep',this.value)"><option value="">Tutti</option>${reps.map(r=>`<option ${o.rep===r?'selected':''}>${e_(r)}</option>`).join('')}</select></label>
+  ${EPT.d?`<div class="evf"><label>Reparto<select onchange="MNX.apSet('rep',this.value)">${reps.length>1?'<option value="">Tutti i reparti di manutenzione</option>':''}${reps.map(r=>`<option ${o.rep===r?'selected':''}>${e_(r)}</option>`).join('')}</select></label>
   ${num('pm','% del turno per manutenzione (predefinita)',0,100,'il resto è supporto al plant: guasti e cambi modello')}</div>
   <div style="overflow-x:auto"><table class="mn-tab" style="width:100%;font-size:13px;border-collapse:collapse"><thead><tr><th style="text-align:left">Turni e ferie</th><th style="text-align:left">Persona Ergo Plan</th><th>% manut. / supporto</th><th>Preventiva</th><th>Escludi da tutto</th></tr></thead><tbody>${rows.map(prow).join('')||'<tr><td colspan="5" class="muted">Nessuna persona</td></tr>'}</tbody></table></div>
   <div class="muted" style="font-size:12px">Preventiva tolta: la persona non riceve manutenzioni programmate ma resta nel carico come supporto. Escludi da tutto: nessuna attività automatica e fuori dal carico.</div>`:''}
@@ -694,7 +695,7 @@ async function vCar(){if(!isR())return '<div class="panel muted">Pagina riservat
   const q=PPof(o,r.ep),tg=ore*q.pm/100,pc=ore?Math.round(man/ore*100):0,col=!ore?'var(--off)':man>tg*1.1?'var(--accent)':man<tg*0.5&&q.prev?'var(--warn)':'var(--ok)';
   return `<td style="padding:4px 6px;border-left:1px solid var(--line);font-size:12px;white-space:nowrap"><div><b style="color:${col}">${String(Math.round(man*10)/10).replace('.',',')} h</b> manut.</div><div class="muted">${String(Math.round((ore-man)*10)/10).replace('.',',')} h supporto</div><div class="muted">${ore} h turno · ${pc}%${ass?` · <span style="color:var(--accent)">${ass} gg assente</span>`:''}</div></td>`};
  return `<div class="row" style="margin-bottom:10px"><button class="btn" onclick="MNX.syncT()">🔄 Sincronizza turni</button>${tAge()}</div>
- <div class="row" style="margin-bottom:10px"><label>Dalla settimana del <input type="date" value="${C.da}" onchange="MNX.car('da',this.value)"></label><label>Settimane <input type="number" min="1" max="26" value="${C.sett}" style="width:60px" onchange="MNX.car('sett',+this.value)"></label><span class="muted" style="font-size:12px">Reparto: ${e_(o.rep||'tutti')} · obiettivo per persona dai parametri della pianificazione automatica</span></div>
+ <div class="row" style="margin-bottom:10px"><label>Dalla settimana del <input type="date" value="${C.da}" onchange="MNX.car('da',this.value)"></label><label>Settimane <input type="number" min="1" max="26" value="${C.sett}" style="width:60px" onchange="MNX.car('sett',+this.value)"></label><span class="muted" style="font-size:12px">Reparto: ${e_(o.rep||'manutenzione')} · obiettivo per persona dai parametri della pianificazione automatica</span></div>
  ${!EPT.d?'<div class="mn-empty muted">Sincronizza i turni per vedere il carico.</div>':`<div style="overflow-x:auto"><table style="border-collapse:collapse;width:100%"><thead><tr><th style="text-align:left;padding:4px 6px">Persona</th>${W.map(w=>`<th style="padding:4px 6px;font-size:12px;border-left:1px solid var(--line)">${fd(w).slice(0,5)}</th>`).join('')}</tr></thead>
  <tbody>${rows.map(r=>{const q=PPof(o,r.ep);return `<tr style="border-top:1px solid var(--line)"><td style="padding:4px 6px"><b>${e_(r.ep)}</b><div class="muted" style="font-size:12px">${q.prev?q.pm+'% manut. / '+(100-q.pm)+'% supporto':'solo supporto'}</div></td>${W.map(w=>cell(r,w)).join('')}</tr>`}).join('')||`<tr><td class="muted">Nessuna persona</td></tr>`}</tbody></table></div>
  <div class="muted" style="font-size:12px;margin-top:6px">Ore turno = giorni lavorati × 8 h. Manutenzione = durata delle procedure pianificate nella settimana. Supporto = il resto (guasti, cambi modello, produzione). Rosso: oltre l'obiettivo; giallo: meno della metà.</div>`}`}
