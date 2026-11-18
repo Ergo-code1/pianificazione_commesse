@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.18.5 — 2026-11-18
+- Gantt: trascinando una barra la durata in giorni lavorativi resta uguale.
+
 ## 2.18.4 — 2026-11-18
 - Legami e spostamenti mantengono la durata in giorni lavorativi (non cambia più attraversando i fine settimana).
 

@@ -427,7 +427,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.18.4';
+const VERSIONE='2.18.5';
 // mantiene la posizione di scorrimento durante i ridisegni
 let _ksD=0,_ksT=null;
 function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrollX,tab=S.tab+'|'+S.gView,sel='.gwrap,.tablewrap,.list,.mn-box,#mnOvl,#gOvl,.dep,[data-ks]',old=[...document.querySelectorAll(sel)].map(e=>[e.scrollLeft,e.scrollTop]);
@@ -850,7 +850,7 @@ function gDrag(){if(!can('edit'))return;const G=document.querySelector('.gantt')
     const mv=e=>{if(e.pointerId!==pid)return;const dx=e.clientX-x0;if(Math.abs(dx)>3)moved=true;dd=Math.round(dx/w);if(rs)bar.style.marginRight=(-dd*w)+'px';else bar.style.transform=`translateX(${dd*w}px)`};
     const up=e=>{if(e.pointerId!==pid)return;removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);act=null;bar.classList.remove('gdrag');bar.dataset.nc=1;
      if(!moved||!dd){bar.style.transform='';bar.style.marginRight='';return}
-     const oi=a.ini,of=a.fin;if(rs){const f=addD(a.fin,dd);a.fin=f<a.ini?a.ini:f}else{a.ini=addD(a.ini,dd);a.fin=addD(a.fin,dd)}toastP(a.nome+': '+fmt(a.ini)+' → '+fmt(a.fin));depShift(a,oi,of);render()};
+     const oi=a.ini,of=a.fin;if(rs){const f=addD(a.fin,dd);a.fin=f<a.ini?a.ini:f}else{const w=wdN(a.ini,a.fin)||1;let st=addD(a.ini,dd);while([0,6].includes(toD(st).getDay()))st=addD(st,1);a.ini=st;a.fin=wdEnd(st,w)}toastP(a.nome+': '+fmt(a.ini)+' → '+fmt(a.fin));depShift(a,oi,of);render()};
     addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up)})})});
  // disegna le date trascinando sulle celle della riga
  G.querySelectorAll('.gcell[data-gr]').forEach(cell=>cell.addEventListener('pointerdown',ev=>{const pid=ev.pointerId;
@@ -1112,7 +1112,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.18.4"></script>
+<script src="manutenzione.js?v=2.18.5"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
