@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.26.0 — 2026-11-18
+- Pianificazione automatica: passo «4 · Priorità» con zone prioritarie e impianti prioritari (con ricerca); vengono pianificati per primi (prima gli impianti, poi le zone), segnati con ★ nella proposta.
+
 ## Beta — 2026-11-18 (2)
 - 5 tocchi sul titolo: menu con «Simulazione» e «↺ Torna a Ergo Plan» cancella i dati Beta e li ricopia da Ergo Plan senza la simulazione dei 12 mesi.
 

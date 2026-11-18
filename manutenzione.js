@@ -604,7 +604,9 @@ const tAge=()=>{const T=EPT.d;if(!T)return'<span style="color:var(--accent)">Tur
 // --- parametri ---
 function apDef(){const t=tdy(),o=M.autoP||{};return{da:o.da&&o.da>=t?o.da:t,a:o.a&&o.a>t?o.a:addM(t,2),cat:o.cat!=null?o.cat:(MN.pz&&MN.pz!=='_none'?MN.pz:''),rep:o.rep||'',
  pm:o.pm!=null?o.pm:50,maxT:o.maxT||1,maxF:o.maxF||3,tol:o.tol!=null?o.tol:15,turni:o.turni||['N','P','M','G'],gg:o.gg||[0,1,2,3,4,5,6],ggPref:o.ggPref||[6,0],
- est:!!o.est,evt:o.evt!==false,map:o.map||{},pp:o.pp||{},minDef:o.minDef||30}}
+ est:!!o.est,evt:o.evt!==false,map:o.map||{},pp:o.pp||{},minDef:o.minDef||30,prioZ:o.prioZ||[],prioI:o.prioI||[]}}
+// priorità: 0 impianto prioritario, 1 zona prioritaria, 2 gli altri
+const prioOf=(o,i)=>(o.prioI||[]).includes(i.id)?0:(o.prioZ||[]).some(z=>catDesc(z).has(i.cat))?1:2;
 const PPof=(o,ep)=>{const x=(o.pp||{})[ep]||{};return{pm:x.pm!=null?x.pm:o.pm,prev:x.prev!==false,off:!!x.off,zone:Array.isArray(x.zone)?x.zone:[]}};
 // impianti su cui la persona può fare manutenzione: zone scelte (con le sottozone); nessuna zona = tutti
 const canImp=(q,i)=>!q.zone.length||q.zone.some(z=>catDesc(z).has(i.cat));
@@ -626,8 +628,9 @@ function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};
  imps.forEach(i=>{let it=M.ass.filter(s=>s.imp===i.id&&P(s.proc)&&!P(s.proc)._miss&&!planned(s)).map(s=>({s,p:P(s.proc),due:dueOf(s)})).filter(x=>x.due&&x.due<=o.a);
   it.filter(x=>x.p.est&&!o.est).forEach(x=>res.skip.push({i,p:x.p,why:'fornitore esterno'}));it=it.filter(x=>!x.p.est||o.est);
   it.filter(x=>x.p.tipo==='evento'&&!o.evt).forEach(x=>res.skip.push({i,p:x.p,why:'a evento'}));it=it.filter(x=>x.p.tipo!=='evento'||o.evt);
-  it.sort((a,b)=>a.due<b.due?-1:1);while(it.length){const d0=it[0].due,lim=addD(d0<o.da?o.da:d0,o.tol);const g=it.filter(x=>x.due<=lim);it=it.filter(x=>x.due>lim);groups.push({i,it:g,due:d0,min:g.reduce((t,x)=>t+minOf(x.p,o),0)})}});
- groups.sort((a,b)=>a.due<b.due?-1:a.due>b.due?1:b.min-a.min);
+  it.sort((a,b)=>a.due<b.due?-1:1);while(it.length){const d0=it[0].due,lim=addD(d0<o.da?o.da:d0,o.tol);const g=it.filter(x=>x.due<=lim);it=it.filter(x=>x.due>lim);groups.push({i,pr:prioOf(o,i),it:g,due:d0,min:g.reduce((t,x)=>t+minOf(x.p,o),0)})}});
+ // prima gli impianti prioritari, poi le zone prioritarie, poi gli altri; a pari priorità la scadenza più vicina
+ groups.sort((a,b)=>a.pr-b.pr||(a.due<b.due?-1:a.due>b.due?1:b.min-a.min));
  const tOrd=t=>{const k=o.turni.indexOf(t);return k<0?99:k};
  groups.forEach(g=>{const from=addD(g.due,-o.tol)<o.da?o.da:addD(g.due,-o.tol),to=addD(g.due,o.tol);let best=null;
   for(const d of days){if(d<from)continue;const wd=new Date(d+'T12:00:00').getDay();if(!o.gg.includes(wd)||(cntF[d]||0)>=o.maxF)continue;
@@ -639,7 +642,7 @@ function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};
   if(!best){g.it.forEach(x=>res.skip.push({i:g.i,p:x.p,why:!pers.some(y=>canImp(y.q,g.i))?'nessun manutentore abilitato a questo impianto':'nessun manutentore libero nel periodo'}));return}
   const k=best.d+'|'+best.t;(cntT[k]=cntT[k]||new Set()).add(best.x.ep);used[best.x.ep+'|'+best.d]=(used[best.x.ep+'|'+best.d]||0)+g.min;cntF[best.d]=(cntF[best.d]||0)+1;
   res.carico[best.x.ep]=(res.carico[best.x.ep]||0)+g.min;
-  res.vis.push({imp:g.i.id,data:best.d,turno:best.t,man:best.x.ep,min:g.min,due:g.due,late:best.d>g.due,ids:g.it.map(x=>x.s.id)})});
+  res.vis.push({pr:g.pr,imp:g.i.id,data:best.d,turno:best.t,man:best.x.ep,min:g.min,due:g.due,late:best.d>g.due,ids:g.it.map(x=>x.s.id)})});
  res.vis.sort((a,b)=>a.data<b.data?-1:a.data>b.data?1:a.turno<b.turno?-1:1);return res}
 // --- maschera parametri ---
 function drawAP(){const ov=document.getElementById('mnOvl'),sc=ov&&!ov.hidden?[ov.scrollTop,ov.querySelector('.mn-box')?.scrollTop||0,ov.querySelector('.aptab')?.parentNode.scrollLeft||0]:null;drawAP0();if(sc){const o2=document.getElementById('mnOvl');o2.scrollTop=sc[0];const b=o2.querySelector('.mn-box');if(b)b.scrollTop=sc[1];const t=o2.querySelector('.aptab');if(t)t.parentNode.scrollLeft=sc[2]}}
@@ -677,13 +680,19 @@ function drawAP0(){const o=AP.p;if(AP.step==='res')return drawAPres();
   <div>Giorni utilizzabili<br>${[1,2,3,4,5,6,0].map(d=>chk(d,AP_GG[d],'gg')).join('')}</div>
   <div>Giorni preferiti per i fermi <span class="muted" style="font-size:12px">(meno produzione)</span><br>${[1,2,3,4,5,6,0].map(d=>chk(d,AP_GG[d],'ggPref')).join('')}</div>
  </div>
+ <div class="mn-step"><b>4 · Priorità</b> <span class="muted" style="font-size:12px">pianificate per prime, quando i manutentori non bastano per tutto</span>
+  <details ${AP.prOpen==='z'?'open':''} ontoggle="MNX.apPr('z',this.open)"><summary style="cursor:pointer">Zone prioritarie: <b>${zTop(o.prioZ).length?e_(zTop(o.prioZ).map(z=>catPath(z)).join(', ')):'nessuna'}</b></summary><div style="columns:2;font-size:13px;margin-top:4px">${zoneTree().map(c=>`<label class="mn-chk" style="padding-left:${c.d*16}px"><input type="checkbox" ${o.prioZ.includes(c.id)?'checked':''} onchange="MNX.apPZ('${c.id}',this.checked)"> ${e_(c.nome)}</label>`).join('')||'<span class="muted">Nessuna zona definita</span>'}</div></details>
+  <details ${AP.prOpen==='i'?'open':''} ontoggle="MNX.apPr('i',this.open)"><summary style="cursor:pointer">Impianti prioritari: <b id="apPIs">${o.prioI.length?o.prioI.map(id=>I(id)).filter(Boolean).map(i=>e_(i.cod)).join(', '):'nessuno'}</b></summary>
+   <input type="search" placeholder="Cerca impianto…" style="width:100%;margin:6px 0" oninput="const q=this.value.toLowerCase();this.nextElementSibling.querySelectorAll('[data-q]').forEach(r=>r.hidden=!!q&&!r.dataset.q.includes(q))">
+   <div style="max-height:240px;overflow:auto;font-size:13px">${M.imp.filter(i=>!i.dism).sort((a,b)=>(a.cod||'').localeCompare(b.cod||'')).map(i=>`<label class="mn-chk" data-q="${e_((i.cod+' '+i.nome+' '+(catPath(i.cat)||'')).toLowerCase())}"><input type="checkbox" ${o.prioI.includes(i.id)?'checked':''} onchange="MNX.apPI('${i.id}',this.checked)"> <span><b>${e_(i.cod)}</b> ${e_(i.nome)} <span class="muted">${e_(catPath(i.cat)||'')}</span></span></label>`).join('')}</div></details>
+ </div>
  <div class="row" style="justify-content:flex-end"><button class="btn" onclick="MNX.close()">Annulla</button><button class="btn" onclick="MNX.apSave()">Salva parametri</button><button class="btn pri" ${EPT.d?'':'disabled'} onclick="MNX.apRun()">Simula</button></div>`)}
 function drawAPres(){const r=AP.res,o=AP.p;const by={};r.vis.forEach(v=>(by[v.data]=by[v.data]||[]).push(v));
  const tot=r.vis.reduce((t,v)=>t+v.ids.length,0),late=r.vis.filter(v=>v.late).length,sk={};r.skip.forEach(x=>(sk[x.why]=sk[x.why]||[]).push(x));
  ovl(`<div class="mn-oh"><h2>Proposta di pianificazione</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div>
  <div class="mn-info">${r.vis.length} fermi impianto · ${tot} procedure · dal ${fd(o.da)} al ${fd(o.a)}${late?` · <b style="color:var(--accent)">${late} oltre la scadenza</b>`:''}<br><span class="muted" style="font-size:12px">${o.maxT} per turno in programmata; max ${o.maxF} fermi al giorno. Il carico completo è nella pagina «Carico persone».</span></div>
  <div><b>Manutenzione aggiunta per persona</b><div class="row" style="gap:6px 14px;font-size:13px">${r.pers.map(x=>`<span>${e_(x.ep)} (${PPof(o,x.ep).pm}%): <b>${hh(r.carico[x.ep]||0)}</b></span>`).join('')}</div></div>
- <div class="mn-list">${Object.keys(by).sort().map(d=>`<div style="padding:6px 0;border-top:1px solid var(--line)"><b>${AP_GG[new Date(d+'T12:00:00').getDay()]} ${fd(d)}</b>${by[d].map(v=>{const i=I(v.imp);return `<div style="display:grid;grid-template-columns:90px 1fr auto;gap:8px;font-size:13px;padding:2px 0"><span>${AP_LAB[v.turno]}</span><span>${e_(i.cod)} · ${e_(i.nome)} <span class="muted">· ${v.ids.length} proc. · ${v.min} min · scad. ${fd(v.due)}</span>${v.late?' <span style="color:var(--accent)">dopo la scadenza</span>':''}</span><span>${e_(v.man)}</span></div>`}).join('')}</div>`).join('')||'<div class="mn-empty muted">Niente da pianificare con questi parametri</div>'}</div>
+ <div class="mn-list">${Object.keys(by).sort().map(d=>`<div style="padding:6px 0;border-top:1px solid var(--line)"><b>${AP_GG[new Date(d+'T12:00:00').getDay()]} ${fd(d)}</b>${by[d].map(v=>{const i=I(v.imp);return `<div style="display:grid;grid-template-columns:90px 1fr auto;gap:8px;font-size:13px;padding:2px 0"><span>${AP_LAB[v.turno]}</span><span>${v.pr<2?'<b style="color:var(--warn)" title="'+(v.pr?'zona':'impianto')+' prioritario">★</b> ':''}${e_(i.cod)} · ${e_(i.nome)} <span class="muted">· ${v.ids.length} proc. · ${v.min} min · scad. ${fd(v.due)}</span>${v.late?' <span style="color:var(--accent)">dopo la scadenza</span>':''}</span><span>${e_(v.man)}</span></div>`}).join('')}</div>`).join('')||'<div class="mn-empty muted">Niente da pianificare con questi parametri</div>'}</div>
  ${r.skip.length?`<details><summary style="cursor:pointer;color:var(--accent)">${r.skip.length} procedure non pianificate</summary><div style="font-size:13px">${Object.entries(sk).map(([k,l])=>`<div style="margin-top:6px"><b>${e_(k)}</b> (${l.length})<br><span class="muted">${l.slice(0,40).map(x=>e_(x.i.cod+' '+x.p.cod)).join(', ')}${l.length>40?'…':''}</span></div>`).join('')}</div></details>`:''}
  <div class="row" style="justify-content:flex-end"><button class="btn" onclick="MNX.apBack()">↺ Rifai con altri parametri</button><button class="btn pri" ${r.vis.length?'':'disabled'} onclick="MNX.apOk()">Conferma e pianifica</button></div>`)}
 const hh=m=>(Math.round(m/6)/10).toString().replace('.',',')+' h';
@@ -712,6 +721,9 @@ const APX={
  apSet(k,v){AP.p[k]=v;drawAP()},
  apArr(k,v,on){const l=AP.p[k].filter(x=>x!==v);if(on)l.push(v);if(k==='turni')l.sort((a,b)=>AP_WORK.indexOf(a)-AP_WORK.indexOf(b));AP.p[k]=l;drawAP()},
  apMap(n,v){AP.p.map={...AP.p.map,[n]:v};drawAP()},
+ apPr(k,on){if(on)AP.prOpen=k;else if(AP.prOpen===k)AP.prOpen=null},
+ apPZ(id,on){const fam=[...catDesc(id)];let z=AP.p.prioZ.filter(y=>!fam.includes(y));if(on)z.push(...fam);else{let c=CAT(id);while(c&&c.par){const p_=c.par;z=z.filter(y=>y!==p_);c=CAT(p_)}}AP.p.prioZ=z;drawAP()},
+ apPI(id,on){const l=AP.p.prioI.filter(x=>x!==id);if(on)l.push(id);AP.p.prioI=l;const s=document.getElementById('apPIs');if(s){s.textContent=l.length?l.map(x=>I(x)).filter(Boolean).map(i=>i.cod).join(', '):'nessuno'}else drawAP()},
  apZ(ep){AP.zOpen=AP.zOpen===ep?null:ep;drawAP()},
  apZset(ep,id,on){const pp={...AP.p.pp},x={...(pp[ep]||{})};const fam=id==='*'?[]:[...catDesc(id)];let z=Array.isArray(x.zone)?x.zone.filter(y=>!fam.includes(y)):[];if(id==='*')z=[];else if(on)z.push(...fam);else{let c=CAT(id);while(c&&c.par){const p_=c.par;z=z.filter(y=>y!==p_);c=CAT(p_)}}x.zone=z;pp[ep]=x;AP.p.pp=pp;drawAP()},
  apPP(ep,k,v){const pp={...AP.p.pp},x={...(pp[ep]||{})};x[k]=v;pp[ep]=x;AP.p.pp=pp;drawAP()},
