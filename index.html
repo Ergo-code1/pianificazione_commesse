@@ -163,6 +163,7 @@ aside .av{background:rgb(255 255 255/.12);color:var(--hi)}
 .irow{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--soft)}
 @media(max-width:560px){.irow{grid-template-columns:36px minmax(0,1fr)}.irow>:last-child{grid-column:1/-1}}
 /* gantt */
+.gnav{display:flex;align-items:center;gap:6px;margin-bottom:6px;position:sticky;top:0;z-index:8;background:var(--surface);padding:4px 0}.gtop{flex:1;overflow-x:auto;overflow-y:hidden;height:16px}.gtop>div{height:1px}
 .fcal{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}.fmh{font-weight:700;text-transform:capitalize;margin-bottom:4px}.fg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px}.fg b{color:var(--muted);font-weight:600}.fg button{border:1px solid transparent;background:none;border-radius:6px;padding:4px 0;font:inherit;cursor:pointer;color:var(--fg)}.fg button:hover{border-color:var(--accent)}.fg .fwe{color:var(--muted);background:var(--soft)}.fg .fon{background:#c0392b;color:#fff;font-weight:700}.fg .ftd{outline:2px solid var(--accent)}
 .gld{font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}.gld.l1{background:color-mix(in srgb,var(--ok) 25%,transparent)}.gld.l2{background:color-mix(in srgb,#e67e22 45%,transparent)}.gld.l3{background:color-mix(in srgb,#c0392b 55%,transparent);color:#fff}.glg i.gld{display:inline-block;width:14px;height:10px}.gn.gcar{background:var(--soft)}
 .gwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
@@ -428,7 +429,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.19.0';
+const VERSIONE='2.19.1';
 // mantiene la posizione di scorrimento durante i ridisegni
 let _ksD=0,_ksT=null;
 function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrollX,tab=S.tab+'|'+S.gView,sel='.gwrap,.tablewrap,.list,.mn-box,#mnOvl,#gOvl,.dep,[data-ks]',old=[...document.querySelectorAll(sel)].map(e=>[e.scrollLeft,e.scrollTop]);
@@ -958,6 +959,11 @@ $('#view').innerHTML=`<section class="panel"><div class="row" style="justify-con
  $('#gPer').onchange=e=>{S.gPer=e.target.value;render()};
  gDrag();
  const w=$('.gwrap'),t=$('.gwrap .gd.td');if(w&&t)w.scrollLeft=Math.max(0,t.offsetLeft-w.querySelector('.gh').offsetWidth-60);
+ if(w){w.insertAdjacentHTML('beforebegin','<div class="gnav"><button class="btn sm" data-gs="-1" aria-label="Indietro">◀</button><button class="btn sm" data-gs="0">Oggi</button><button class="btn sm" data-gs="1" aria-label="Avanti">▶</button><div class="gtop" aria-hidden="true"><div></div></div></div>');
+  const tb=$('.gtop'),ti=tb.firstElementChild,sz=()=>{ti.style.width=w.scrollWidth+'px'};sz();setTimeout(sz,50);let lk=0;
+  tb.onscroll=()=>{if(lk)return;lk=1;w.scrollLeft=tb.scrollLeft;lk=0};w.addEventListener('scroll',()=>{if(lk)return;lk=1;tb.scrollLeft=w.scrollLeft;lk=0});tb.scrollLeft=w.scrollLeft;
+  w.addEventListener('wheel',e=>{if(e.shiftKey||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;if((w.scrollTop<=0&&e.deltaY<0)||(w.scrollTop+w.clientHeight>=w.scrollHeight-1&&e.deltaY>0))return},{passive:true});
+  document.querySelectorAll('[data-gs]').forEach(b=>b.onclick=()=>{const d=+b.dataset.gs,tt=$('.gwrap .gd.td');if(!d){if(tt)w.scrollTo({left:Math.max(0,tt.offsetLeft-w.querySelector('.gh').offsetWidth-60),behavior:'smooth'})}else w.scrollBy({left:d*w.clientWidth*.7,behavior:'smooth'})})}
  document.querySelectorAll('[data-gadd]').forEach(b=>b.onclick=()=>gForm(b.dataset.gadd));
  document.querySelectorAll('[data-gv]').forEach(b=>b.onclick=()=>{S.gView=b.dataset.gv;render()});
  document.querySelectorAll('[data-gmv]').forEach(b=>b.onclick=e=>{e.stopPropagation();const [ci,ai,d]=b.dataset.gmv.split('|');cMove(S.commesse.find(c=>c.id===ci),ai,+d)});
@@ -1127,7 +1133,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.19.0"></script>
+<script src="manutenzione.js?v=2.19.1"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";

@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.19.1 — 2026-11-18
+- Gantt: barra di scorrimento orizzontale anche in alto (sempre visibile) e pulsanti ◀ Oggi ▶.
+
 ## 2.19.0 — 2026-11-18
 - Impostazioni → «Giorni festivi»: calendario annuale, si tocca un giorno per segnarlo festivo; pulsante per aggiungere le festività nazionali (con Pasquetta).
 - I festivi non contano nella durata delle attività, negli spostamenti delle collegate e nel carico per persona; nel Gantt sono ombreggiati.
