@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.18.2 — 2026-11-18
+- Quando si lega un'attività (⛓), parte il giorno lavorativo dopo la fine della precedente (mantenendo la durata); le date restano modificabili.
+
 ## 2.18.1 — 2026-11-18
 - Commesse: cambiando la data di inizio (o di fine) di un'attività si spostano anche le attività collegate.
 - Togliendo tutti i legami ⛓ l'attività torna attiva e non resta più «in attesa».

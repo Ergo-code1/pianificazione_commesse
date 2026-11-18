@@ -427,7 +427,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.18.1';
+const VERSIONE='2.18.2';
 // mantiene la posizione di scorrimento durante i ridisegni
 let _ksD=0,_ksT=null;
 function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrollX,tab=S.tab+'|'+S.gView,sel='.gwrap,.tablewrap,.list,.mn-box,#mnOvl,#gOvl,.dep,[data-ks]',old=[...document.querySelectorAll(sel)].map(e=>[e.scrollLeft,e.scrollTop]);
@@ -772,6 +772,8 @@ function gForm(cid,aid){if(!(aid?can('edit'):can('add')))return;const c=S.commes
   const i=$('#gfI').value,f=$('#gfF').value;if(!i||!f)return $('#gfE').textContent='Inserisci inizio e fine.';if(f<i)return $('#gfE').textContent='La fine è prima dell\'inizio.';
   const v={nome:n,pers:$('#gfP').value,ini:i,fin:f,bud:$('#gfO').value===''?null:+$('#gfO').value,attiva:$('#gfA').value==='1',dip:[...document.querySelectorAll('.gfDep:checked')].map(x=>+x.value)};
   if(!v.attiva&&!(a&&a.manca))v.manca='Da specificare';
+  {const old=(a&&a.dip)||[];if(v.dip.some(id=>!old.includes(id))){const pf=v.dip.map(id=>(c.att.find(x=>x.id===id)||{}).fin).filter(Boolean).sort().pop();
+   if(pf){let st=addD(pf,1);while([0,6].includes(toD(st).getDay()))st=addD(st,1);const du=Math.round((toD(v.fin)-toD(v.ini))/864e5);v.ini=st;v.fin=addD(st,Math.max(0,du))}}}
   if(a){const oi=a.ini,of=a.fin,had=a.dip&&a.dip.length;if(had&&!v.dip.length){v.attiva=true;v.manca=''}Object.assign(a,v);depShift(a,oi,of)}else{const na={id:S.nextId++,liv:0,stato:'da fare',prio:9,cons:null,...v},pid=$('#gfPos').value;
    if(pid){const pi=c.att.findIndex(x=>x.id==pid);na.liv=(c.att[pi].liv||0)+1;c.att.splice(pi+1+cSub(c,pi).length,0,na)}else c.att.push(na)}
   close();render()}}
@@ -1104,7 +1106,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.18.1"></script>
+<script src="manutenzione.js?v=2.18.2"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
