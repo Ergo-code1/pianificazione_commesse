@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.25.1 — 2026-11-18
+- Zone impianti per manutentore: spuntando una zona si spuntano anche tutte le sottozone; il pulsante mostra il numero di zone (nomi nel suggerimento) e la finestra non si sposta più a ogni spunta.
+
 ## 2.25.0 — 2026-11-18
 - Pianificazione automatica: per ogni manutentore si scelgono le zone di impianti su cui può fare manutenzione (✎, con sottozone; nessuna = tutti). Sostituisce la scelta Impianti Settimo.
 
