@@ -432,7 +432,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.23.0';
+const VERSIONE='2.23.1';
 // mantiene la posizione di scorrimento durante i ridisegni
 let _ksD=0,_ksT=null;
 function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrollX,tab=S.tab+'|'+S.gView,sel='.gwrap,.tablewrap,.list,.mn-box,#mnOvl,#gOvl,.dep,[data-ks]',old=[...document.querySelectorAll(sel)].map(e=>[e.scrollLeft,e.scrollTop]);
@@ -1156,7 +1156,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.23.0"></script>
+<script src="manutenzione.js?v=2.23.1"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -1257,7 +1257,12 @@ window.FBM={_u:null,
  // lettura del riepilogo turni dall'app Turni e ferie (altro progetto Firebase, solo lettura)
  tfLogin:async(u,pw)=>{const a=getAuth(tfApp());await setPersistence(a,browserLocalPersistence);await signInWithEmailAndPassword(a,u+'@turni-ergotech.it','tf#'+pw)},
  tfRead:async()=>{const a=getAuth(tfApp());await a.authStateReady();if(!a.currentUser){const e=new Error('accesso a Turni e ferie necessario');e.code='tf-login';throw e}
-  try{const sn=await getDoc(doc(getFirestore(tfApp()),'ergoplan','turni'));return sn.exists()?sn.data():null}catch(er){if(er&&/permission/i.test(er.code||'')){await signOut(a).catch(()=>{});er.code='tf-login'}throw er}}};
+  try{const qs=await getDocs(collection(getFirestore(tfApp()),'ergoplan'));const L=qs.docs.filter(d=>d.id.startsWith('rep_')).map(d=>d.data()).filter(x=>x&&x.da&&x.p);if(!L.length)return null;
+   // un documento per reparto: riallinea tutti alla stessa data di inizio
+   const dd=s=>Math.round((new Date(s+'T12:00:00')-new Date('2000-01-01T12:00:00'))/864e5),D0=Math.min(...L.map(x=>dd(x.da))),D1=Math.max(...L.map(x=>dd(x.da)+x.n)),n=D1-D0,p={};
+   const da=L.find(x=>dd(x.da)===D0).da;let agg='';
+   L.forEach(x=>{const off=dd(x.da)-D0;if(x.agg>agg)agg=x.agg;Object.entries(x.p).forEach(([k,r])=>{const f=v=>{const a=Array(n).fill('');String(v||'').split(',').forEach((c,i)=>{a[off+i]=c});return a.join(',')};p[k]={n:r.n,rep:r.rep,s:f(r.s),t:f(r.t)}})});
+   return{da,n,p,agg,reparti:L.map(x=>({rep:x.rep,agg:x.agg,da_chi:x.da_chi||''}))}}catch(er){if(er&&/permission/i.test(er.code||'')){await signOut(a).catch(()=>{});er.code='tf-login'}throw er}}};
 onAuthStateChanged(auth,user=>{
  if(!user){S.user=null;renderLogin();return}
  const un=user.email.endsWith('@'+FB_DOM)?user.email.split('@')[0]:null;

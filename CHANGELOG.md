@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.23.1 — 2026-11-18
+- Sincronizza turni: legge un riepilogo per reparto (scritto in Turni e ferie da admin, responsabili e direttori) e li unisce.
+
 ## 2.23.0 — 2026-11-18
 - Turni da «Turni e ferie»: pulsante «🔄 Sincronizza turni» (accesso con un utente di Turni e ferie, solo lettura); i turni restano condivisi in Ergo Plan (manutDoc/_turni) con data dell'ultima sincronizzazione.
 - Gantt → Per persona: ferie e assenze di Turni e ferie sui giorni della persona.

@@ -574,7 +574,7 @@ function drawQI(){const q=MN.qi,T_=M.tipi,EX=qiEx();const sc0=document.getElemen
  <div class="muted" style="font-size:12px">Ogni spunta aggiunge un componente di quel tipo con le sue procedure. Sugli impianti già inseriti la spunta aggiunge subito il componente (✓ verde = presente: cliccalo per toglierlo con le sue procedure); per togliere o duplicare usa «Configura».</div>`);
  const o=document.getElementById('mnOvl');const box=o&&o.firstElementChild;if(box){box.style.width='100%';box.style.maxWidth='none';box.style.minHeight='calc(100vh - 24px)';box.style.alignContent='start'}if(o){o.style.padding='12px'}const sc=document.getElementById('mnQiS');if(sc)sc.scrollTop=st0;if(o)o.scrollTop=ot0}
 // ---------- turni da «Turni e ferie» + pianificazione automatica + carico persone (v2.23.0) ----------
-// Il riepilogo turni lo scrive l'app Turni e ferie (doc ergoplan/turni, solo reparti ingegneria e manutenzione).
+// Il riepilogo turni lo scrive l'app Turni e ferie (ergoplan/rep_<id>, un doc per reparto di ingegneria e manutenzione).
 // «Sincronizza turni» lo legge con un utente di Turni e ferie e lo copia in Ergo Plan (manutDoc/_turni), visibile a tutti.
 const AP_WORK=['M','P','N','G'],AP_LAB={M:'Mattina',P:'Pomeriggio',N:'Notte',G:'Giornata'},AP_GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
 const AP={step:'par',res:null};
@@ -595,7 +595,7 @@ async function tfLogin(){const u=prompt('Utente dell\'app Turni e ferie (serve s
  try{await window.FBM.tfLogin(u.trim(),pw);return true}catch(er){mt('Accesso a Turni e ferie non riuscito: '+FB.err(er));return false}}
 async function syncTurni(){if(!isR())return mt('Solo il responsabile può sincronizzare');mt('Leggo i turni…');let x;
  try{x=await window.FBM.tfRead()}catch(er){if(er&&er.code==='tf-login'){if(!await tfLogin())return;try{x=await window.FBM.tfRead()}catch(e2){return mt('Turni non leggibili: '+FB.err(e2))}}else return mt('Turni non leggibili: '+FB.err(er))}
- if(!x||!x.p)return mt('Riepilogo non trovato: apri Turni e ferie come admin e salva una modifica (serve la versione 15.9.0)');
+ if(!x||!x.p)return mt('Riepilogo non trovato: in Turni e ferie un responsabile o l\'admin deve salvare una modifica (serve la Rev. 15.9.1)');
  const map=(M.autoP||{}).map||{};Object.values(x.p).forEach(r=>{r.ep=map[r.n]||apGuess(r.n)});
  try{await window.FBM.putBlob('manutDoc','_turni',{...x,sinc:new Date().toISOString(),da_chi:me()||''});EPT.d=x;EPT.ld=Date.now()}catch(er){return mt('Turni non salvati in Ergo Plan: '+FB.err(er))}
  mt('Turni sincronizzati: '+Object.keys(x.p).length+' persone, aggiornati in Turni e ferie il '+new Date(x.agg).toLocaleString('it-IT'));refresh();if(document.getElementById('mnOvl')&&!document.getElementById('mnOvl').hidden&&AP.p)drawAP()}
