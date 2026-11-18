@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.18.4 — 2026-11-18
+- Legami e spostamenti mantengono la durata in giorni lavorativi (non cambia più attraversando i fine settimana).
+
 ## 2.18.3 — 2026-11-18
 - Durata in giorni lavorativi (Commesse e scheda attività): con inizio e durata la fine si calcola da sola; cambiando l'inizio la durata resta uguale.
 
