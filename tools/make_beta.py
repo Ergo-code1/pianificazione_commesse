@@ -48,7 +48,7 @@ s=rep(s,"saveY:async(y,arr)=>RIP()||setDoc(bdoc(db,'manutStorico',String(y)),fsE
 # pulsante nascosto: 5 tocchi sul titolo
 s=rep(s,"<h1>Ergo Plan Beta <span class=\"rev\">v${VERSIONE}</span></h1><div cl","<h1 onclick=\"window.betaTap&&betaTap()\">Ergo Plan Beta <span class=\"rev\">v${VERSIONE}</span></h1><div cl")
 s=re.sub(r'manutenzione\.js\?v=([0-9.]+)',r'manutenzione.js?v=\1b4',s)
-s=rep(s,'<script src="manutenzione.js','<script>window.betaTap=(()=>{let n=0,t=0;return()=>{const k=Date.now();n=k-t<1500?n+1:1;t=k;if(n>=5){n=0;window.MNX&&MNX.simula&&MNX.simula(true)}}})();</script>\n<script src="manutenzione.js')
+s=rep(s,'<script src="manutenzione.js','<script>window.betaTap=(()=>{let n=0,t=0;return()=>{const k=Date.now();n=k-t<1500?n+1:1;t=k;if(n>=5){n=0;window.MNX&&MNX.betaMenu&&MNX.betaMenu()}}})();</script>\n<script src="manutenzione.js')
 open(os.path.join(B,'index.html'),'w',encoding='utf-8').write(s)
 m=open(os.path.join(R,'manutenzione.js'),encoding='utf-8').read()
 m=m.replace("fetch('manut_std.json","fetch('../manut_std.json").replace("fetch('Procedura_LOTO.pdf","fetch('../Procedura_LOTO.pdf")
@@ -112,7 +112,8 @@ m=rep(m,"window.MNX=",SIM+"window.MNX=")
 m=rep(m,"window.MNX={","window.MNX={simula,")
 # Torna alla situazione di Ergo Plan (copia pulita, senza simulazione)
 m=rep(m,"window.MNX={","window.MNX={betaBack(){if(!isR())return mt('Solo il responsabile manutenzione');if(!confirm('Tornare alla situazione attuale di Ergo Plan?\\n\\nTutti i dati della Beta (pianificazioni, chiusure, prove) vengono cancellati e ricopiati da Ergo Plan, senza simulazione. Ergo Plan non viene toccato.'))return;try{localStorage.setItem('epBetaNoSim','1')}catch(e){}(FB.betaReset?FB.betaReset():Promise.reject(new Error('ricarica la pagina e riprova'))).catch(er=>alert('Non riuscito: '+(er.message||FB.err(er))))},")
-m=rep(m,"""<button class="btn" onclick="MNX.auto()">⚙ Pianificazione automatica</button>""","""<button class="btn" onclick="MNX.betaBack()">↺ Torna a Ergo Plan</button><button class="btn" onclick="MNX.auto()">⚙ Pianificazione automatica</button>""")
+# menu dei 5 tocchi: simulazione oppure ritorno a Ergo Plan
+m=rep(m,"window.MNX={","window.MNX={betaMenu(){if(!isR())return mt('Solo il responsabile manutenzione');ovl('<div class=\"mn-oh\"><h2>Ergo Plan Beta</h2><button class=\"btn\" onclick=\"MNX.close()\" aria-label=\"Chiudi\">✕</button></div><button class=\"btn\" onclick=\"MNX.close();MNX.simula(true)\">Simulazione: aggiorna a oggi / ore al giorno</button><button class=\"btn\" onclick=\"MNX.close();MNX.betaBack()\">↺ Torna a Ergo Plan (senza simulazione)</button>')},")
 open(os.path.join(B,'manutenzione.js'),'w',encoding='utf-8').write(m)
 man=json.load(open(os.path.join(R,'manifest.webmanifest'),encoding='utf-8'))
 man.update(id='/pianificazione_commesse/beta/?app=ergoplanbeta',name='Ergo Plan Beta',short_name='EP Beta',start_url='/pianificazione_commesse/beta/?app=ergoplanbeta',scope='/pianificazione_commesse/beta/')
