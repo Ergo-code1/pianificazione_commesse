@@ -1,5 +1,8 @@
 # Changelog
 
+## Beta — 2026-11-18 (2)
+- Pianificazione: «↺ Torna a Ergo Plan» cancella i dati Beta e li ricopia da Ergo Plan senza la simulazione dei 12 mesi.
+
 ## 2.25.1 — 2026-11-18
 - Zone impianti per manutentore: spuntando una zona si spuntano anche tutte le sottozone; il pulsante mostra il numero di zone (nomi nel suggerimento) e la finestra non si sposta più a ogni spunta.
 

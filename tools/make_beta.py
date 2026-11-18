@@ -52,7 +52,7 @@ s=rep(s,'<script src="manutenzione.js','<script>window.betaTap=(()=>{let n=0,t=0
 open(os.path.join(B,'index.html'),'w',encoding='utf-8').write(s)
 m=open(os.path.join(R,'manutenzione.js'),encoding='utf-8').read()
 m=m.replace("fetch('manut_std.json","fetch('../manut_std.json").replace("fetch('Procedura_LOTO.pdf","fetch('../Procedura_LOTO.pdf")
-m=rep(m,"function start(){","function start(){MN._simT||(MN._simT=setInterval(()=>{if(M.simA&&M.planD===tdy())return clearInterval(MN._simT);if(M.simA){const k=pianSim();if(k>=0){clearInterval(MN._simT);saveM();refresh();mt('Simulazione: '+k+' attività pianificate')}return}simula(false)},5000));")
+m=rep(m,"function start(){","function start(){MN._simT||(MN._simT=setInterval(()=>{if(localStorage.getItem('epBetaNoSim')){if(!okB())return;localStorage.removeItem('epBetaNoSim');M.simA=M.planD=tdy();M.noSim=1;saveM();clearInterval(MN._simT);refresh();return mt('Beta allineata a Ergo Plan: nessuna simulazione')}if(M.simA&&M.planD===tdy())return clearInterval(MN._simT);if(M.simA){const k=pianSim();if(k>=0){clearInterval(MN._simT);saveM();refresh();mt('Simulazione: '+k+' attività pianificate')}return}simula(false)},5000));")
 SIM=r"""
 // ===== Ergo Plan Beta: simulazione =====
 const offB=d=>typeof offD==='function'?offD(d):[0,6].includes(new Date(d+'T12:00:00').getDay());
@@ -110,6 +110,9 @@ async function simula(man){
 """
 m=rep(m,"window.MNX=",SIM+"window.MNX=")
 m=rep(m,"window.MNX={","window.MNX={simula,")
+# Torna alla situazione di Ergo Plan (copia pulita, senza simulazione)
+m=rep(m,"window.MNX={","window.MNX={betaBack(){if(!isR())return mt('Solo il responsabile manutenzione');if(!confirm('Tornare alla situazione attuale di Ergo Plan?\\n\\nTutti i dati della Beta (pianificazioni, chiusure, prove) vengono cancellati e ricopiati da Ergo Plan, senza simulazione. Ergo Plan non viene toccato.'))return;try{localStorage.setItem('epBetaNoSim','1')}catch(e){}(FB.betaReset?FB.betaReset():Promise.reject(new Error('ricarica la pagina e riprova'))).catch(er=>alert('Non riuscito: '+(er.message||FB.err(er))))},")
+m=rep(m,"""<button class="btn" onclick="MNX.auto()">⚙ Pianificazione automatica</button>""","""<button class="btn" onclick="MNX.betaBack()">↺ Torna a Ergo Plan</button><button class="btn" onclick="MNX.auto()">⚙ Pianificazione automatica</button>""")
 open(os.path.join(B,'manutenzione.js'),'w',encoding='utf-8').write(m)
 man=json.load(open(os.path.join(R,'manifest.webmanifest'),encoding='utf-8'))
 man.update(id='/pianificazione_commesse/beta/?app=ergoplanbeta',name='Ergo Plan Beta',short_name='EP Beta',start_url='/pianificazione_commesse/beta/?app=ergoplanbeta',scope='/pianificazione_commesse/beta/')
