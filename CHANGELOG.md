@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.20.1 — 2026-11-18
+- Backup dati: «⬆ Ricarica backup…» (solo admin) — conferma scrivendo RIPRISTINA, scarica prima una copia dei dati attuali, poi ricarica l'app.
+
 ## 2.20.0 — 2026-11-18
 - Impostazioni → Persone e accessi (solo admin): «⬇ Scarica backup», copia completa dei dati in un file JSON sul PC.
 

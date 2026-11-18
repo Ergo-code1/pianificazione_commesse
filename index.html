@@ -431,7 +431,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.20.0';
+const VERSIONE='2.20.1';
 // mantiene la posizione di scorrimento durante i ridisegni
 let _ksD=0,_ksT=null;
 function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrollX,tab=S.tab+'|'+S.gView,sel='.gwrap,.tablewrap,.list,.mn-box,#mnOvl,#gOvl,.dep,[data-ks]',old=[...document.querySelectorAll(sel)].map(e=>[e.scrollLeft,e.scrollTop]);
@@ -1102,8 +1102,20 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  <h2 style="margin:22px 0 4px" id="vociSec">Voci ore</h2><div class="muted" style="font-size:12px;margin-bottom:10px">Le voci su cui imposti budget e consuntivo di ogni commessa (tab Ore).</div><div class="stack">
  ${S.voci.map((v,i)=>`<div class="irow rrow2"><span class="av">${i+1}</span><input data-vn="${i}" value="${esc(v)}" aria-label="Nome voce">${S.delV===i?`<div class="row"><button class="btn sm pri" data-vdel="${i}">Conferma</button><button class="btn sm" data-vno>Annulla</button></div>`:`<div class="row"><button class="btn sm" data-vmv="${i}|-1" ${i?'':'disabled'} aria-label="Su">▲</button><button class="btn sm" data-vmv="${i}|1" ${i<S.voci.length-1?'':'disabled'} aria-label="Giù">▼</button><button class="btn sm" data-vask="${i}">Elimina</button></div>`}</div>`).join('')}
  <div class="row"><input id="vNew" placeholder="Nuova voce (es. Collaudo)" style="flex:1"><button class="btn pri" id="vAdd">Aggiungi voce</button></div></div>
- <h2 style="margin:22px 0 4px">Backup dati</h2><div class="muted" style="font-size:12px;margin-bottom:10px">Scarica sul PC una copia completa dei dati (pianificazione, manutenzioni, storico, documenti, foto, utenti).</div><div class="row"><button class="btn pri" id="bkBtn">⬇ Scarica backup</button><span class="muted" id="bkMsg" style="font-size:12px"></span></div>`:''}</section></div>`;
+ <h2 style="margin:22px 0 4px">Backup dati</h2><div class="muted" style="font-size:12px;margin-bottom:10px">Scarica sul PC una copia completa dei dati (pianificazione, manutenzioni, storico, documenti, foto, utenti).</div><div class="row"><button class="btn pri" id="bkBtn">⬇ Scarica backup</button><span class="muted" id="bkMsg" style="font-size:12px"></span></div>
+ <div class="row" style="margin-top:10px"><button class="btn" id="rpBtn">⬆ Ricarica backup…</button><input type="file" id="rpFile" accept=".json,application/json" hidden><span class="muted" id="rpMsg" style="font-size:12px">Sostituisce tutti i dati attuali con quelli del file. Prima scarica in automatico una copia dei dati attuali.</span></div>`:''}</section></div>`;
  const busy=(b,p)=>{b.disabled=true;p.catch(e=>toast(FB.err(e))).finally(()=>render())};
+ $('#rpBtn')&&($('#rpBtn').onclick=()=>$('#rpFile').click());
+ $('#rpFile')&&($('#rpFile').onchange=async e=>{const f=e.target.files[0],m=$('#rpMsg');e.target.value='';if(!f)return;let d;
+  try{d=JSON.parse(await f.text())}catch(er){return m.textContent='✗ File non valido (non è un JSON).'}
+  if(!d||!d.doc||!d.doc['app/stato']||!d.col)return m.textContent='✗ Il file non è un backup di Ergo Plan.';
+  const nd=Object.keys(d.doc).length+Object.values(d.col).reduce((a,c)=>a+Object.keys(c).length,0);
+  if(prompt('Ripristino del backup del '+new Date(d.data).toLocaleString('it-IT')+' ('+nd+' documenti).\nTUTTI i dati attuali verranno sostituiti, per tutti gli utenti.\nPrima verrà scaricata una copia dei dati attuali.\n\nScrivi RIPRISTINA per confermare:')!=='RIPRISTINA')return m.textContent='Ripristino annullato.';
+  $('#rpBtn').disabled=true;
+  try{m.textContent='Copia di sicurezza dei dati attuali…';const cur=await FB.backup();if(cur.err.length)throw new Error('copia di sicurezza incompleta ('+cur.err.join(', ')+'): ripristino non eseguito');
+   const bl=new Blob([JSON.stringify(cur.dati)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='ErgoPlan_prima_del_ripristino_'+new Date().toISOString().slice(0,16).replace(/[T:]/g,'-')+'.json';document.body.appendChild(a);a.click();a.remove();
+   const r=await FB.ripristina(d,t=>m.textContent=t);m.textContent='✓ Ripristino completato ('+r+' documenti). Ricarico l\'app…';setTimeout(()=>location.reload(),1500)}
+  catch(er){m.textContent='✗ Ripristino non riuscito: '+(er.message||FB.err(er));$('#rpBtn').disabled=false}});
  $('#bkBtn')&&($('#bkBtn').onclick=async e=>{const b=e.target,m=$('#bkMsg');b.disabled=true;m.textContent='Lettura dati in corso…';
   try{const r=await FB.backup(t=>m.textContent=t);const bl=new Blob([JSON.stringify(r.dati)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='ErgoPlan_backup_'+new Date().toISOString().slice(0,16).replace(/[T:]/g,'-')+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
    m.textContent=(r.err.length?'⚠ Backup parziale — non letti: '+r.err.join(', '):'✓ Backup completo')+' · '+r.n+' documenti · '+Math.round(bl.size/1024)+' KB';toast(r.err.length?'Backup parziale: controlla il messaggio':'Backup scaricato')}
@@ -1143,7 +1155,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.20.0"></script>
+<script src="manutenzione.js?v=2.20.1"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -1171,7 +1183,8 @@ function mergeVal(b,l,s){const sb=stab(b),sl=stab(l);if(sl===sb)return s;const s
  return l}
 const clone=o=>o===undefined?undefined:JSON.parse(JSON.stringify(o));
 // salva loc nel documento dref fondendolo con le modifiche altrui; restituisce il documento finale
-async function txMerge(dref,base,loc){return runTransaction(db,async tx=>{const sn=await tx.get(dref);const cur=sn.exists()?fsDec(sn.data()):null;
+const RIP=()=>{if(window.__rip)throw new Error('ripristino in corso')};
+async function txMerge(dref,base,loc){RIP();return runTransaction(db,async tx=>{const sn=await tx.get(dref);const cur=sn.exists()?fsDec(sn.data()):null;
  const out=cur?mergeVal(base||cur,loc,cur):loc;tx.set(dref,fsEnc(out));return clone(out)})}
 window.EPM={stab,mergeVal,clone};
 let last='',unsub=null,timer=null,remote=false,base=null,saving=false,again=false;
@@ -1194,6 +1207,15 @@ window.FB={msg:'',key:null,
   for(const id of ['stato','manut']){try{const sn=await getDoc(doc(db,'app',id));if(sn.exists()){out.doc['app/'+id]=sn.data();n++}}catch(e){err.push('app/'+id)}}
   for(const c of ['manutStorico','manutDoc','manutFoto','utenti']){prog&&prog('Lettura '+c+'…');try{const qs=await getDocs(collection(db,c));out.col[c]={};qs.forEach(d=>{out.col[c][d.id]=d.data();n++})}catch(e){err.push(c+' ('+FB.err(e)+')')}}
   return {dati:out,err,n}},
+ // ripristino: riscrive i documenti esattamente come nel backup e toglie quelli nati dopo (tranne il proprio accesso)
+ async ripristina(d,prog){if(d.progetto&&d.progetto!==cfg.projectId)throw new Error('il backup è di un altro progetto Firebase ('+d.progetto+')');
+  window.__rip=1;clearTimeout(timer);try{unsub&&unsub();unsub=null}catch(e){}try{window.FBM&&FBM.stop&&FBM.stop()}catch(e){}let n=0;const me=auth.currentUser&&auth.currentUser.uid;
+  try{for(const c of Object.keys(d.col)){prog&&prog('Ripristino '+c+'…');const qs=await getDocs(collection(db,c));
+    for(const x of qs.docs)if(!(x.id in d.col[c])&&!(c==='utenti'&&x.id===me))await deleteDoc(doc(db,c,x.id));
+    for(const [id,v] of Object.entries(d.col[c])){await setDoc(doc(db,c,id),v);n++}}
+   prog&&prog('Ripristino dati principali…');
+   for(const k of ['app/manut','app/stato'])if(d.doc[k]){await setDoc(doc(db,...k.split('/')),d.doc[k]);n++}
+   return n}catch(e){window.__rip=0;throw e}},
  async login(raw,pw,rem){const em=raw.includes('@')?raw:fem(raw);
   await setPersistence(auth,rem?browserLocalPersistence:browserSessionPersistence).catch(()=>{});
   try{try{await signInWithEmailAndPassword(auth,em,fpw(pw))}catch(e0){if(pw.length>=6&&e0.code!=='auth/too-many-requests')await signInWithEmailAndPassword(auth,em,pw);else throw e0}}
@@ -1221,13 +1243,13 @@ window.FBM={_u:null,
  listen(cb,er){this.stop();this._u=onSnapshot(doc(db,'app','manut'),sn=>cb(fsGet(sn)),e=>{this._u=null;er(e)})},
  listenDoc(c,id,cb,er){this._u2&&this._u2();this._u2=onSnapshot(doc(db,c,id),sn=>cb(fsGet(sn)),e=>{this._u2=null;er&&er(e)})},
  stop(){this._u&&this._u();this._u=null;this._u2&&this._u2();this._u2=null},
- save:async d=>setDoc(doc(db,'app','manut'),fsEnc(d)),
+ save:async d=>RIP()||setDoc(doc(db,'app','manut'),fsEnc(d)),
  txMain:(b,l)=>txMerge(doc(db,'app','manut'),b,l),
  txY:(y,b,l)=>txMerge(doc(db,'manutStorico',String(y)),b,l),
  getMain:async()=>fsGet(await getDoc(doc(db,'app','manut'))),
  getY:async y=>{const d=fsGet(await getDoc(doc(db,'manutStorico',String(y))));return d?(d.att||[]):[]},
- saveY:async(y,arr)=>setDoc(doc(db,'manutStorico',String(y)),fsEnc({att:arr})),
- putBlob:async(c,id,o)=>setDoc(doc(db,c,id),fsEnc(o)),
+ saveY:async(y,arr)=>RIP()||setDoc(doc(db,'manutStorico',String(y)),fsEnc({att:arr})),
+ putBlob:async(c,id,o)=>RIP()||setDoc(doc(db,c,id),fsEnc(o)),
  getBlob:async(c,id)=>fsGet(await getDoc(doc(db,c,id))),
  delBlob:(c,id)=>deleteDoc(doc(db,c,id))};
 onAuthStateChanged(auth,user=>{
