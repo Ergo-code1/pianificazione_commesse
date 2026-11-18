@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.25.0 — 2026-11-18
+- Pianificazione automatica: per ogni manutentore si scelgono le zone di impianti su cui può fare manutenzione (✎, con sottozone; nessuna = tutti). Sostituisce la scelta Impianti Settimo.
+
 ## 2.24.1 — 2026-11-18
 - Pianificazione automatica: tabella manutentori allineata; Impianti Settimo con scelta No / Anche / Solo.
 

@@ -605,17 +605,17 @@ const tAge=()=>{const T=EPT.d;if(!T)return'<span style="color:var(--accent)">Tur
 function apDef(){const t=tdy(),o=M.autoP||{};return{da:o.da&&o.da>=t?o.da:t,a:o.a&&o.a>t?o.a:addM(t,2),cat:o.cat!=null?o.cat:(MN.pz&&MN.pz!=='_none'?MN.pz:''),rep:o.rep||'',
  pm:o.pm!=null?o.pm:50,maxT:o.maxT||1,maxF:o.maxF||3,tol:o.tol!=null?o.tol:15,turni:o.turni||['N','P','M','G'],gg:o.gg||[0,1,2,3,4,5,6],ggPref:o.ggPref||[6,0],
  est:!!o.est,evt:o.evt!==false,map:o.map||{},pp:o.pp||{},minDef:o.minDef||30}}
-const PPof=(o,ep)=>{const x=(o.pp||{})[ep]||{};return{pm:x.pm!=null?x.pm:o.pm,prev:x.prev!==false,off:!!x.off,sv:x.sv||''}};
-// impianti del plant di Settimo: zona (categoria) con «Settimo» nel nome
-const isSett=i=>!!i&&/settimo/i.test(catPath(i.cat)||'');
+const PPof=(o,ep)=>{const x=(o.pp||{})[ep]||{};return{pm:x.pm!=null?x.pm:o.pm,prev:x.prev!==false,off:!!x.off,zone:Array.isArray(x.zone)?x.zone:[]}};
+// impianti su cui la persona può fare manutenzione: zone scelte (con le sottozone); nessuna zona = tutti
+const canImp=(q,i)=>!q.zone.length||q.zone.some(z=>catDesc(z).has(i.cat));
+const zoneTxt=q=>!q.zone.length?'Tutti':q.zone.map(z=>catPath(z)).filter(Boolean).join(', ')||'Tutti';
 const isManR=r=>/manutenz/i.test(r.rep||'');
 const repRows=o=>EPT.rows().filter(r=>isManR(r)&&(!o.rep||r.rep===o.rep)&&r.ep);
 const minOf=(p,o)=>+p.min||(o||M.autoP||{}).minDef||30;
 // --- simulazione: non scrive nulla ---
 function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};
- const zone=o.cat?catDesc(o.cat):null,anySv=repRows(o).some(r=>{const q=PPof(o,r.ep);return !q.off&&q.prev&&q.sv});
- const imps=M.imp.filter(i=>!i.dism&&(!zone||zone.has(i.cat)||anySv&&isSett(i)));
- const pers=repRows(o).filter(r=>{const q=PPof(o,r.ep);return !q.off&&q.prev&&q.pm>0}).map(r=>({r,ep:r.ep,sv:PPof(o,r.ep).sv,cap:Math.round(8*60*PPof(o,r.ep).pm/100)}));res.pers=pers;
+ const zone=o.cat?catDesc(o.cat):null,imps=M.imp.filter(i=>!i.dism&&(!zone||zone.has(i.cat)));
+ const pers=repRows(o).filter(r=>{const q=PPof(o,r.ep);return !q.off&&q.prev&&q.pm>0}).map(r=>({r,ep:r.ep,q:PPof(o,r.ep),cap:Math.round(8*60*PPof(o,r.ep).pm/100)}));res.pers=pers;
  const used={},cntT={},cntF={};
  // ore già occupate da manutenzioni pianificate prima (non toccate)
  M.att.forEach(a=>{if(!a.due||a.chiusa||!a.man||a.due<o.da||a.due>o.a)return;const k=a.man+'|'+a.due;used[k]=(used[k]||0)+minOf(PA(a)||{},o)});
@@ -630,12 +630,12 @@ function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};
  const tOrd=t=>{const k=o.turni.indexOf(t);return k<0?99:k};
  groups.forEach(g=>{const from=addD(g.due,-o.tol)<o.da?o.da:addD(g.due,-o.tol),to=addD(g.due,o.tol);let best=null;
   for(const d of days){if(d<from)continue;const wd=new Date(d+'T12:00:00').getDay();if(!o.gg.includes(wd)||(cntF[d]||0)>=o.maxF)continue;
-   const gs=isSett(g.i);for(const x of pers){if(gs?!x.sv:x.sv==='solo')continue;const t=EPT.work(x.r,d);if(!t||!o.turni.includes(t))continue;const k=d+'|'+t,u=used[x.ep+'|'+d]||0,nT=cntT[k]||new Set();
+   for(const x of pers){if(!canImp(x.q,g.i))continue;const t=EPT.work(x.r,d);if(!t||!o.turni.includes(t))continue;const k=d+'|'+t,u=used[x.ep+'|'+d]||0,nT=cntT[k]||new Set();
     if(!nT.has(x.ep)&&nT.size>=o.maxT)continue;if(u+g.min>x.cap&&!(u===0&&g.min>x.cap&&x.cap>=120))continue;
     const sc=(d>to?1000:0)+(o.ggPref.includes(wd)?0:40)+tOrd(t)*10+((res.carico[x.ep]||0)/Math.max(x.cap,1))*5+days.indexOf(d)*0.5+(d<g.due?3:0);
     if(!best||sc<best.sc)best={sc,d,t,x}}
    if(best&&best.sc<40&&d>=g.due)break}
-  if(!best){g.it.forEach(x=>res.skip.push({i:g.i,p:x.p,why:isSett(g.i)&&!pers.some(y=>y.sv)?'Settimo: nessuno con la spunta Settimo':'nessun manutentore libero nel periodo'}));return}
+  if(!best){g.it.forEach(x=>res.skip.push({i:g.i,p:x.p,why:!pers.some(y=>canImp(y.q,g.i))?'nessun manutentore abilitato a questo impianto':'nessun manutentore libero nel periodo'}));return}
   const k=best.d+'|'+best.t;(cntT[k]=cntT[k]||new Set()).add(best.x.ep);used[best.x.ep+'|'+best.d]=(used[best.x.ep+'|'+best.d]||0)+g.min;cntF[best.d]=(cntF[best.d]||0)+1;
   res.carico[best.x.ep]=(res.carico[best.x.ep]||0)+g.min;
   res.vis.push({imp:g.i.id,data:best.d,turno:best.t,man:best.x.ep,min:g.min,due:g.due,late:best.d>g.due,ids:g.it.map(x=>x.s.id)})});
@@ -648,7 +648,8 @@ function drawAP(){const o=AP.p;if(AP.step==='res')return drawAPres();
  const q_=s=>e_(s).replace(/'/g,"\\'");
  const prow=r=>{const ep=r.ep,q=PPof(o,ep||'');return `<tr><td class="l">${e_(r.n)}</td><td class="l"><select onchange="MNX.apMap('${q_(r.n)}',this.value)"><option value="">— non abbinata —</option>${(S.persone||[]).map(p=>`<option ${p===ep?'selected':''}>${e_(p)}</option>`).join('')}</select></td>
   ${ep?`<td class="c"><input type="number" min="0" max="100" step="5" value="${q.pm}" ${q.off||!q.prev?'disabled':''} onchange="MNX.apPP('${q_(ep)}','pm',+this.value)"><span class="muted"> / ${100-q.pm}</span></td>
-  <td class="c"><input type="checkbox" ${q.prev&&!q.off?'checked':''} ${q.off?'disabled':''} onchange="MNX.apPP('${q_(ep)}','prev',this.checked)"></td><td class="c"><select class="apsv" ${q.off||!q.prev?'disabled':''} onchange="MNX.apPP('${q_(ep)}','sv',this.value)"><option value="">No</option><option value="anche" ${q.sv==='anche'?'selected':''}>Anche</option><option value="solo" ${q.sv==='solo'?'selected':''}>Solo</option></select></td><td class="c"><input type="checkbox" ${q.off?'checked':''} onchange="MNX.apPP('${q_(ep)}','off',this.checked)"></td>`:'<td colspan="4" class="muted">abbina a una persona</td>'}</tr>`};
+  <td class="c"><input type="checkbox" ${q.prev&&!q.off?'checked':''} ${q.off?'disabled':''} onchange="MNX.apPP('${q_(ep)}','prev',this.checked)"></td><td class="l" style="font-size:12px"><button class="btn sm" style="width:100%;text-align:left;white-space:normal" ${q.off||!q.prev?'disabled':''} onclick="MNX.apZ('${q_(ep)}')">${e_(zoneTxt(q))} ✎</button></td><td class="c"><input type="checkbox" ${q.off?'checked':''} onchange="MNX.apPP('${q_(ep)}','off',this.checked)"></td>`:'<td colspan="4" class="muted">abbina a una persona</td>'}</tr>${ep&&AP.zOpen===ep?`<tr><td colspan="6" style="background:var(--bg);padding:8px 12px"><b>Impianti di ${e_(ep)}</b> <span class="muted">(nessuna zona scelta = tutti gli impianti)</span><div style="columns:2;font-size:13px;margin-top:4px">${zoneTree().map(c=>`<label class="mn-chk" style="padding-left:${c.d*16}px"><input type="checkbox" ${q.zone.includes(c.id)?'checked':''} onchange="MNX.apZset('${q_(ep)}','${c.id}',this.checked)"> ${e_(c.nome)}</label>`).join('')||'<span class="muted">Nessuna zona definita</span>'}</div><div class="row" style="justify-content:flex-end;margin-top:4px"><button class="btn sm" onclick="MNX.apZset('${q_(ep)}','*',false)">Tutti</button><button class="btn sm pri" onclick="MNX.apZ('${q_(ep)}')">Fatto</button></div></td></tr>`:''}`};
+ function zoneTree(){const out=[];const walk=(par,d)=>catKids(par).sort((a,b)=>a.nome.localeCompare(b.nome)).forEach(c=>{out.push({id:c.id,nome:c.nome,d});walk(c.id,d+1)});walk(null,0);return out}
  ovl(`<div class="mn-oh"><h2>Pianificazione automatica</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div>
  <div class="muted" style="font-size:13px">Scegli i parametri e premi «Simula»: vedi la proposta, poi decidi se confermarla o rifarla. Finché non confermi non viene salvato nulla.</div>
  <div class="mn-step"><b>1 · Manutentori e turni</b>
@@ -656,8 +657,8 @@ function drawAP(){const o=AP.p;if(AP.step==='res')return drawAPres();
   ${EPT.d?`<div class="evf"><label>Reparto<select onchange="MNX.apSet('rep',this.value)">${reps.length>1?'<option value="">Tutti i reparti di manutenzione</option>':''}${reps.map(r=>`<option ${o.rep===r?'selected':''}>${e_(r)}</option>`).join('')}</select></label>
   ${num('pm','% del turno per manutenzione (predefinita)',0,100,'il resto è supporto al plant: guasti e cambi modello')}</div>
   <style>.aptab{width:100%;min-width:640px;border-collapse:collapse;table-layout:fixed;font-size:13px}.aptab th{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);padding:6px 4px;text-align:center;vertical-align:bottom}.aptab th.l,.aptab td.l{text-align:left}.aptab td{padding:6px 4px;border-top:1px solid var(--line);vertical-align:middle}.aptab td.c{text-align:center;white-space:nowrap}.aptab select{width:100%;min-width:0}.aptab select.apsv{width:auto}.aptab input[type=number]{width:56px}.aptab input[type=checkbox]{width:18px;height:18px;margin:0}</style>
-  <div style="overflow-x:auto"><table class="aptab"><colgroup><col style="width:22%"><col style="width:26%"><col style="width:16%"><col style="width:11%"><col style="width:13%"><col style="width:12%"></colgroup><thead><tr><th class="l">Turni e ferie</th><th class="l">Persona Ergo Plan</th><th>% manut. / supporto</th><th>Preventiva</th><th>Impianti Settimo</th><th>Escludi da tutto</th></tr></thead><tbody>${rows.map(prow).join('')||'<tr><td colspan="6" class="muted">Nessuna persona</td></tr>'}</tbody></table></div>
-  <div class="muted" style="font-size:12px">Preventiva tolta: la persona non riceve manutenzioni programmate ma resta nel carico come supporto. Escludi da tutto: nessuna attività automatica e fuori dal carico. Impianti Settimo: «anche» fa sia Settimo sia gli altri impianti, «solo» fa soltanto Settimo; senza spunta niente Settimo. Settimo = impianti in una zona con «Settimo» nel nome${M.imp.some(i=>!i.dism&&isSett(i))?'':' <b style="color:var(--accent)">(nessuna trovata)</b>'}.</div>`:''}
+  <div style="overflow-x:auto"><table class="aptab"><colgroup><col style="width:19%"><col style="width:23%"><col style="width:15%"><col style="width:10%"><col style="width:22%"><col style="width:11%"></colgroup><thead><tr><th class="l">Turni e ferie</th><th class="l">Persona Ergo Plan</th><th>% manut. / supporto</th><th>Preventiva</th><th class="l">Impianti</th><th>Escludi da tutto</th></tr></thead><tbody>${rows.map(prow).join('')||'<tr><td colspan="6" class="muted">Nessuna persona</td></tr>'}</tbody></table></div>
+  <div class="muted" style="font-size:12px">Preventiva tolta: la persona non riceve manutenzioni programmate ma resta nel carico come supporto. Escludi da tutto: nessuna attività automatica e fuori dal carico. Impianti: le zone su cui la persona può fare manutenzione (✎ per sceglierle); senza zone, tutti gli impianti.</div>`:''}
  </div>
  <div class="mn-step"><b>2 · Cosa pianificare</b><div class="evf">
   <label>Dal<input type="date" value="${o.da}" onchange="MNX.apSet('da',this.value)"></label><label>Al<input type="date" value="${o.a}" onchange="MNX.apSet('a',this.value)"></label>
@@ -701,7 +702,7 @@ async function vCar(){if(!isR())return '<div class="panel muted">Pagina riservat
  return `<div class="row" style="margin-bottom:10px"><button class="btn" onclick="MNX.syncT()">🔄 Sincronizza turni</button>${tAge()}</div>
  <div class="row" style="margin-bottom:10px"><label>Dalla settimana del <input type="date" value="${C.da}" onchange="MNX.car('da',this.value)"></label><label>Settimane <input type="number" min="1" max="26" value="${C.sett}" style="width:60px" onchange="MNX.car('sett',+this.value)"></label><span class="muted" style="font-size:12px">Reparto: ${e_(o.rep||'manutenzione')} · obiettivo per persona dai parametri della pianificazione automatica</span></div>
  ${!EPT.d?'<div class="mn-empty muted">Sincronizza i turni per vedere il carico.</div>':`<div style="overflow-x:auto"><table style="border-collapse:collapse;width:100%"><thead><tr><th style="text-align:left;padding:4px 6px">Persona</th>${W.map(w=>`<th style="padding:4px 6px;font-size:12px;border-left:1px solid var(--line)">${fd(w).slice(0,5)}</th>`).join('')}</tr></thead>
- <tbody>${rows.map(r=>{const q=PPof(o,r.ep);return `<tr style="border-top:1px solid var(--line)"><td style="padding:4px 6px"><b>${e_(r.ep)}</b><div class="muted" style="font-size:12px">${q.prev?q.pm+'% manut. / '+(100-q.pm)+'% supporto':'solo supporto'}${q.sv?' · '+(q.sv==='solo'?'solo':'anche')+' Settimo':''}</div></td>${W.map(w=>cell(r,w)).join('')}</tr>`}).join('')||`<tr><td class="muted">Nessuna persona</td></tr>`}</tbody></table></div>
+ <tbody>${rows.map(r=>{const q=PPof(o,r.ep);return `<tr style="border-top:1px solid var(--line)"><td style="padding:4px 6px"><b>${e_(r.ep)}</b><div class="muted" style="font-size:12px">${q.prev?q.pm+'% manut. / '+(100-q.pm)+'% supporto':'solo supporto'}${q.zone.length?' · '+e_(zoneTxt(q)):''}</div></td>${W.map(w=>cell(r,w)).join('')}</tr>`}).join('')||`<tr><td class="muted">Nessuna persona</td></tr>`}</tbody></table></div>
  <div class="muted" style="font-size:12px;margin-top:6px">Ore turno = giorni lavorati × 8 h. Manutenzione = durata delle procedure pianificate nella settimana. Supporto = il resto (guasti, cambi modello, produzione). Rosso: oltre l'obiettivo; giallo: meno della metà.</div>`}`}
 const APX={
  async auto(){AP.p=apDef();AP.step='par';AP.res=null;await EPT.load(true);drawAP()},
@@ -709,6 +710,8 @@ const APX={
  apSet(k,v){AP.p[k]=v;drawAP()},
  apArr(k,v,on){const l=AP.p[k].filter(x=>x!==v);if(on)l.push(v);if(k==='turni')l.sort((a,b)=>AP_WORK.indexOf(a)-AP_WORK.indexOf(b));AP.p[k]=l;drawAP()},
  apMap(n,v){AP.p.map={...AP.p.map,[n]:v};drawAP()},
+ apZ(ep){AP.zOpen=AP.zOpen===ep?null:ep;drawAP()},
+ apZset(ep,id,on){const pp={...AP.p.pp},x={...(pp[ep]||{})};let z=Array.isArray(x.zone)?x.zone.filter(y=>y!==id):[];if(id==='*')z=[];else if(on)z.push(id);x.zone=z;pp[ep]=x;AP.p.pp=pp;drawAP()},
  apPP(ep,k,v){const pp={...AP.p.pp},x={...(pp[ep]||{})};x[k]=v;pp[ep]=x;AP.p.pp=pp;drawAP()},
  apSave(){M.autoP=JSON.parse(JSON.stringify(AP.p));saveM();mt('Parametri salvati')},
  apRun(){const o=AP.p;if(!EPT.d)return mt('Sincronizza prima i turni');if(o.a<o.da)return mt('Il periodo non è valido');if(!o.turni.length||!o.gg.length)return mt('Scegli almeno un turno e un giorno');
