@@ -567,10 +567,10 @@ const offB=d=>typeof offD==='function'?offD(d):[0,6].includes(new Date(d+'T12:00
 const wkB=d=>{let x=d;while(offB(x))x=addD(x,1);return x};
 const nxB=d=>wkB(addD(d,1));
 const poolB=()=>{let p=(PERS()||[]).filter(x=>x&&!/yassine|alessandro/i.test(x));if(!p.length)p=[...new Set([...M.att.map(a=>a.man),...(M.fatte||[]).map(a=>a.esec||a.man)].filter(x=>x&&!/yassine|alessandro/i.test(x)))];return p.length?p:[me()||'Manutentore']};
-const MINB=p=>(+p.min>0?+p.min:60),CAPMIN=16*60;
+const MINB=p=>(+p.min>0?+p.min:60);let CAPMIN=16*60;const capB=()=>CAPMIN=Math.round((+M.oreG>0?+M.oreG:16)*60);
 const okB=()=>isR()&&MN.base&&MN.mainL&&!MN.noProc&&M.proc.length&&!MN.old;
 // futuro: ogni procedura ha la sua prossima esecuzione pianificata. Una visita per impianto e mese, max 16 ore di lavoro al giorno (tempo stimato delle procedure, 60 min se manca; festivi esclusi)
-function pianSim(){if(!okB())return -1;const t=tdy(),pool=poolB(),rnd=()=>pool[Math.floor(Math.random()*pool.length)],cnt={};
+function pianSim(){if(!okB())return -1;capB();const t=tdy(),pool=poolB(),rnd=()=>pool[Math.floor(Math.random()*pool.length)],cnt={};
  M.att.forEach(a=>{if(a.due&&a.due>t){const p=PA(a);cnt[a.due]=(cnt[a.due]||0)+(p?MINB(p):60)}});
  const L=[];let n=0;
  for(const s of M.ass){const p=P(s.proc);if(!p||p._miss)continue;const i=I(s.imp);if(!i||i.dism||planned(s))continue;
@@ -579,18 +579,20 @@ function pianSim(){if(!okB())return -1;const t=tdy(),pool=poolB(),rnd=()=>pool[M
  const G={};L.forEach(x=>{const k=x.s.imp+'|'+x.d.slice(0,7);(G[k]=G[k]||[]).push(x)});
  Object.values(G).map(g=>({g,d:g.map(x=>x.d).sort()[0]})).sort((a,b)=>a.d<b.d?-1:1).forEach(({g,d})=>{
   const mins=g.reduce((a,x)=>a+MINB(P(x.s.proc)),0);while((cnt[d]||0)>0&&(cnt[d]||0)+mins>CAPMIN)d=nxB(d);cnt[d]=(cnt[d]||0)+mins;const v={id:nid('v'),imp:g[0].s.imp,data:d,man:rnd()};M.vis.push(v);
-  g.forEach(({s})=>{const r=pend(s);if(r){r.due=d;r.vis=v.id;r.man=v.man}else newAtt(s,d,v.id,v.man);s.man=v.man;n++})});
+  v.sim=1;g.forEach(({s})=>{const r=pend(s);if(r){r.due=d;r.vis=v.id;r.man=v.man;r.sim=1}else newAtt(s,d,v.id,v.man).sim=1;s.man=v.man;n++})});
  M.imp.forEach(i=>{if(!i.dism&&!i.avviato)i.avviato=M.simDa||t});
  M.planD=t;(M.log=M.log||[]).push({t:new Date().toISOString().slice(0,16).replace('T',' '),chi:me()||'sistema',az:'Simulazione',att:null,imp:null,cod:'',man:null,txt:n+' attività pianificate'});return n}
 // passato: chiusure simulate fino a oggi, distribuite in modo uniforme sui giorni lavorativi (escluse fornitore ed evento)
 async function simula(man){
  if(MN._sim)return;if(!isR())return man&&mt('Solo il responsabile manutenzione può aggiornare la simulazione');
  if(!okB())return man&&mt('Dati non ancora caricati: riprova tra qualche secondo');
- const t=tdy();if(man){if(M.simA===t&&M.planD===t){if(confirm('Simulazione già aggiornata a oggi.\n\nVuoi RIPARTIRE DA ZERO? La Beta viene cancellata e ricopiata da Ergo Plan, poi la simulazione viene rifatta.'))(FB.betaReset?FB.betaReset():Promise.reject(new Error('pagina non aggiornata, ricaricala e riprova'))).catch(er=>alert('Reset non riuscito: '+(er.message||FB.err(er))));return}
+ const t=tdy();if(man){const o=prompt('Ore di manutenzione al giorno (attuale: '+(+M.oreG>0?M.oreG:16)+')',String(+M.oreG>0?M.oreG:16));if(o===null)return;const h=parseFloat(String(o).replace(',','.'));if(!(h>0&&h<=200))return mt('Numero di ore non valido');M.oreG=h;
+  if(M.simA===t&&M.planD===t&&confirm('Ripianificare il futuro con '+h+' ore al giorno?\n(le attività pianificate dalla simulazione vengono ricalcolate)')){M.att=M.att.filter(a=>!(a.sim&&a.due&&a.due>t&&!a.ok.some(Boolean)));M.vis=M.vis.filter(v=>!v.sim||M.att.some(a=>a.vis===v.id));const k=pianSim();saveM();refresh();return mt('Ripianificate '+k+' attività con '+h+' ore al giorno')}
+  if(M.simA===t&&M.planD===t){if(confirm('Simulazione già aggiornata a oggi.\n\nVuoi RIPARTIRE DA ZERO? La Beta viene cancellata e ricopiata da Ergo Plan, poi la simulazione viene rifatta.'))(FB.betaReset?FB.betaReset():Promise.reject(new Error('pagina non aggiornata, ricaricala e riprova'))).catch(er=>alert('Reset non riuscito: '+(er.message||FB.err(er))));return}
   if(M.simA!==t&&!confirm(M.simA?'Aggiornare la simulazione dal '+fd(M.simA)+' a oggi?':'Eseguire la simulazione degli ultimi 12 mesi?'))return}
  MN._sim=1;try{
  if(M.simA===t){const k=pianSim();saveM();refresh();return mt('Simulazione: '+k+' attività pianificate')}
- const first=!M.simA,from=first?addM(t,-12):addD(M.simA,1),pool=poolB(),rnd=()=>pool[Math.floor(Math.random()*pool.length)];
+ capB();const first=!M.simA,from=first?addM(t,-12):addD(M.simA,1),pool=poolB(),rnd=()=>pool[Math.floor(Math.random()*pool.length)];
  const AS=JSON.parse(JSON.stringify(M.ass)),IM=JSON.parse(JSON.stringify(M.imp)),II=id=>IM.find(x=>x.id===id);
  const Q=[];
  for(const s of AS){const p=P(s.proc);if(!p||p._miss||p.est||p.tipo==='evento'||!(+p.int))continue;const i=II(s.imp);if(!i||i.dism)continue;
@@ -610,7 +612,7 @@ async function simula(man){
  for(const y of Object.keys(add).sort()){const arr=H[y];arr.push(...add[y]);await saveYm(y);if(!(M.anni||[]).includes(y))(M.anni=M.anni||[]).push(y)}
  M.ass=AS;M.imp=IM;if(first)M.simDa=from;
  if(drop.size){M.att=M.att.filter(a=>!drop.has(a.id));M.vis=M.vis.filter(v=>M.att.some(a=>a.vis===v.id))}
- M.simA=t;(M.log=M.log||[]).push({t:new Date().toISOString().slice(0,16).replace('T',' '),chi:me()||'sistema',az:'Simulazione',att:null,imp:null,cod:'',man:null,txt:n+' attività simulate dal '+fd(from)+' al '+fd(t)+' (max 16 ore al giorno)'});
+ M.simA=t;(M.log=M.log||[]).push({t:new Date().toISOString().slice(0,16).replace('T',' '),chi:me()||'sistema',az:'Simulazione',att:null,imp:null,cod:'',man:null,txt:n+' attività simulate dal '+fd(from)+' al '+fd(t)+' (max '+(CAPMIN/60)+' ore al giorno)'});
  const np=pianSim();saveM();refresh();mt('Simulazione: '+n+' attività fatte dal '+fd(from)+' a oggi, '+Math.max(np,0)+' pianificate')}
  catch(er){mt('Simulazione NON riuscita: '+(er.message||FB.err(er)))}finally{MN._sim=0}}
 window.MNX={simula,
