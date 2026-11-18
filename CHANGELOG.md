@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.27.0 — 2026-11-18
+- Pianificazione automatica: colonna «Dedicato a» per manutentore (impianti con ricerca). Gli impianti dedicati vanno a quella persona se è in turno entro la tolleranza; altrimenti a un altro, segnalato nella proposta.
+
 ## 2.26.0 — 2026-11-18
 - Pianificazione automatica: passo «4 · Priorità» con zone prioritarie e impianti prioritari (con ricerca); vengono pianificati per primi (prima gli impianti, poi le zone), segnati con ★ nella proposta.
 
