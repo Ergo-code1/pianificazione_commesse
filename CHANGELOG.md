@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.22.0 — 2026-11-18
+- Manutenzione → Pianificazione: «⚙ Pianificazione automatica». Si carica l'Excel dei turni (app Turni e ferie: Esporta → Excel → Turni), si scelgono reparto, manutentori, periodo, zona impianti, riserva per guasti/cambi modello, manutentori in programmata per turno, fermi max al giorno, turni e giorni preferiti, tolleranza; «Simula» mostra la proposta (fermi per giorno/turno, carico per persona, procedure escluse) da confermare o rifare. Niente viene salvato prima della conferma.
+
 ## 2.21.0 — 2026-11-18
 - Manutenzione: procedure Moretto PM093–PM105 (fascicolo MP, trimestrali, 10 min) e 62 macchine nella categoria «Impianto materia prima (Moretto)».
 

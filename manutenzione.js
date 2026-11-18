@@ -215,7 +215,7 @@ function draw0(){const v=document.getElementById('view');if(!v||!LEAF.includes(S
  if(MN.err){v.innerHTML=`<div class="panel"><b>Area manutenzione non accessibile.</b><p class="muted">${e_(MN.err)}. Controlla le regole di Firestore.</p></div>`;return}
  if(!MN.ready){v.innerHTML=`<div class="panel muted">Caricamento manutenzione… ${e_(MN.stage||'')}</div>`;setTimeout(()=>{if(!MN.ready)draw()},1500);return}
  if(MN.tab!==S.tab){MN.tab=S.tab;MN.f={imp:'',stato:'',man:'',proc:'',q:'',da:'',a:'',cat:''};if(S.tab!=='mimp')MN.impSel=null}
- const R=isR(),npb=`<button class="btn" onclick="MNX.np()">+ Intervento non programmato</button>`,lib=(R?`<button class="btn" onclick="MNX.newLib()">+ Altra attività</button>`:'')+npb,act={mimp:npb,msto:npb,manut:R?`${lib}<button class="btn pri" onclick="MNX.plan()">+ Pianifica manutenzione</button>`:npb,mpers:lib+`<button class="btn" onclick="MNX.diag()">Diagnostica</button>`,ccat:`<button class="btn pri" onclick="MNX.catAdd()">+ Livello principale</button>`,mric:'',cimp:`<button class="btn" onclick="MNX.qi()">Inserimento rapido</button><button class="btn pri" onclick="MNX.newImp()">+ Nuovo impianto</button>`,ctipi:`<button class="btn pri" onclick="MNX.newTipo()">+ Nuovo tipo</button>`,cproc:`<button class="btn pri" onclick="MNX.editProc()">+ Nuova procedura</button>`}[S.tab]||'';
+ const R=isR(),npb=`<button class="btn" onclick="MNX.np()">+ Intervento non programmato</button>`,lib=(R?`<button class="btn" onclick="MNX.newLib()">+ Altra attività</button>`:'')+npb,act={mimp:npb,msto:npb,manut:R?`${lib}<button class="btn" onclick="MNX.auto()">⚙ Pianificazione automatica</button><button class="btn pri" onclick="MNX.plan()">+ Pianifica manutenzione</button>`:npb,mpers:lib+`<button class="btn" onclick="MNX.diag()">Diagnostica</button>`,ccat:`<button class="btn pri" onclick="MNX.catAdd()">+ Livello principale</button>`,mric:'',cimp:`<button class="btn" onclick="MNX.qi()">Inserimento rapido</button><button class="btn pri" onclick="MNX.newImp()">+ Nuovo impianto</button>`,ctipi:`<button class="btn pri" onclick="MNX.newTipo()">+ Nuovo tipo</button>`,cproc:`<button class="btn pri" onclick="MNX.editProc()">+ Nuova procedura</button>`}[S.tab]||'';
  const hd=S.tab==='mimp'&&MN.impSel?null:HEAD[S.tab];
  v.innerHTML=`<div class="mnt">${MN.noProc?'<div class="mn-info" style="border-left-color:var(--accent)">Procedure non trovate: i dati sono in sola lettura. Avvisa l\'assistenza.</div>':''}${hd?`<div class="mn-head"><div><h2>${hd[0]}</h2><div class="muted">${hd[1]}</div></div><div class="row">${act}</div></div>`:''}<div id="mnBody"></div></div>`;
  const body=document.getElementById('mnBody');
@@ -573,6 +573,123 @@ function drawQI(){const q=MN.qi,T_=M.tipi,EX=qiEx();const sc0=document.getElemen
  ${q.paste?`<div class="evf"><label>Incolla l'elenco, una riga per impianto. Da Excel (colonne separate) o con «;»: Nome | Descrizione | Commessa | Cliente. Testo semplice: il primo pezzo è il nome, il resto la descrizione<textarea id="mnQiP" rows="10"></textarea></label></div><div class="row" style="justify-content:flex-end"><button class="btn" onclick="MNX.qiPaste(false)">Annulla</button><button class="btn pri" onclick="MNX.qiPasteOk()">Aggiungi righe</button></div>`:''}<div class="row" style="justify-content:space-between"><div class="row"><button class="btn" onclick="MNX.qiRow(-1)">+ Riga</button><button class="btn" onclick="MNX.qiPaste(true)">Incolla elenco</button></div><div class="row"><button class="btn" onclick="MNX.close()">Annulla</button><button class="btn pri" onclick="MNX.qiOk()">Crea impianti</button></div></div>
  <div class="muted" style="font-size:12px">Ogni spunta aggiunge un componente di quel tipo con le sue procedure. Sugli impianti già inseriti la spunta aggiunge subito il componente (✓ verde = presente: cliccalo per toglierlo con le sue procedure); per togliere o duplicare usa «Configura».</div>`);
  const o=document.getElementById('mnOvl');const box=o&&o.firstElementChild;if(box){box.style.width='100%';box.style.maxWidth='none';box.style.minHeight='calc(100vh - 24px)';box.style.alignContent='start'}if(o){o.style.padding='12px'}const sc=document.getElementById('mnQiS');if(sc)sc.scrollTop=st0;if(o)o.scrollTop=ot0}
+// ---------- pianificazione automatica (v2.22.0) ----------
+// Parametri scelti dal responsabile → proposta simulata → conferma (crea le manutenzioni) oppure rifai.
+// Turni: file Excel «Esporta → Excel → Turni» dell'app Turni e ferie (righe Reparto, Persona, un giorno per colonna).
+const AP_ESCL0=['graziano','yassine','gianotti','banino'];
+const AP_WORK=['M','P','N','G'],AP_LAB={M:'Mattina',P:'Pomeriggio',N:'Notte',G:'Giornata'},AP_GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+const AP={T:null,step:'par',res:null};
+function apLoadT(){if(AP.T)return AP.T;try{const x=JSON.parse(localStorage.getItem('ep-turni')||'null');if(x&&x.p)AP.T=x}catch(e){}return AP.T}
+function apDef(){const t=tdy(),o=M.autoP||{};return{da:o.da&&o.da>=t?o.da:t,a:o.a&&o.a>t?o.a:addM(t,2),cat:o.cat!=null?o.cat:(MN.pz&&MN.pz!=='_none'?MN.pz:''),rep:o.rep||'',
+ ris:o.ris!=null?o.ris:50,maxT:o.maxT||1,maxF:o.maxF||3,tol:o.tol!=null?o.tol:15,turni:o.turni||['N','P','M','G'],gg:o.gg||[0,1,2,3,4,5,6],ggPref:o.ggPref||[6,0],
+ est:!!o.est,evt:o.evt!==false,escl:o.escl||null,map:o.map||{},minDef:o.minDef||30}}
+const apNk=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z ]/g,' ').replace(/\s+/g,' ').trim();
+// abbina il nome del file turni a una persona di Ergo Plan (anche Cognome Nome / Nome Cognome)
+function apGuess(n){const L=PERS(),k=apNk(n),w=k.split(' ').sort().join(' ');return L.find(p=>apNk(p)===k)||L.find(p=>apNk(p).split(' ').sort().join(' ')===w)||L.find(p=>{const q=apNk(p).split(' ');return q.length&&q.every(x=>k.split(' ').includes(x))})||''}
+function apPeople(){const T=apLoadT(),o=AP.p;if(!T)return[];return T.p.filter(x=>!o.rep||x.rep===o.rep)}
+const apOn=(o,n)=>o.escl?!o.escl.includes(n):!AP_ESCL0.some(z=>apNk(n).includes(z));
+function apShift(n,d){const T=apLoadT();const r=T&&T.p.find(x=>x.n===n);const c=r&&r.d[d];const m=String(c||'').toUpperCase().match(/^(M|P|N|G)(?![A-Z])/);return m?m[1]:''}
+
+function apParse(file){if(!window.XLSX)return mt('Lettore Excel non disponibile: controlla la connessione');const r=new FileReader();
+ r.onload=()=>{try{const wb=XLSX.read(r.result,{type:'array',cellDates:true});const ws=wb.Sheets['Turni']||wb.Sheets[wb.SheetNames[0]];const A=XLSX.utils.sheet_to_json(ws,{header:1,raw:true});
+  const h=A[0]||[];const ds=h.map(v=>{if(v instanceof Date)return isoL(new Date(v.getTime()+12*3600e3));const m=String(v||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);return m?m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0'):null});
+  const p=[];A.slice(1).forEach(row=>{const n=String(row[1]||'').trim();if(!n)return;const d={};ds.forEach((x,k)=>{if(x&&k>1&&row[k]!=null&&row[k]!=='')d[x]=String(row[k]).trim()});p.push({rep:String(row[0]||'').trim(),n,d})});
+  const dd=ds.filter(Boolean).sort();if(!p.length||!dd.length)return mt('File non riconosciuto: usa Esporta → Excel → Turni dell\'app Turni e ferie');
+  AP.T={file:file.name,da:dd[0],a:dd[dd.length-1],p};try{localStorage.setItem('ep-turni',JSON.stringify(AP.T))}catch(e){}
+  if(!AP.p.rep){const reps=[...new Set(p.map(x=>x.rep))];const ms=reps.find(x=>/montestrutto/i.test(x));if(ms)AP.p.rep=ms}
+  if(AP.p.da<AP.T.da)AP.p.da=AP.T.da>tdy()?AP.T.da:tdy();if(AP.p.a>AP.T.a)AP.p.a=AP.T.a;
+  mt('Turni caricati: '+p.length+' persone, dal '+fd(AP.T.da)+' al '+fd(AP.T.a));drawAP()}catch(er){mt('File non leggibile: '+(er.message||er))}};r.readAsArrayBuffer(file)}
+
+// cuore: simulazione, non scrive nulla
+function apSim(o){const T=apLoadT(),res={vis:[],skip:[],ore:{},carico:{}};if(!T)return res;
+ const zone=o.cat?catDesc(o.cat):null;
+ const imps=M.imp.filter(i=>!i.dism&&(!zone||zone.has(i.cat)));
+ const pers=apPeople().filter(x=>apOn(o,x.n)).map(x=>({n:x.n,ep:o.map[x.n]||apGuess(x.n)})).filter(x=>x.ep);
+ const cap=Math.max(30,Math.round(8*60*(100-o.ris)/100));
+ const used={},cntT={},cntF={};
+ const dueOf=s=>{const p=P(s.proc);if(pend(s))return tdy();if(p.tipo==='evento')return s.evt?tdy():null;return s.next||tdy()};
+ const days=[];for(let d=o.da;d<=o.a;d=addD(d,1))days.push(d);
+ const groups=[];
+ imps.forEach(i=>{let it=M.ass.filter(s=>s.imp===i.id&&P(s.proc)&&!P(s.proc)._miss&&!planned(s)).map(s=>({s,p:P(s.proc),due:dueOf(s)})).filter(x=>x.due&&x.due<=o.a);
+  it.filter(x=>x.p.est&&!o.est).forEach(x=>res.skip.push({i,p:x.p,why:'fornitore esterno'}));it=it.filter(x=>!x.p.est||o.est);
+  it.filter(x=>x.p.tipo==='evento'&&!o.evt).forEach(x=>res.skip.push({i,p:x.p,why:'a evento'}));it=it.filter(x=>x.p.tipo!=='evento'||o.evt);
+  // raggruppa: un solo fermo per tutte le procedure che scadono entro la tolleranza dalla prima
+  it.sort((a,b)=>a.due<b.due?-1:1);while(it.length){const d0=it[0].due,lim=addD(d0<o.da?o.da:d0,o.tol);const g=it.filter(x=>x.due<=lim);it=it.filter(x=>x.due>lim);groups.push({i,it:g,due:d0,min:g.reduce((t,x)=>t+(+x.p.min||o.minDef),0)})}});
+ groups.sort((a,b)=>a.due<b.due?-1:a.due>b.due?1:b.min-a.min);
+ const tOrd=t=>{const k=o.turni.indexOf(t);return k<0?99:k};
+ groups.forEach(g=>{const from=addD(g.due,-o.tol)<o.da?o.da:addD(g.due,-o.tol),to=addD(g.due,o.tol);
+  let best=null;
+  for(const d of days){if(d<from)continue;const wd=new Date(d+'T12:00:00').getDay();if(!o.gg.includes(wd))continue;if((cntF[d]||0)>=o.maxF)continue;
+   for(const x of pers){const t=apShift(x.n,d);if(!t||!o.turni.includes(t))continue;const k=d+'|'+t;const u=used[x.n+'|'+d]||0;
+    const nT=(cntT[k]||new Set());if(!nT.has(x.n)&&nT.size>=o.maxT)continue;if(u+g.min>cap&&!(u===0&&g.min>cap))continue;
+    // punteggio: dentro la finestra, giorni/turni preferiti, carico equilibrato, il prima possibile
+    const sc=(d>to?1000+days.indexOf(d):0)+(o.ggPref.includes(wd)?0:40)+tOrd(t)*10+(res.carico[x.ep]||0)/60+days.indexOf(d)*0.5+(d<g.due?3:0);
+    if(!best||sc<best.sc)best={sc,d,t,x}}
+   if(best&&best.sc<40&&d>=g.due)break}
+  if(!best){g.it.forEach(x=>res.skip.push({i:g.i,p:x.p,why:'nessun manutentore libero nel periodo'}));return}
+  const k=best.d+'|'+best.t;(cntT[k]=cntT[k]||new Set()).add(best.x.n);used[best.x.n+'|'+best.d]=(used[best.x.n+'|'+best.d]||0)+g.min;cntF[best.d]=(cntF[best.d]||0)+1;
+  res.carico[best.x.ep]=(res.carico[best.x.ep]||0)+g.min;
+  res.vis.push({imp:g.i.id,data:best.d,turno:best.t,man:best.x.ep,min:g.min,due:g.due,late:best.d>g.due,ids:g.it.map(x=>x.s.id)})});
+ res.vis.sort((a,b)=>a.data<b.data?-1:a.data>b.data?1:a.turno<b.turno?-1:1);res.pers=pers;res.cap=cap;return res}
+
+function drawAP(){const o=AP.p,T=apLoadT();
+ if(AP.step==='res')return drawAPres();
+ const reps=T?[...new Set(T.p.map(x=>x.rep))]:[];const pp=T?apPeople():[];
+ const chk=(k,v,l,arr)=>`<label class="mn-chk" style="display:inline-flex!important;margin-right:10px"><input type="checkbox" ${o[arr].includes(v)?'checked':''} onchange="MNX.apArr('${arr}',${typeof v==='number'?v:`'${v}'`},this.checked)"> ${l}</label>`;
+ const num=(k,l,min,max,s)=>`<label>${l}<input type="number" min="${min}" max="${max}" value="${o[k]}" onchange="MNX.apSet('${k}',+this.value)">${s?`<span class="muted" style="font-size:12px">${s}</span>`:''}</label>`;
+ ovl(`<div class="mn-oh"><h2>Pianificazione automatica</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div>
+ <div class="muted" style="font-size:13px">Scegli i parametri e premi «Simula»: vedi la proposta, poi decidi se confermarla o rifarla. Finché non confermi non viene salvato nulla.</div>
+ <div class="mn-step"><b>1 · Turni dei manutentori</b>
+  <div class="muted" style="font-size:12px">Dall'app Turni e ferie: Esporta → Formato Excel → Turni, per il periodo da pianificare.</div>
+  <div class="row"><label class="btn">📄 Carica file turni<input type="file" accept=".xlsx,.xls" hidden onchange="MNX.apFile(this)"></label>${T?`<span class="muted">${e_(T.file)} · ${T.p.length} persone · ${fd(T.da)} – ${fd(T.a)}</span>`:'<span style="color:var(--accent)">Nessun file caricato</span>'}</div>
+  ${T?`<div class="evf"><label>Reparto / plant<select onchange="MNX.apSet('rep',this.value)"><option value="">Tutti</option>${reps.map(r=>`<option ${o.rep===r?'selected':''}>${e_(r)}</option>`).join('')}</select></label></div>
+  <div class="mn-checks">${pp.map(x=>{const on=apOn(o,x.n),g=o.map[x.n]||apGuess(x.n);return `<div class="row" style="gap:6px"><label class="mn-chk" style="flex:1"><input type="checkbox" ${on?'checked':''} onchange="MNX.apPers('${e_(x.n).replace(/'/g,"\\'")}',this.checked)"> ${e_(x.n)}</label>${on?`<select onchange="MNX.apMap('${e_(x.n).replace(/'/g,"\\'")}',this.value)"><option value="">— persona Ergo Plan —</option>${PERS().map(p=>`<option ${p===g?'selected':''}>${e_(p)}</option>`).join('')}</select>`:''}</div>`}).join('')||'<span class="muted">Nessuna persona nel reparto</span>'}</div>`:''}
+ </div>
+ <div class="mn-step"><b>2 · Cosa pianificare</b><div class="evf">
+  <label>Dal<input type="date" value="${o.da}" onchange="MNX.apSet('da',this.value)"></label><label>Al<input type="date" value="${o.a}" onchange="MNX.apSet('a',this.value)"></label>
+  <label>Impianti (zona)<select onchange="MNX.apSet('cat',this.value)">${catOpts(o.cat,'Tutti gli impianti')}</select></label>
+  ${num('tol','Tolleranza sulla scadenza (± giorni)',0,60,'raggruppa le procedure vicine in un solo fermo e lascia spazio per spostarlo')}
+  ${num('minDef','Durata se la procedura non la indica (min)',5,480)}</div>
+  <label class="mn-chk"><input type="checkbox" ${o.est?'checked':''} onchange="MNX.apSet('est',this.checked)"> Includi gli interventi con fornitore esterno</label>
+  <label class="mn-chk"><input type="checkbox" ${o.evt?'checked':''} onchange="MNX.apSet('evt',this.checked)"> Includi le procedure a evento già segnalate</label>
+ </div>
+ <div class="mn-step"><b>3 · Supporto alla produzione e fermi</b><div class="evf">
+  ${num('ris','Riserva per guasti e cambi modello (%)',0,90,'quota del turno che resta libera')}
+  ${num('maxT','Manutentori in programmata per turno (max)',1,7,'gli altri del turno restano su guasti e cambi')}
+  ${num('maxF','Impianti fermi per manutenzione al giorno (max)',1,20)}</div>
+  <div>Turni utilizzabili <span class="muted" style="font-size:12px">(in ordine di preferenza: ${o.turni.map(t=>AP_LAB[t]).join(' › ')})</span><br>${AP_WORK.map(t=>chk('turni',t,AP_LAB[t],'turni')).join('')}</div>
+  <div>Giorni utilizzabili<br>${[1,2,3,4,5,6,0].map(d=>chk('gg',d,AP_GG[d],'gg')).join('')}</div>
+  <div>Giorni preferiti per i fermi <span class="muted" style="font-size:12px">(meno produzione)</span><br>${[1,2,3,4,5,6,0].map(d=>chk('ggPref',d,AP_GG[d],'ggPref')).join('')}</div>
+ </div>
+ <div class="row" style="justify-content:flex-end"><button class="btn" onclick="MNX.close()">Annulla</button><button class="btn pri" ${T?'':'disabled'} onclick="MNX.apRun()">Simula</button></div>`)}
+
+function drawAPres(){const r=AP.res,o=AP.p;const by={};r.vis.forEach(v=>(by[v.data]=by[v.data]||[]).push(v));
+ const tot=r.vis.reduce((t,v)=>t+v.ids.length,0),late=r.vis.filter(v=>v.late).length;
+ const hh=m=>(Math.round(m/6)/10).toString().replace('.',',')+' h';
+ const sk={};r.skip.forEach(x=>{const k=x.why;(sk[k]=sk[k]||[]).push(x)});
+ ovl(`<div class="mn-oh"><h2>Proposta di pianificazione</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div>
+ <div class="mn-info">${r.vis.length} fermi impianto · ${tot} procedure · dal ${fd(o.da)} al ${fd(o.a)}${late?` · <b style="color:var(--accent)">${late} oltre la scadenza</b>`:''}<br><span class="muted" style="font-size:12px">Ogni manutentore usa al massimo ${hh(r.cap)} per turno; ${o.maxT} per turno in programmata; max ${o.maxF} fermi al giorno.</span></div>
+ <div><b>Carico per manutentore</b><div class="row" style="gap:6px 14px;font-size:13px">${r.pers.map(x=>`<span>${e_(x.ep)}: <b>${hh(r.carico[x.ep]||0)}</b></span>`).join('')}</div></div>
+ <div class="mn-list">${Object.keys(by).sort().map(d=>`<div style="padding:6px 0;border-top:1px solid var(--line)"><b>${AP_GG[new Date(d+'T12:00:00').getDay()]} ${fd(d)}</b>${by[d].map(v=>{const i=I(v.imp);return `<div style="display:grid;grid-template-columns:90px 1fr auto;gap:8px;font-size:13px;padding:2px 0"><span>${AP_LAB[v.turno]}</span><span>${e_(i.cod)} · ${e_(i.nome)} <span class="muted">· ${v.ids.length} proc. · ${v.min} min · scad. ${fd(v.due)}</span>${v.late?' <span style="color:var(--accent)">in ritardo</span>':''}</span><span>${e_(v.man)}</span></div>`}).join('')}</div>`).join('')||'<div class="mn-empty muted">Niente da pianificare con questi parametri</div>'}</div>
+ ${r.skip.length?`<details><summary style="cursor:pointer;color:var(--accent)">${r.skip.length} procedure non pianificate</summary><div style="font-size:13px">${Object.entries(sk).map(([k,l])=>`<div style="margin-top:6px"><b>${e_(k)}</b> (${l.length})<br><span class="muted">${l.slice(0,40).map(x=>e_(x.i.cod+' '+x.p.cod)).join(', ')}${l.length>40?'…':''}</span></div>`).join('')}</div></details>`:''}
+ <div class="row" style="justify-content:flex-end"><button class="btn" onclick="MNX.apBack()">↺ Rifai con altri parametri</button><button class="btn pri" ${r.vis.length?'':'disabled'} onclick="MNX.apOk()">Conferma e pianifica</button></div>`)}
+const APX={
+ auto(){AP.p=apDef();AP.step='par';AP.res=null;apLoadT();drawAP()},
+ apFile(inp){const f=inp.files[0];if(f)apParse(f)},
+ apSet(k,v){AP.p[k]=v;drawAP()},
+ apArr(k,v,on){const l=AP.p[k].filter(x=>x!==v);if(on)l.push(v);if(k==='turni')l.sort((a,b)=>AP_WORK.indexOf(a)-AP_WORK.indexOf(b));AP.p[k]=l;drawAP()},
+ apPers(n,on){const o=AP.p;if(!o.escl)o.escl=(apLoadT()?.p||[]).map(x=>x.n).filter(x=>!apOn({escl:null},x));o.escl=o.escl.filter(x=>x!==n);if(!on)o.escl.push(n);drawAP()},
+ apMap(n,v){AP.p.map={...AP.p.map,[n]:v};drawAP()},
+ apRun(){const o=AP.p;if(!apLoadT())return mt('Carica prima il file dei turni');if(o.a<o.da)return mt('Il periodo non è valido');if(!o.turni.length||!o.gg.length)return mt('Scegli almeno un turno e un giorno');
+  const r=apSim(o);if(!r.pers.length)return mt('Nessun manutentore abbinato a una persona di Ergo Plan');AP.res=r;AP.step='res';drawAP()},
+ apBack(){AP.step='par';drawAP()},
+ apOk(){const r=AP.res;if(!r||!r.vis.length)return;if(MN.old||MN.noProc)return mt('Dati non modificabili ora: riprova');let n=0,f=0;
+  r.vis.forEach(x=>{const i=I(x.imp);if(!i||i.dism)return;const ss=M.ass.filter(s=>x.ids.includes(s.id)&&!planned(s));if(!ss.length)return;
+   const v={id:nid('v'),imp:x.imp,data:x.data,man:x.man,turno:x.turno,auto:true};M.vis.push(v);f++;
+   ss.forEach(s=>{const p0=pend(s);let a;if(p0){p0.due=x.data;p0.vis=v.id;p0.man=x.man;a=p0}else a=newAtt(s,x.data,v.id,x.man);s.man=x.man;LOG(p0?'Ripianificata':'Pianificata',a,'il '+fd(x.data)+' ('+AP_LAB[x.turno]+') a '+x.man+' · pianificazione automatica');n++});
+   if(!i.avviato)i.avviato=x.data});
+  const o={...AP.p};M.autoP=JSON.parse(JSON.stringify(o));saveM();closeO();mt('Pianificati '+f+' fermi con '+n+' procedure')}
+};
 window.MNX={
  // --- eliminazioni dalla pianificazione
  elimina(id){const a=M.att.find(x=>x.id===id);if(!a)return;const p=PA(a),s0=a.ass&&M.ass.find(x=>x.id===a.ass),pp=s0&&P(s0.proc);
@@ -864,4 +981,5 @@ window.MNX={
  xls(){if(!window.XLSX)return mt('Excel non disponibile');const rows=(MN._sto||[]).map(a=>({Data:fd(a.chiusa),Impianto:a._imp,Cliente:I(a.imp)?.cli||'',Componente:a._cmp,Procedura:a._pcod,Descrizione:a._pdesc,'Eseguita da':a.esec,'Passi confermati':a.ok.filter(Boolean).length+'/'+a.ok.length,Foto:a.foto.flat().length,Note:a.note}));
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Interventi '+MN.anno);XLSX.writeFile(wb,'Manutenzioni_'+MN.anno+'.xlsx')}
 };
+Object.assign(window.MNX,APX);
 })();
