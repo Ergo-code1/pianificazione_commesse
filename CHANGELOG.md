@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.28.0 — 2026-11-18
+- Pianificazione automatica: «Esclusi dal giro» (impianti interi o singole macchine/componenti, con ricerca) e opzione «Un solo fermo per macchina» che raggruppa tutte le manutenzioni interne del periodo dello stesso impianto in un unico fermo.
+
 ## 2.27.0 — 2026-11-18
 - Pianificazione automatica: colonna «Dedicato a» per manutentore (impianti con ricerca). Gli impianti dedicati vanno a quella persona se è in turno entro la tolleranza; altrimenti a un altro, segnalato nella proposta.
 
