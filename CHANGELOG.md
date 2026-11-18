@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.17.2 — 2026-11-18
+- Segnalazioni: pulsante «Modifica» (autore o responsabile, se non archiviata) in elenco, scheda impianto ed esecuzione attività.
+
 ## 2.17.1 — 2026-11-18
 - Nuova segnalazione: filtro Zona (con sottozone) per trovare l'impianto.
 
