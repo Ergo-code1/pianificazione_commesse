@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.23.0 — 2026-11-18
+- Turni da «Turni e ferie»: pulsante «🔄 Sincronizza turni» (accesso con un utente di Turni e ferie, solo lettura); i turni restano condivisi in Ergo Plan (manutDoc/_turni) con data dell'ultima sincronizzazione.
+- Gantt → Per persona: ferie e assenze di Turni e ferie sui giorni della persona.
+- Pianificazione: avviso delle manutenzioni con il manutentore in ferie, assente, a riposo o in un altro turno.
+- Nuova pagina «Carico persone»: per settimana ore turno, ore manutenzione, ore supporto al plant, % e giorni di assenza.
+- Pianificazione automatica: elenco di tutti i manutentori del reparto, % manutenzione/supporto per persona, «Preventiva» (togliere dalle manutenzioni programmate) ed «Escludi da tutto»; tiene conto delle manutenzioni già pianificate; tolto il caricamento del file Excel.
+
 ## 2.22.0 — 2026-11-18
 - Manutenzione → Pianificazione: «⚙ Pianificazione automatica». Si carica l'Excel dei turni (app Turni e ferie: Esporta → Excel → Turni), si scelgono reparto, manutentori, periodo, zona impianti, riserva per guasti/cambi modello, manutentori in programmata per turno, fermi max al giorno, turni e giorni preferiti, tolleranza; «Simula» mostra la proposta (fermi per giorno/turno, carico per persona, procedure escluse) da confermare o rifare. Niente viene salvato prima della conferma.
 

@@ -167,6 +167,7 @@ aside .av{background:rgb(255 255 255/.12);color:var(--hi)}
 .gbar.b-ok,.glg i.b-ok{background:#3b6fd8}.gbar.b-run,.glg i.b-run{background:#e67e22;box-shadow:none}.gbar.b-done,.glg i.b-done{background:#2e9d5b;opacity:1}.gbar.b-off,.glg i.b-off{background:repeating-linear-gradient(45deg,#9aa3b2 0 4px,#c9cfd8 4px 8px)}
 .gnav{display:flex;align-items:center;gap:6px;margin-bottom:6px;position:sticky;top:0;z-index:8;background:var(--surface);padding:4px 0}.gtop{flex:1;overflow-x:auto;overflow-y:hidden;height:16px}.gtop>div{height:1px}
 .fcal{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}.fmh{font-weight:700;text-transform:capitalize;margin-bottom:4px}.fg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px}.fg b{color:var(--muted);font-weight:600}.fg button{border:1px solid transparent;background:none;border-radius:6px;padding:4px 0;font:inherit;cursor:pointer;color:var(--fg)}.fg button:hover{border-color:var(--accent)}.fg .fwe{color:var(--muted);background:var(--soft)}.fg .fon{background:#c0392b;color:#fff;font-weight:700}.fg .ftd{outline:2px solid var(--accent)}
+.gfer{font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;background:#24529e;color:#fff;overflow:hidden}.glg i.gfer{display:inline-block}
 .gld{font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}.gld.l1{background:color-mix(in srgb,var(--ok) 25%,transparent)}.gld.l2{background:color-mix(in srgb,#e67e22 45%,transparent)}.gld.l3{background:color-mix(in srgb,#c0392b 55%,transparent);color:#fff}.glg i.gld{display:inline-block;width:14px;height:10px}.gn.gcar{background:var(--soft)}
 .gwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
 .gantt{display:grid;grid-auto-rows:38px;position:relative;min-width:max-content}
@@ -431,7 +432,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.22.0';
+const VERSIONE='2.23.0';
 // mantiene la posizione di scorrimento durante i ridisegni
 let _ksD=0,_ksT=null;
 function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrollX,tab=S.tab+'|'+S.gView,sel='.gwrap,.tablewrap,.list,.mn-box,#mnOvl,#gOvl,.dep,[data-ks]',old=[...document.querySelectorAll(sel)].map(e=>[e.scrollLeft,e.scrollTop]);
@@ -486,11 +487,11 @@ function statoPill(a){
  if(a.stato==='in corso')return'<span class="pill p-run">In corso</span>';
  return a.attiva?'<span class="pill p-ok">Attiva</span>':'<span class="pill p-off">Non attiva</span>';}
 
-const SEZ=[['commesse','Commesse'],['persone','Attività assegnate'],['gantt','Gantt'],['ore','Ore'],['eventi','Eventi'],['master','Masterplan'],['manut','Pianificazione manutenzioni'],['mpers','Attività manutenzione'],['mimp','Impianti'],['mric','Segnalazioni'],['msto','Storico manutenzioni']];
+const SEZ=[['commesse','Commesse'],['persone','Attività assegnate'],['gantt','Gantt'],['ore','Ore'],['eventi','Eventi'],['master','Masterplan'],['manut','Pianificazione manutenzioni'],['mcar','Carico persone'],['mpers','Attività manutenzione'],['mimp','Impianti'],['mric','Segnalazioni'],['msto','Storico manutenzioni']];
 const SEZL=Object.fromEntries(SEZ);
-const SEZ_ING=['commesse','persone','gantt','ore','eventi'],SEZ_MAN=['manut','mpers','mimp','mric','msto'];
-const repSez=e=>((S.repSez&&S.repSez[e])||(/manut/i.test(e||'')?SEZ_MAN:SEZ_ING)).filter(k=>k!=='mlog');
-const SHORT={manut:'Pianificazione',mpers:'Attività assegnate',msto:'Storico',mlog:'Registro'};
+const SEZ_ING=['commesse','persone','gantt','ore','eventi'],SEZ_MAN=['manut','mcar','mpers','mimp','mric','msto'];
+const repSez=e=>{const r=((S.repSez&&S.repSez[e])||(/manut/i.test(e||'')?SEZ_MAN:SEZ_ING)).filter(k=>k!=='mlog');const i=r.indexOf('manut');if(i>=0&&!r.includes('mcar'))r.splice(i+1,0,'mcar');return r};
+const SHORT={manut:'Pianificazione',mcar:'Carico persone',mpers:'Attività assegnate',msto:'Storico',mlog:'Registro'};
 const lab=k=>SHORT[k]||SEZL[k];
 const pArea=p=>repSez(pEnte(p)).some(k=>SEZ_MAN.includes(k))&&!repSez(pEnte(p)).some(k=>SEZ_ING.includes(k))?'man':'ing';
 const AREE={ing:['Ingegneria',SEZ_ING.map(k=>[k,lab(k)])],man:['Manutenzione',SEZ_MAN.map(k=>[k,lab(k)])]};
@@ -917,7 +918,7 @@ function vFest(){const y=+(S.festY||new Date().getFullYear());S.fest=S.fest||[];
  document.querySelectorAll('[data-fd]').forEach(b=>b.onclick=()=>{const k=b.dataset.fd;S.fest=F.has(k)?S.fest.filter(x=>x!==k):[...S.fest,k].sort();render()});
  $('#fNaz')&&($('#fNaz').onclick=()=>{const pm=addD(easter(y),1),N=['01-01','01-06','04-25','05-01','06-02','08-15','11-01','12-08','12-25','12-26'].map(x=>y+'-'+x).concat(pm);const nw=N.filter(k=>!F.has(k));S.fest=[...S.fest,...nw].sort();toastP(nw.length?'Aggiunti '+nw.length+' festivi (compresa Pasquetta '+fmt(pm)+')':'Già tutti presenti');render()})}
 const sDot=a=>{if(a.sum)return'';const k=a.stato==='conclusa'?'b-done':a.stato==='in corso'?'b-run':a.attiva?'b-ok':'b-off',t=a.stato==='conclusa'?'Conclusa':a.stato==='in corso'?'In corso':a.attiva?'Da fare':'Non attiva';return`<i class="sdot ${k}" title="${t}" aria-label="${t}"></i>`};
-function gCarico(cs){const PL=(S.gPer&&S.gPer!=='tutte'&&S.gPer!=='__none')?[S.gPer]:visPers();
+function gCarico(cs){if(window.EPT&&!EPT.ready()&&!S._eptL){S._eptL=1;EPT.load().then(()=>{if(EPT.ready()&&S.gView==='carico')render()})}const PL=(S.gPer&&S.gPer!=='tutte'&&S.gPer!=='__none')?[S.gPer]:visPers();
  const rows=PL.map(p=>({p,L:cs.flatMap(c=>c.att.filter(a=>!a.sum&&a.pers===p&&a.ini&&a.fin&&a.stato!=='conclusa').map(a=>({a,c})))})).filter(x=>x.L.length);
  if(!rows.length)return'<div class="muted">Nessuna attività aperta con date per le persone selezionate.</div>';
  const all=rows.flatMap(x=>x.L.flatMap(({a})=>[a.ini,a.fin])).sort();let start=addD(todayL(),-7);if(all[0]>start)start=all[0];let end=all[all.length-1];const y1=addD(start,120);if(end<y1)end=y1;end=addD(end,7);
@@ -925,10 +926,10 @@ function gCarico(cs){const PL=(S.gPer&&S.gPer!=='tutte'&&S.gPer!=='__none')?[S.g
  const ms=[];days.forEach((d,i)=>{const k=d.getFullYear()+'-'+d.getMonth();if(!ms.length||ms[ms.length-1].k!==k)ms.push({k,d,s:i,n:1});else ms[ms.length-1].n++});
  let out=`<div class="gn gh" style="grid-row:1/3">Persona</div>`+ms.map(m=>`<div class="gm" style="grid-column:${m.s+2}/span ${m.n}"><span>${m.n>=4?m.d.toLocaleDateString('it-IT',{month:'long',year:'numeric'}):''}</span></div>`).join('')+days.map((d,i)=>`<div class="gd ${offD(d)?'we':''} ${D[i]===todayL()?'td':''}" style="grid-column:${i+2}"><b>${d.getDate()}</b><span>${'DLMMGVS'[d.getDay()]}</span></div>`).join(''),r=3;
  rows.forEach(({p,L})=>{const cnt=D.map((d,i)=>offD(days[i])?0:L.filter(({a})=>a.ini<=d&&a.fin>=d).length),mx=Math.max(...cnt),ov=cnt.filter(x=>x>1).length;
-  out+=`<div class="gn gcar" style="grid-row:${r}"><span class="cn"><b>${esc(p)}</b></span><span class="muted">${L.length} attività${ov?' · <b style="color:var(--bad,#c0392b)">'+ov+' gg sovrapposti</b>':''}</span></div>`+cnt.map((k,i)=>`<div class="gcell gld l${Math.min(k,3)} ${offD(days[i])?'we':''}" style="grid-row:${r};grid-column:${i+2}" title="${fmt(D[i])}: ${k} attività">${k>1?k:''}</div>`).join('');r++;
+  out+=`<div class="gn gcar" style="grid-row:${r}"><span class="cn"><b>${esc(p)}</b></span><span class="muted">${L.length} attività${ov?' · <b style="color:var(--bad,#c0392b)">'+ov+' gg sovrapposti</b>':''}</span></div>`+cnt.map((k,i)=>{const ab=window.EPT&&EPT.abs(p,D[i]);return ab?`<div class="gcell gfer ${offD(days[i])?'we':''}" style="grid-row:${r};grid-column:${i+2}" title="${fmt(D[i])}: ${esc(ab)} (Turni e ferie)${k?' · '+k+' attività':''}">${esc(ab.replace('?',''))}</div>`:`<div class="gcell gld l${Math.min(k,3)} ${offD(days[i])?'we':''}" style="grid-row:${r};grid-column:${i+2}" title="${fmt(D[i])}: ${k} attività">${k>1?k:''}</div>`}).join('');r++;
   L.sort((x,y)=>x.a.ini.localeCompare(y.a.ini)).forEach(({a,c})=>{const k=a.stato==='in corso'?'b-run':a.attiva?'b-ok':'b-off';
    out+=`<div class="gn" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};padding-left:22px"><span class="cn">${sDot(a)}${esc(a.nome)}</span><span class="muted"><span class="code">${c.id}</span> ${esc(c.nome)}</span></div>`+days.map((d,i)=>`<div class="gcell ${offD(d)?'we':''}" style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+(a.fin>=start?`<div class="gbar ${k}" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};grid-column:${col(a.ini)}/${col(a.fin)+1}" title="${esc(a.nome)} · ${fmt(a.ini)}–${fmt(a.fin)}"></div>`:'');r++})});
- return`<div class="gwrap"><div class="gantt" style="grid-template-columns:var(--gnw) repeat(${n},var(--gdw))">${out}</div></div><div class="glg"><span><i class="b-ok"></i>Da fare</span><span><i class="b-run"></i>In corso</span><span><i class="b-off"></i>Non attiva</span><span><i class="gld l1"></i>1 attività</span><span><i class="gld l2"></i>2 attività</span><span><i class="gld l3"></i>3 o più</span></div>`}
+ return`<div class="gwrap"><div class="gantt" style="grid-template-columns:var(--gnw) repeat(${n},var(--gdw))">${out}</div></div><div class="glg"><span><i class="b-ok"></i>Da fare</span><span><i class="b-run"></i>In corso</span><span><i class="b-off"></i>Non attiva</span><span><i class="gld l1"></i>1 attività</span><span><i class="gld l2"></i>2 attività</span><span><i class="gld l3"></i>3 o più</span><span><i class="gfer"></i>Ferie / assenze (Turni e ferie)</span></div>`}
 function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');let {cs,start,end}=ganttData();if(!start&&cs.some(c=>visAtt(c).length)){start=todayL();end=addD(start,30)}if(start){const t7=addD(todayL(),-7);if(t7<start)start=t7;const y1=addD(start,365);end=addD(end,21);if(end<y1)end=y1}
  let body=`<div class="muted">Nessuna attività con date. Aggiungine una:</div><div class="gempty">${cs.map(c=>`<button class="btn" data-gadd="${c.id}">+ ${c.id}</button>`).join('')}</div>`;
  if(start){const s0=toD(start),n=Math.round((toD(end)-s0)/DAY)+1,col=d=>Math.round((toD(d)-s0)/DAY)+2;
@@ -1155,7 +1156,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.22.0"></script>
+<script src="manutenzione.js?v=2.23.0"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -1163,6 +1164,7 @@ import {getFirestore,doc,onSnapshot,setDoc,deleteDoc,getDoc,runTransaction,colle
 const cfg={apiKey:"AIzaSyAbscB5amw2TAfWWvrHk1Mt3cxY9UgbPhM",authDomain:"pianificazione-2cb19.firebaseapp.com",projectId:"pianificazione-2cb19",storageBucket:"pianificazione-2cb19.firebasestorage.app",messagingSenderId:"453354724899",appId:"1:453354724899:web:f382d27638cf1059275b96"};
 const FB_DOM='ergoplan-ergotech.it',fem=u=>u+'@'+FB_DOM,fpw=p=>'ep#'+p;
 const app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app),ref=doc(db,'app','stato');
+const tfCfg={apiKey:"AIzaSyCcTE9ycU-ZP0E6UOcdiP9m0tzWIbVs6Rk",authDomain:"gestione-turni-e-ferie.firebaseapp.com",projectId:"gestione-turni-e-ferie",storageBucket:"gestione-turni-e-ferie.firebasestorage.app",messagingSenderId:"1077126115569",appId:"1:1077126115569:web:bdede1df6039a85319b950"};let tfA=null;const tfApp=()=>tfA||(tfA=initializeApp(tfCfg,'tf'));
 const secApp=initializeApp(cfg,'sec'),sa=getAuth(secApp);setPersistence(sa,inMemoryPersistence).catch(()=>{});
 try{auth.languageCode='it'}catch(e){}
 const KEYS=['repSez','repSezV','archivio','ex','enti','pInfo','voci','master','persone','ruoli','commesse','eventi','utenti','nextId','admOk','fest'];
@@ -1251,7 +1253,11 @@ window.FBM={_u:null,
  saveY:async(y,arr)=>RIP()||setDoc(doc(db,'manutStorico',String(y)),fsEnc({att:arr})),
  putBlob:async(c,id,o)=>RIP()||setDoc(doc(db,c,id),fsEnc(o)),
  getBlob:async(c,id)=>fsGet(await getDoc(doc(db,c,id))),
- delBlob:(c,id)=>deleteDoc(doc(db,c,id))};
+ delBlob:(c,id)=>deleteDoc(doc(db,c,id)),
+ // lettura del riepilogo turni dall'app Turni e ferie (altro progetto Firebase, solo lettura)
+ tfLogin:async(u,pw)=>{const a=getAuth(tfApp());await setPersistence(a,browserLocalPersistence);await signInWithEmailAndPassword(a,u+'@turni-ergotech.it','tf#'+pw)},
+ tfRead:async()=>{const a=getAuth(tfApp());await a.authStateReady();if(!a.currentUser){const e=new Error('accesso a Turni e ferie necessario');e.code='tf-login';throw e}
+  try{const sn=await getDoc(doc(getFirestore(tfApp()),'ergoplan','turni'));return sn.exists()?sn.data():null}catch(er){if(er&&/permission/i.test(er.code||'')){await signOut(a).catch(()=>{});er.code='tf-login'}throw er}}};
 onAuthStateChanged(auth,user=>{
  if(!user){S.user=null;renderLogin();return}
  const un=user.email.endsWith('@'+FB_DOM)?user.email.split('@')[0]:null;
