@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.24.0 — 2026-11-18
+- Pianificazione automatica: spunte per persona «anche» / «solo» impianti di Settimo (zona con «Settimo» nel nome); senza spunta la persona non riceve impianti di Settimo.
+
 ## 2.23.2 — 2026-11-18
 - Pianificazione automatica e Carico persone: solo le persone dei reparti di manutenzione (non più ingegneria).
 
