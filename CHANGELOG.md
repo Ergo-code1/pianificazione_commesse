@@ -1,5 +1,8 @@
 # Changelog
 
+## Beta — 2026-11-18
+- Nuovo ambiente Ergo Plan Beta (/beta/), generato con tools/make_beta.py: dati separati (collezioni beta_*), copia iniziale da Ergo Plan, simulazione 12 mesi delle manutenzioni non svolte (escluse fornitore ed evento), 5 tocchi sul titolo per aggiornarla a oggi.
+
 ## 2.20.1 — 2026-11-18
 - Backup dati: «⬆ Ricarica backup…» (solo admin) — conferma scrivendo RIPRISTINA, scarica prima una copia dei dati attuali, poi ricarica l'app.
 

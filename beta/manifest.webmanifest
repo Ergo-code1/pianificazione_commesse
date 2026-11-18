@@ -1,0 +1,26 @@
+{
+ "id": "/pianificazione_commesse/beta/?app=ergoplanbeta",
+ "name": "Ergo Plan Beta",
+ "short_name": "EP Beta",
+ "start_url": "/pianificazione_commesse/beta/?app=ergoplanbeta",
+ "scope": "/pianificazione_commesse/beta/",
+ "display": "standalone",
+ "background_color": "#e8ebf1",
+ "theme_color": "#15274f",
+ "icons": [
+  {
+   "src": "/pianificazione_commesse/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "/pianificazione_commesse/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  }
+ ],
+ "description": "Pianificazione commesse e lavori Ergotech",
+ "lang": "it"
+}
