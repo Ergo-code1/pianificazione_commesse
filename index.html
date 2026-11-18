@@ -163,6 +163,7 @@ aside .av{background:rgb(255 255 255/.12);color:var(--hi)}
 .irow{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--soft)}
 @media(max-width:560px){.irow{grid-template-columns:36px minmax(0,1fr)}.irow>:last-child{grid-column:1/-1}}
 /* gantt */
+.fcal{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}.fmh{font-weight:700;text-transform:capitalize;margin-bottom:4px}.fg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px}.fg b{color:var(--muted);font-weight:600}.fg button{border:1px solid transparent;background:none;border-radius:6px;padding:4px 0;font:inherit;cursor:pointer;color:var(--fg)}.fg button:hover{border-color:var(--accent)}.fg .fwe{color:var(--muted);background:var(--soft)}.fg .fon{background:#c0392b;color:#fff;font-weight:700}.fg .ftd{outline:2px solid var(--accent)}
 .gld{font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}.gld.l1{background:color-mix(in srgb,var(--ok) 25%,transparent)}.gld.l2{background:color-mix(in srgb,#e67e22 45%,transparent)}.gld.l3{background:color-mix(in srgb,#c0392b 55%,transparent);color:#fff}.glg i.gld{display:inline-block;width:14px;height:10px}.gn.gcar{background:var(--soft)}
 .gwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
 .gantt{display:grid;grid-auto-rows:38px;position:relative;min-width:max-content}
@@ -427,7 +428,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.18.6';
+const VERSIONE='2.19.0';
 // mantiene la posizione di scorrimento durante i ridisegni
 let _ksD=0,_ksT=null;
 function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrollX,tab=S.tab+'|'+S.gView,sel='.gwrap,.tablewrap,.list,.mn-box,#mnOvl,#gOvl,.dep,[data-ks]',old=[...document.querySelectorAll(sel)].map(e=>[e.scrollLeft,e.scrollTop]);
@@ -436,12 +437,14 @@ function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrol
   if(sameT){const nw=[...document.querySelectorAll(sel)];nw.forEach((e,i)=>{if(old[i]){e.scrollLeft=old[i][0];e.scrollTop=old[i][1]}})}
   window.scrollTo(x,y);requestAnimationFrame(()=>{b.style.minHeight='';if(Math.abs(window.scrollY-y)>2)window.scrollTo(x,y)})}}
 // durata in giorni lavorativi (inizio e fine compresi)
-function wdN(i,f){if(!i||!f||f<i)return'';let n=0;for(let d=i;d<=f;d=addD(d,1))if(![0,6].includes(toD(d).getDay()))n++;return n}
-function wdEnd(i,n){n=Math.max(1,Math.round(+n||1));let d=i;while([0,6].includes(toD(d).getDay()))d=addD(d,1);for(let k=1;k<n;){d=addD(d,1);if(![0,6].includes(toD(d).getDay()))k++}return d}
+// giorni non lavorativi: sabato, domenica e festivi (Impostazioni → Giorni festivi)
+function offD(d){const x=typeof d==='string'?toD(d):d;if([0,6].includes(x.getDay()))return true;const k=typeof d==='string'?d:isoL(x);return(S.fest||[]).includes(k)}
+function wdN(i,f){if(!i||!f||f<i)return'';let n=0;for(let d=i;d<=f;d=addD(d,1))if(!offD(d))n++;return n}
+function wdEnd(i,n){n=Math.max(1,Math.round(+n||1));let d=i;while(offD(d))d=addD(d,1);for(let k=1;k<n;){d=addD(d,1);if(!offD(d))k++}return d}
 // sposta le attività collegate (che seguono) dello stesso numero di giorni
 function depShift(a,oldIni,oldFin){if(!a||!a.fin)return 0;const df=d=>Math.round((toD(a[d])-toD(d==='fin'?oldFin:oldIni))/864e5);let dd=oldFin?df('fin'):0;if(!dd&&oldIni&&a.ini)dd=df('ini');if(!dd)return 0;
  const c=S.commesse.find(x=>x.att.includes(a));if(!c)return 0;const seen=new Set([a.id]);let n=0;
- const go=id=>c.att.forEach(b=>{if(seen.has(b.id)||!(b.dip||[]).includes(id))return;seen.add(b.id);if(b.ini&&b.fin){const w=wdN(b.ini,b.fin)||1;let st=addD(b.ini,dd);while([0,6].includes(toD(st).getDay()))st=addD(st,dd>0?1:-1);while([0,6].includes(toD(st).getDay()))st=addD(st,1);b.ini=st;b.fin=wdEnd(st,w);n++}go(b.id)});
+ const go=id=>c.att.forEach(b=>{if(seen.has(b.id)||!(b.dip||[]).includes(id))return;seen.add(b.id);if(b.ini&&b.fin){const w=wdN(b.ini,b.fin)||1;let st=addD(b.ini,dd);while(offD(st))st=addD(st,dd>0?1:-1);while(offD(st))st=addD(st,1);b.ini=st;b.fin=wdEnd(st,w);n++}go(b.id)});
  go(a.id);if(n)toastP(a.nome+': spostate anche '+n+' attività collegate ('+(dd>0?'+':'')+dd+' gg)');return n}
 const isoL=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function todayL(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -464,6 +467,7 @@ const S={user:null,tab:'commesse',selC:'C-24-031',selP:'Marco Rossi',
    {id:5,nome:'Verifica impianti',pers:'Luca Ferrero',ini:'2026-11-05',fin:'2026-11-08',attiva:true,stato:'da fare',prio:1,bud:10,cons:null},
    {id:6,nome:'Asseverazione',pers:'Marco Rossi',ini:'2026-11-20',fin:'2026-11-24',attiva:true,stato:'da fare',prio:3,bud:6,cons:null}]}],
  archivio:{},
+ fest:[],
  eventi:[
   {id:1,nome:'Consegna tavole al cliente',data:'2026-11-18',comm:'C-24-031',rif:3},
   {id:2,nome:'Deposito SCIA ai VVF',data:'2026-11-25',comm:'C-24-031',rif:null},
@@ -498,7 +502,7 @@ function groups(){const A=isAdm_(),o=[];if(!S.user)return o;const pm=S.user.perm
   let more=[...ex].filter(k=>!own.includes(k)&&SEZL[k]);S.enti.filter(e=>e!==me&&!altE().includes(e)).forEach(e=>{const ks=repSez(e).filter(k=>more.includes(k));if(ks.length){o.push({id:'v:'+e,ente:e,l:e,t:ks.map(k=>[k,lab(k)])});more=more.filter(k=>!ks.includes(k))}});
   if(more.length)o.push({id:'x',l:'Altre sezioni',t:SEZ.filter(([k])=>more.includes(k)).map(([k])=>[k,lab(k)])})}
  const anyM=S.enti.some(e=>repSez(e).includes('master'));
- const st=[['imp',A?'Persone e accessi':'Persone ente'],['master','Masterplan'],['cimp','Impianti'],['ccat','Categorie impianti'],['ctipi','Tipi componente'],['cproc','Procedure']].filter(([k])=>A?(k!=='master'||!anyM):(k==='imp'&&isResp())||(['cimp','ccat','ctipi','cproc'].includes(k)&&mR));
+ const st=[['imp',A?'Persone e accessi':'Persone ente'],['master','Masterplan'],['cimp','Impianti'],['ccat','Categorie impianti'],['ctipi','Tipi componente'],['cproc','Procedure'],['fest','Giorni festivi']].filter(([k])=>A?(k!=='master'||!anyM):(k==='imp'&&isResp())||(k==='fest'&&isResp())||(['cimp','ccat','ctipi','cproc'].includes(k)&&mR));
  if(st.length)o.push({id:'set',l:'Impostazioni',t:st});
  return o}
 function render(){return KS(render0)}
@@ -518,7 +522,7 @@ function render0(){
  $('#logout').onclick=()=>FB.logout();$('#acct').onclick=()=>accountSheet();
  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;(S.lastT=S.lastT||{})[cg.id]=S.tab;render()});
  setTimeout(()=>{if(S._fq){S._fq=0;const f=document.getElementById('pfQ');if(f){f.focus();f.setSelectionRange(f.value.length,f.value.length)}}},0);
- (({commesse:vCommesse,persone:vPersone,gantt:vGantt,master:vMaster,ore:vOre,eventi:vEventi,imp:vImp})[S.tab]||vManut)();
+ (({commesse:vCommesse,persone:vPersone,gantt:vGantt,fest:vFest,master:vMaster,ore:vOre,eventi:vEventi,imp:vImp})[S.tab]||vManut)();
 }
 
 function renderLogin(){
@@ -779,7 +783,7 @@ function gForm(cid,aid){if(!(aid?can('edit'):can('add')))return;const c=S.commes
   const v={nome:n,pers:$('#gfP').value,ini:i,fin:f,bud:$('#gfO').value===''?null:+$('#gfO').value,attiva:$('#gfA').value==='1',dip:[...document.querySelectorAll('.gfDep:checked')].map(x=>+x.value)};
   if(!v.attiva&&!(a&&a.manca))v.manca='Da specificare';
   {const old=(a&&a.dip)||[];if(v.dip.some(id=>!old.includes(id))){const pf=v.dip.map(id=>(c.att.find(x=>x.id===id)||{}).fin).filter(Boolean).sort().pop();
-   if(pf){let st=addD(pf,1);while([0,6].includes(toD(st).getDay()))st=addD(st,1);const du=wdN(v.ini,v.fin)||1;v.ini=st;v.fin=wdEnd(st,du)}}}
+   if(pf){let st=addD(pf,1);while(offD(st))st=addD(st,1);const du=wdN(v.ini,v.fin)||1;v.ini=st;v.fin=wdEnd(st,du)}}}
   if(a){const oi=a.ini,of=a.fin,had=a.dip&&a.dip.length;if(had&&!v.dip.length){v.attiva=true;v.manca=''}Object.assign(a,v);depShift(a,oi,of)}else{const na={id:S.nextId++,liv:0,stato:'da fare',prio:9,cons:null,...v},pid=$('#gfPos').value;
    if(pid){const pi=c.att.findIndex(x=>x.id==pid);na.liv=(c.att[pi].liv||0)+1;c.att.splice(pi+1+cSub(c,pi).length,0,na)}else c.att.push(na)}
   close();render()}}
@@ -850,7 +854,7 @@ function gDrag(){if(!can('edit'))return;const G=document.querySelector('.gantt')
     const mv=e=>{if(e.pointerId!==pid)return;const dx=e.clientX-x0;if(Math.abs(dx)>3)moved=true;dd=Math.round(dx/w);if(rs)bar.style.marginRight=(-dd*w)+'px';else bar.style.transform=`translateX(${dd*w}px)`};
     const up=e=>{if(e.pointerId!==pid)return;removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);act=null;bar.classList.remove('gdrag');bar.dataset.nc=1;
      if(!moved||!dd){bar.style.transform='';bar.style.marginRight='';return}
-     const oi=a.ini,of=a.fin;if(rs){const f=addD(a.fin,dd);a.fin=f<a.ini?a.ini:f}else{const w=wdN(a.ini,a.fin)||1;let st=addD(a.ini,dd);while([0,6].includes(toD(st).getDay()))st=addD(st,1);a.ini=st;a.fin=wdEnd(st,w)}toastP(a.nome+': '+fmt(a.ini)+' → '+fmt(a.fin));depShift(a,oi,of);render()};
+     const oi=a.ini,of=a.fin;if(rs){const f=addD(a.fin,dd);a.fin=f<a.ini?a.ini:f}else{const w=wdN(a.ini,a.fin)||1;let st=addD(a.ini,dd);while(offD(st))st=addD(st,1);a.ini=st;a.fin=wdEnd(st,w)}toastP(a.nome+': '+fmt(a.ini)+' → '+fmt(a.fin));depShift(a,oi,of);render()};
     addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up)})})});
  // disegna le date trascinando sulle celle della riga
  G.querySelectorAll('.gcell[data-gr]').forEach(cell=>cell.addEventListener('pointerdown',ev=>{const pid=ev.pointerId;
@@ -897,31 +901,42 @@ function ganttData(X){X=X||{};const P=X.per!=null?X.per:S.gPer;
  const ev=S.eventi.filter(e=>cs.some(c=>c.id===e.comm)&&(!X.from||e.data>=X.from)&&(!X.to||e.data<=X.to));
  const ds=rows.flatMap(a=>[a.ini,a.fin]).concat(ev.map(e=>e.data)).sort();
  return{cs,rows,ev,P,inP,start:X.from||ds[0],end:X.to||ds[ds.length-1]}}
+function easter(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return y+'-'+String(mo).padStart(2,'0')+'-'+String(da).padStart(2,'0')}
+function vFest(){const y=+(S.festY||new Date().getFullYear());S.fest=S.fest||[];const F=new Set(S.fest),ED=isAdm_()||isResp();
+ const mesi=[...Array(12)].map((_,m)=>{const f=new Date(y,m,1),off=(f.getDay()+6)%7,n=new Date(y,m+1,0).getDate();
+  return`<div class="fm"><div class="fmh">${f.toLocaleDateString('it-IT',{month:'long'})}</div><div class="fg">${'LMMGVSD'.split('').map(x=>`<b>${x}</b>`).join('')}${'<span></span>'.repeat(off)}${[...Array(n)].map((_,i)=>{const k=y+'-'+String(m+1).padStart(2,'0')+'-'+String(i+1).padStart(2,'0'),we=[0,6].includes(new Date(y,m,i+1).getDay());return`<button class="${F.has(k)?'fon':''} ${we?'fwe':''} ${k===todayL()?'ftd':''}" data-fd="${k}" ${ED?'':'disabled'} title="${fmt(k)}">${i+1}</button>`}).join('')}</div></div>`}).join('');
+ const L=S.fest.filter(k=>k.startsWith(y+'-')).sort();
+ $('#view').innerHTML=`<section class="panel"><div class="row" style="justify-content:space-between;margin-bottom:10px"><div class="row"><h2>Giorni festivi</h2><button class="btn sm" id="fyP" aria-label="Anno precedente">◀</button><b>${y}</b><button class="btn sm" id="fyN" aria-label="Anno successivo">▶</button></div>${ED?`<button class="btn" id="fNaz">+ Festività nazionali ${y}</button>`:''}</div>
+ <div class="muted" style="font-size:12px;margin-bottom:10px">Tocca un giorno per segnarlo o toglierlo come festivo. I festivi non contano nella durata delle attività e sono ombreggiati nel Gantt.</div>
+ <div class="fcal">${mesi}</div><div style="margin-top:12px"><b>${L.length} festivi nel ${y}</b><div class="muted" style="font-size:13px">${L.map(k=>fmt(k)+' '+toD(k).toLocaleDateString('it-IT',{weekday:'short'})).join(' · ')||'nessuno'}</div></div></section>`;
+ $('#fyP').onclick=()=>{S.festY=y-1;render()};$('#fyN').onclick=()=>{S.festY=y+1;render()};
+ document.querySelectorAll('[data-fd]').forEach(b=>b.onclick=()=>{const k=b.dataset.fd;S.fest=F.has(k)?S.fest.filter(x=>x!==k):[...S.fest,k].sort();render()});
+ $('#fNaz')&&($('#fNaz').onclick=()=>{const pm=addD(easter(y),1),N=['01-01','01-06','04-25','05-01','06-02','08-15','11-01','12-08','12-25','12-26'].map(x=>y+'-'+x).concat(pm);const nw=N.filter(k=>!F.has(k));S.fest=[...S.fest,...nw].sort();toastP(nw.length?'Aggiunti '+nw.length+' festivi (compresa Pasquetta '+fmt(pm)+')':'Già tutti presenti');render()})}
 function gCarico(cs){const PL=(S.gPer&&S.gPer!=='tutte'&&S.gPer!=='__none')?[S.gPer]:visPers();
  const rows=PL.map(p=>({p,L:cs.flatMap(c=>c.att.filter(a=>!a.sum&&a.pers===p&&a.ini&&a.fin&&a.stato!=='conclusa').map(a=>({a,c})))})).filter(x=>x.L.length);
  if(!rows.length)return'<div class="muted">Nessuna attività aperta con date per le persone selezionate.</div>';
  const all=rows.flatMap(x=>x.L.flatMap(({a})=>[a.ini,a.fin])).sort();let start=addD(todayL(),-7);if(all[0]>start)start=all[0];let end=all[all.length-1];const y1=addD(start,120);if(end<y1)end=y1;end=addD(end,7);
  const s0=toD(start),n=Math.round((toD(end)-s0)/DAY)+1,days=[...Array(n)].map((_,i)=>new Date(+s0+i*DAY)),D=days.map(isoL),col=d=>Math.max(2,Math.round((toD(d)-s0)/DAY)+2),ED=can('edit');
  const ms=[];days.forEach((d,i)=>{const k=d.getFullYear()+'-'+d.getMonth();if(!ms.length||ms[ms.length-1].k!==k)ms.push({k,d,s:i,n:1});else ms[ms.length-1].n++});
- let out=`<div class="gn gh" style="grid-row:1/3">Persona</div>`+ms.map(m=>`<div class="gm" style="grid-column:${m.s+2}/span ${m.n}"><span>${m.n>=4?m.d.toLocaleDateString('it-IT',{month:'long',year:'numeric'}):''}</span></div>`).join('')+days.map((d,i)=>`<div class="gd ${[0,6].includes(d.getDay())?'we':''} ${D[i]===todayL()?'td':''}" style="grid-column:${i+2}"><b>${d.getDate()}</b><span>${'DLMMGVS'[d.getDay()]}</span></div>`).join(''),r=3;
- rows.forEach(({p,L})=>{const cnt=D.map((d,i)=>[0,6].includes(days[i].getDay())?0:L.filter(({a})=>a.ini<=d&&a.fin>=d).length),mx=Math.max(...cnt),ov=cnt.filter(x=>x>1).length;
-  out+=`<div class="gn gcar" style="grid-row:${r}"><span class="cn"><b>${esc(p)}</b></span><span class="muted">${L.length} attività${ov?' · <b style="color:var(--bad,#c0392b)">'+ov+' gg sovrapposti</b>':''}</span></div>`+cnt.map((k,i)=>`<div class="gcell gld l${Math.min(k,3)} ${[0,6].includes(days[i].getDay())?'we':''}" style="grid-row:${r};grid-column:${i+2}" title="${fmt(D[i])}: ${k} attività">${k>1?k:''}</div>`).join('');r++;
+ let out=`<div class="gn gh" style="grid-row:1/3">Persona</div>`+ms.map(m=>`<div class="gm" style="grid-column:${m.s+2}/span ${m.n}"><span>${m.n>=4?m.d.toLocaleDateString('it-IT',{month:'long',year:'numeric'}):''}</span></div>`).join('')+days.map((d,i)=>`<div class="gd ${offD(d)?'we':''} ${D[i]===todayL()?'td':''}" style="grid-column:${i+2}"><b>${d.getDate()}</b><span>${'DLMMGVS'[d.getDay()]}</span></div>`).join(''),r=3;
+ rows.forEach(({p,L})=>{const cnt=D.map((d,i)=>offD(days[i])?0:L.filter(({a})=>a.ini<=d&&a.fin>=d).length),mx=Math.max(...cnt),ov=cnt.filter(x=>x>1).length;
+  out+=`<div class="gn gcar" style="grid-row:${r}"><span class="cn"><b>${esc(p)}</b></span><span class="muted">${L.length} attività${ov?' · <b style="color:var(--bad,#c0392b)">'+ov+' gg sovrapposti</b>':''}</span></div>`+cnt.map((k,i)=>`<div class="gcell gld l${Math.min(k,3)} ${offD(days[i])?'we':''}" style="grid-row:${r};grid-column:${i+2}" title="${fmt(D[i])}: ${k} attività">${k>1?k:''}</div>`).join('');r++;
   L.sort((x,y)=>x.a.ini.localeCompare(y.a.ini)).forEach(({a,c})=>{const k=a.stato==='in corso'?'b-run':a.attiva?'b-ok':'b-off';
-   out+=`<div class="gn" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};padding-left:22px"><span class="cn">${esc(a.nome)}</span><span class="muted"><span class="code">${c.id}</span> ${esc(c.nome)}</span></div>`+days.map((d,i)=>`<div class="gcell ${[0,6].includes(d.getDay())?'we':''}" style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+(a.fin>=start?`<div class="gbar ${k}" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};grid-column:${col(a.ini)}/${col(a.fin)+1}" title="${esc(a.nome)} · ${fmt(a.ini)}–${fmt(a.fin)}"></div>`:'');r++})});
+   out+=`<div class="gn" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};padding-left:22px"><span class="cn">${esc(a.nome)}</span><span class="muted"><span class="code">${c.id}</span> ${esc(c.nome)}</span></div>`+days.map((d,i)=>`<div class="gcell ${offD(d)?'we':''}" style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+(a.fin>=start?`<div class="gbar ${k}" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};grid-column:${col(a.ini)}/${col(a.fin)+1}" title="${esc(a.nome)} · ${fmt(a.ini)}–${fmt(a.fin)}"></div>`:'');r++})});
  return`<div class="gwrap"><div class="gantt" style="grid-template-columns:var(--gnw) repeat(${n},var(--gdw))">${out}</div></div><div class="glg"><span><i class="gld l1"></i>1 attività</span><span><i class="gld l2"></i>2 attività</span><span><i class="gld l3"></i>3 o più</span></div>`}
 function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');let {cs,start,end}=ganttData();if(!start&&cs.some(c=>visAtt(c).length)){start=todayL();end=addD(start,30)}if(start){const t7=addD(todayL(),-7);if(t7<start)start=t7;const y1=addD(start,365);end=addD(end,21);if(end<y1)end=y1}
  let body=`<div class="muted">Nessuna attività con date. Aggiungine una:</div><div class="gempty">${cs.map(c=>`<button class="btn" data-gadd="${c.id}">+ ${c.id}</button>`).join('')}</div>`;
  if(start){const s0=toD(start),n=Math.round((toD(end)-s0)/DAY)+1,col=d=>Math.round((toD(d)-s0)/DAY)+2;
   const days=[...Array(n)].map((_,i)=>new Date(+s0+i*DAY));window._gDays=days.map(isoL);
-  const head=`<div class="gn gh">Attività</div>`+days.map((d,i)=>`<div class="gd ${[0,6].includes(d.getDay())?'we':''} ${isoL(d)===todayL()?'td':''}" style="grid-column:${i+2}"><b>${d.getDate()}</b><span>${'DLMMGVS'[d.getDay()]}</span></div>`).join('');
+  const head=`<div class="gn gh">Attività</div>`+days.map((d,i)=>`<div class="gd ${offD(d)?'we':''} ${isoL(d)===todayL()?'td':''}" style="grid-column:${i+2}"><b>${d.getDate()}</b><span>${'DLMMGVS'[d.getDay()]}</span></div>`).join('');
   const ms=[];days.forEach((d,i)=>{const k=d.getFullYear()+'-'+d.getMonth();if(!ms.length||ms[ms.length-1].k!==k)ms.push({k,d,s:i,n:1});else ms[ms.length-1].n++});
   let r=3,out=head.replace('class="gn gh"','class="gn gh" style="grid-row:1/3"')+ms.map(m=>`<div class="gm" style="grid-column:${m.s+2}/span ${m.n}"><span>${m.n>=4?m.d.toLocaleDateString('it-IT',{month:'long',year:'numeric'}):m.n>=2?String(m.d.getMonth()+1).padStart(2,'0')+'/'+String(m.d.getFullYear()).slice(2):''}</span></div>`).join('');
   cs.forEach(c=>{out+=`<div class="gc" style="grid-row:${r};grid-column:1/-1"><span class="gct"><span class="code">${c.id}</span> ${esc(c.nome)}${AD?`<button class="gadd" data-gadd="${c.id}">+ Attività</button>`:''}</span></div>`;r++;
    const AA=visAtt(c);AA.forEach(a=>{const ia=c.att.indexOf(a),canIn=ia>0&&(a.liv||0)<=(c.att[ia-1].liv||0);const k=a.sum?'gs':a.stato==='conclusa'?'b-done':a.stato==='in corso'?'b-run':a.attiva?'b-ok':'b-off';
     out+=`<div class="gn ${a.sum?'gsumn':''}" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};padding-left:${8+(a.liv||0)*14}px"><span class="gnr">${ED?`<span class="garr"><button data-gmv="${c.id}|${a.id}|-1" ${a.liv?'':'disabled'} title="Sali di livello" aria-label="Sali di livello">←</button><button data-gmv="${c.id}|${a.id}|1" ${canIn?'':'disabled'} title="Rendi sottovoce" aria-label="Rendi sottovoce">→</button></span>`:''}<span style="min-width:0"><span class="cn">${esc(a.nome)}</span><span class="muted">${a.sum?'voce':esc(a.pers||'non assegnata')}${a.ini?'':' · senza date'}${a.dip&&a.dip.length?' · ⛓ dopo '+a.dip.length:''}</span></span></span></div>`+
-    days.map((d,i)=>`<div class="gcell ${[0,6].includes(d.getDay())?'we':''}" ${ED&&!a.sum?`data-gr="${c.id}|${a.id}|${i}"`:''} style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+
+    days.map((d,i)=>`<div class="gcell ${offD(d)?'we':''}" ${ED&&!a.sum?`data-gr="${c.id}|${a.id}|${i}"`:''} style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+
     (a.ini&&a.fin?`<div class="gbar ${k}" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};grid-column:${col(a.ini)}/${col(a.fin)+1}" title="${esc(a.nome)} · ${fmt(a.ini)}–${fmt(a.fin)}"></div>`:'');r++});
-   S.eventi.filter(e=>e.comm===c.id&&evVis(e)).forEach(e=>{out+=`<div class="gn gev" style="grid-row:${r}"><span class="cn">◆ ${esc(e.nome)}</span><span class="muted">gate</span></div>`+days.map((d,i)=>`<div class="gcell ${[0,6].includes(d.getDay())?'we':''}" style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+`<div class="gdia" style="grid-row:${r};grid-column:${col(e.data)}" title="${esc(e.nome)} · ${fmt(e.data)}"></div>`;r++});
+   S.eventi.filter(e=>e.comm===c.id&&evVis(e)).forEach(e=>{out+=`<div class="gn gev" style="grid-row:${r}"><span class="cn">◆ ${esc(e.nome)}</span><span class="muted">gate</span></div>`+days.map((d,i)=>`<div class="gcell ${offD(d)?'we':''}" style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+`<div class="gdia" style="grid-row:${r};grid-column:${col(e.data)}" title="${esc(e.nome)} · ${fmt(e.data)}"></div>`;r++});
   });
   body=`<div class="gwrap"><div class="gantt" style="grid-template-columns:var(--gnw) repeat(${n},var(--gdw))">${out}</div></div>
   <div class="glg"><span><i class="b-ok"></i>Attiva</span><span><i class="b-off"></i>Non attiva</span><span><i class="b-run"></i>In corso</span><span><i class="b-done"></i>Conclusa</span><span><i class="dia"></i>Gate</span></div>`}
@@ -1112,7 +1127,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.18.6"></script>
+<script src="manutenzione.js?v=2.19.0"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -1122,7 +1137,7 @@ const FB_DOM='ergoplan-ergotech.it',fem=u=>u+'@'+FB_DOM,fpw=p=>'ep#'+p;
 const app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app),ref=doc(db,'app','stato');
 const secApp=initializeApp(cfg,'sec'),sa=getAuth(secApp);setPersistence(sa,inMemoryPersistence).catch(()=>{});
 try{auth.languageCode='it'}catch(e){}
-const KEYS=['repSez','repSezV','archivio','ex','enti','pInfo','voci','master','persone','ruoli','commesse','eventi','utenti','nextId','admOk'];
+const KEYS=['repSez','repSezV','archivio','ex','enti','pInfo','voci','master','persone','ruoli','commesse','eventi','utenti','nextId','admOk','fest'];
 // ---- salvataggio sicuro: fusione a tre vie (base = ultima versione del server, locale, server attuale) dentro una transazione
 // così due persone che salvano insieme non si cancellano le modifiche a vicenda
 const stab=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.keys(v).sort().reduce((r,x)=>(r[x]=v[x],r),{}):v);

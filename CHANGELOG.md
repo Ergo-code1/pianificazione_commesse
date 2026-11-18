@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.19.0 — 2026-11-18
+- Impostazioni → «Giorni festivi»: calendario annuale, si tocca un giorno per segnarlo festivo; pulsante per aggiungere le festività nazionali (con Pasquetta).
+- I festivi non contano nella durata delle attività, negli spostamenti delle collegate e nel carico per persona; nel Gantt sono ombreggiati.
+
 ## 2.18.6 — 2026-11-18
 - «Invia a eventi»: usa la data di fine dell'attività, o l'inizio se manca la fine (non più la data di oggi).
 
