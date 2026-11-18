@@ -567,7 +567,7 @@ function drawQI(){const q=MN.qi,T_=M.tipi,EX=qiEx();const sc0=document.getElemen
 async function simula(man){
  if(MN._sim)return;if(!isR())return man&&mt('Solo il responsabile manutenzione può aggiornare la simulazione');
  if(!MN.base||!MN.mainL||MN.noProc||!M.proc.length||MN.old)return man&&mt('Dati non ancora caricati: riprova tra qualche secondo');
- const t=tdy();if(man){if(M.simA===t){if(confirm('Simulazione già aggiornata a oggi.\n\nVuoi RIPARTIRE DA ZERO? La Beta viene cancellata e ricopiata da Ergo Plan, poi la simulazione viene rifatta.'))FB.betaReset().catch(er=>mt('Reset non riuscito: '+FB.err(er)));return}if(!confirm(M.simA?'Aggiornare la simulazione dal '+fd(M.simA)+' a oggi?':'Eseguire la simulazione degli ultimi 12 mesi?'))return}
+ const t=tdy();if(man){if(M.simA===t){if(confirm('Simulazione già aggiornata a oggi.\n\nVuoi RIPARTIRE DA ZERO? La Beta viene cancellata e ricopiata da Ergo Plan, poi la simulazione viene rifatta.'))(FB.betaReset?FB.betaReset():Promise.reject(new Error('pagina non aggiornata, ricaricala e riprova'))).catch(er=>alert('Reset non riuscito: '+(er.message||FB.err(er))));return}if(!confirm(M.simA?'Aggiornare la simulazione dal '+fd(M.simA)+' a oggi?':'Eseguire la simulazione degli ultimi 12 mesi?'))return}
  MN._sim=1;try{
  const from=M.simA?addD(M.simA,1):addM(t,-12);
  let pool=(PERS()||[]).filter(Boolean);if(!pool.length)pool=[...new Set([...M.att.map(a=>a.man),...(M.fatte||[]).map(a=>a.esec||a.man)].filter(Boolean))];if(!pool.length)pool=[me()||'Manutentore'];

@@ -23,7 +23,7 @@ s=rep(s,"""if(!snap.exists()){if(un!=='admin')return blocco("L'amministratore de
    return;""")
 s=rep(s,"window.FB={msg:'',key:null,","""window.FB={msg:'',key:null,
  // Beta: copia la produzione (solo lettura) in beta_*; app/stato per ultimo
- async betaReset(){window.__rip=1;try{unsub&&unsub();unsub=null}catch(e){}try{window.FBM&&FBM.stop&&FBM.stop()}catch(e){}
+ async betaReset(){window.__rip=1;$('#app').innerHTML='<div class="login"><h1>Ergo Plan Beta</h1><span class="muted">Cancellazione della Beta in corso…</span></div>';try{unsub&&unsub();unsub=null}catch(e){}try{window.FBM&&FBM.stop&&FBM.stop()}catch(e){}
   for(const c of ['manutStorico','manutDoc','manutFoto']){const qs=await getDocs(bcol(db,c));for(const x of qs.docs)await deleteDoc(x.ref)}
   await deleteDoc(bdoc(db,'app','manut'));await deleteDoc(bdoc(db,'app','stato'));location.reload()},
  async betaInit(prog){const P=[['manutStorico'],['manutDoc'],['manutFoto']];
@@ -47,6 +47,7 @@ s=rep(s,"getY:async y=>{const d=fsGet(await getDoc(bdoc(db,'manutStorico',String
 s=rep(s,"saveY:async(y,arr)=>RIP()||setDoc(bdoc(db,'manutStorico',String(y)),fsEnc({att:arr})),","saveY:async(y,arr)=>RIP()||FBM.txY(y,{att:[]},{att:arr}),")
 # pulsante nascosto: 5 tocchi sul titolo
 s=rep(s,"<h1>Ergo Plan Beta <span class=\"rev\">v${VERSIONE}</span></h1><div cl","<h1 onclick=\"window.betaTap&&betaTap()\">Ergo Plan Beta <span class=\"rev\">v${VERSIONE}</span></h1><div cl")
+s=re.sub(r'manutenzione\.js\?v=([0-9.]+)',r'manutenzione.js?v=\1b4',s)
 s=rep(s,'<script src="manutenzione.js','<script>window.betaTap=(()=>{let n=0,t=0;return()=>{const k=Date.now();n=k-t<1500?n+1:1;t=k;if(n>=5){n=0;window.MNX&&MNX.simula&&MNX.simula(true)}}})();</script>\n<script src="manutenzione.js')
 open(os.path.join(B,'index.html'),'w',encoding='utf-8').write(s)
 m=open(os.path.join(R,'manutenzione.js'),encoding='utf-8').read()
@@ -58,7 +59,7 @@ SIM=r"""
 async function simula(man){
  if(MN._sim)return;if(!isR())return man&&mt('Solo il responsabile manutenzione può aggiornare la simulazione');
  if(!MN.base||!MN.mainL||MN.noProc||!M.proc.length||MN.old)return man&&mt('Dati non ancora caricati: riprova tra qualche secondo');
- const t=tdy();if(man){if(M.simA===t){if(confirm('Simulazione già aggiornata a oggi.\n\nVuoi RIPARTIRE DA ZERO? La Beta viene cancellata e ricopiata da Ergo Plan, poi la simulazione viene rifatta.'))FB.betaReset().catch(er=>mt('Reset non riuscito: '+FB.err(er)));return}if(!confirm(M.simA?'Aggiornare la simulazione dal '+fd(M.simA)+' a oggi?':'Eseguire la simulazione degli ultimi 12 mesi?'))return}
+ const t=tdy();if(man){if(M.simA===t){if(confirm('Simulazione già aggiornata a oggi.\n\nVuoi RIPARTIRE DA ZERO? La Beta viene cancellata e ricopiata da Ergo Plan, poi la simulazione viene rifatta.'))(FB.betaReset?FB.betaReset():Promise.reject(new Error('pagina non aggiornata, ricaricala e riprova'))).catch(er=>alert('Reset non riuscito: '+(er.message||FB.err(er))));return}if(!confirm(M.simA?'Aggiornare la simulazione dal '+fd(M.simA)+' a oggi?':'Eseguire la simulazione degli ultimi 12 mesi?'))return}
  MN._sim=1;try{
  const from=M.simA?addD(M.simA,1):addM(t,-12);
  let pool=(PERS()||[]).filter(Boolean);if(!pool.length)pool=[...new Set([...M.att.map(a=>a.man),...(M.fatte||[]).map(a=>a.esec||a.man)].filter(Boolean))];if(!pool.length)pool=[me()||'Manutentore'];

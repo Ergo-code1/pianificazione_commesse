@@ -1156,7 +1156,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
 }
 </script>
 <script>window.betaTap=(()=>{let n=0,t=0;return()=>{const k=Date.now();n=k-t<1500?n+1:1;t=k;if(n>=5){n=0;window.MNX&&MNX.simula&&MNX.simula(true)}}})();</script>
-<script src="manutenzione.js?v=2.20.1"></script>
+<script src="manutenzione.js?v=2.20.1b4"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -1205,7 +1205,7 @@ document.addEventListener('click',()=>save());
 function blocco(t){S.user=null;$('#app').innerHTML=`<div class="login"><h1>Ergo Plan Beta</h1><span class="muted">${t}</span><button class="btn" id="lgout">Esci</button></div>`;$('#lgout').onclick=()=>FB.logout()}
 window.FB={msg:'',key:null,
  // Beta: copia la produzione (solo lettura) in beta_*; app/stato per ultimo
- async betaReset(){window.__rip=1;try{unsub&&unsub();unsub=null}catch(e){}try{window.FBM&&FBM.stop&&FBM.stop()}catch(e){}
+ async betaReset(){window.__rip=1;$('#app').innerHTML='<div class="login"><h1>Ergo Plan Beta</h1><span class="muted">Cancellazione della Beta in corso…</span></div>';try{unsub&&unsub();unsub=null}catch(e){}try{window.FBM&&FBM.stop&&FBM.stop()}catch(e){}
   for(const c of ['manutStorico','manutDoc','manutFoto']){const qs=await getDocs(bcol(db,c));for(const x of qs.docs)await deleteDoc(x.ref)}
   await deleteDoc(bdoc(db,'app','manut'));await deleteDoc(bdoc(db,'app','stato'));location.reload()},
  async betaInit(prog){const P=[['manutStorico'],['manutDoc'],['manutFoto']];
