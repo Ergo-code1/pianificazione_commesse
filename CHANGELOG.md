@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.18.3 — 2026-11-18
+- Durata in giorni lavorativi (Commesse e scheda attività): con inizio e durata la fine si calcola da sola; cambiando l'inizio la durata resta uguale.
+
 ## 2.18.2 — 2026-11-18
 - Quando si lega un'attività (⛓), parte il giorno lavorativo dopo la fine della precedente (mantenendo la durata); le date restano modificabili.
 
