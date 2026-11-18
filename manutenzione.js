@@ -639,8 +639,9 @@ function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};
   for(const PL of dedP.length?[dedP,pers]:[pers]){best=null;
   for(const d of days){if(PL===dedP&&d>to)break;if(d<from)continue;const wd=new Date(d+'T12:00:00').getDay();if(!o.gg.includes(wd)||(cntF[d]||0)>=o.maxF)continue;
    for(const x of PL){if(PL!==dedP&&!canImp(x.q,g.i))continue;const t=EPT.work(x.r,d);if(!t||!o.turni.includes(t))continue;const k=d+'|'+t,u=used[x.ep+'|'+d]||0,nT=cntT[k]||new Set();
-    if(!nT.has(x.ep)&&nT.size>=o.maxT)continue;if(u+g.min>x.cap&&!(u===0&&g.min>x.cap&&x.cap>=120))continue;
-    const sc=(d>to?1000:0)+(o.ggPref.includes(wd)?0:40)+tOrd(t)*10+((res.carico[x.ep]||0)/Math.max(x.cap,1))*5+days.indexOf(d)*0.5+(d<g.due?3:0);
+    if(!nT.has(x.ep)&&nT.size>=o.maxT)continue;// la % è un'indicazione: un lavoro iniziato si finisce anche se occupa tutto il turno; non se ne aggiunge un altro oltre la quota
+    if(u>0&&u+g.min>x.cap)continue;
+    const sc=(d>to?1000:0)+(g.min>x.cap?Math.min(20,(g.min-x.cap)/30):0)+(o.ggPref.includes(wd)?0:40)+tOrd(t)*10+((res.carico[x.ep]||0)/Math.max(x.cap,1))*5+days.indexOf(d)*0.5+(d<g.due?3:0);
     if(!best||sc<best.sc)best={sc,d,t,x}}
    if(best&&best.sc<40&&d>=g.due)break}
   if(best)break}
@@ -668,7 +669,7 @@ function drawAP0(){const o=AP.p;if(AP.step==='res')return drawAPres();
  <div class="mn-step"><b>1 · Manutentori e turni</b>
   <div class="row"><button class="btn" onclick="MNX.syncT()">🔄 Sincronizza turni</button>${tAge()}</div>
   ${EPT.d?`<div class="evf"><label>Reparto<select onchange="MNX.apSet('rep',this.value)">${reps.length>1?'<option value="">Tutti i reparti di manutenzione</option>':''}${reps.map(r=>`<option ${o.rep===r?'selected':''}>${e_(r)}</option>`).join('')}</select></label>
-  ${num('pm','% del turno per manutenzione (predefinita)',0,100,'il resto è supporto al plant: guasti e cambi modello')}</div>
+  ${num('pm','% del turno per manutenzione (predefinita)',0,100,'indicativa: il resto è supporto al plant; un lavoro iniziato si finisce anche oltre la quota')}</div>
   <style>.aptab{width:100%;min-width:760px;border-collapse:collapse;table-layout:fixed;font-size:13px}.aptab th{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);padding:6px 4px;text-align:center;vertical-align:bottom}.aptab th.l,.aptab td.l{text-align:left}.aptab td{padding:6px 4px;border-top:1px solid var(--line);vertical-align:middle}.aptab td.c{text-align:center;white-space:nowrap}.aptab select{width:100%;min-width:0}.aptab select.apsv{width:auto}.aptab input[type=number]{width:56px}.aptab input[type=checkbox]{width:18px;height:18px;margin:0}</style>
   <div style="overflow-x:auto"><table class="aptab"><colgroup><col style="width:17%"><col style="width:20%"><col style="width:14%"><col style="width:10%"><col style="width:14%"><col style="width:14%"><col style="width:11%"></colgroup><thead><tr><th class="l">Turni e ferie</th><th class="l">Persona Ergo Plan</th><th>% manut. / supporto</th><th>Preventiva</th><th class="l">Impianti</th><th class="l">Dedicato a</th><th>Escludi da tutto</th></tr></thead><tbody>${rows.map(prow).join('')||'<tr><td colspan="7" class="muted">Nessuna persona</td></tr>'}</tbody></table></div>
   <div class="muted" style="font-size:12px">Preventiva tolta: la persona non riceve manutenzioni programmate ma resta nel carico come supporto. Escludi da tutto: nessuna attività automatica e fuori dal carico. Impianti: le zone su cui la persona può fare manutenzione (✎ per sceglierle); senza zone, tutti gli impianti. Dedicato a: impianti che, quando sono da fare, vanno a quella persona (se non è in turno entro la tolleranza li fa un altro, segnalato).</div>`:''}

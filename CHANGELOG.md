@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.28.1 — 2026-11-18
+- Pianificazione automatica: la % manutenzione è indicativa. Un fermo lungo va comunque a un manutentore libero (anche tutto il turno); non gli si aggiungono altri lavori oltre la quota.
+
 ## 2.28.0 — 2026-11-18
 - Pianificazione automatica: «Esclusi dal giro» (impianti interi o singole macchine/componenti, con ricerca) e opzione «Un solo fermo per macchina» che raggruppa tutte le manutenzioni interne del periodo dello stesso impianto in un unico fermo.
 
