@@ -163,6 +163,7 @@ aside .av{background:rgb(255 255 255/.12);color:var(--hi)}
 .irow{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--soft)}
 @media(max-width:560px){.irow{grid-template-columns:36px minmax(0,1fr)}.irow>:last-child{grid-column:1/-1}}
 /* gantt */
+.sdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px;flex:none}.sdot.b-ok{background:#3b6fd8}.sdot.b-run{background:#e67e22}.sdot.b-done{background:#2e9d5b}.sdot.b-off{background:#9aa3b2}
 .gbar.b-ok,.glg i.b-ok{background:#3b6fd8}.gbar.b-run,.glg i.b-run{background:#e67e22;box-shadow:none}.gbar.b-done,.glg i.b-done{background:#2e9d5b;opacity:1}.gbar.b-off,.glg i.b-off{background:repeating-linear-gradient(45deg,#9aa3b2 0 4px,#c9cfd8 4px 8px)}
 .gnav{display:flex;align-items:center;gap:6px;margin-bottom:6px;position:sticky;top:0;z-index:8;background:var(--surface);padding:4px 0}.gtop{flex:1;overflow-x:auto;overflow-y:hidden;height:16px}.gtop>div{height:1px}
 .fcal{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}.fmh{font-weight:700;text-transform:capitalize;margin-bottom:4px}.fg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px}.fg b{color:var(--muted);font-weight:600}.fg button{border:1px solid transparent;background:none;border-radius:6px;padding:4px 0;font:inherit;cursor:pointer;color:var(--fg)}.fg button:hover{border-color:var(--accent)}.fg .fwe{color:var(--muted);background:var(--soft)}.fg .fon{background:#c0392b;color:#fff;font-weight:700}.fg .ftd{outline:2px solid var(--accent)}
@@ -430,7 +431,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.19.2';
+const VERSIONE='2.19.3';
 // mantiene la posizione di scorrimento durante i ridisegni
 let _ksD=0,_ksT=null;
 function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrollX,tab=S.tab+'|'+S.gView,sel='.gwrap,.tablewrap,.list,.mn-box,#mnOvl,#gOvl,.dep,[data-ks]',old=[...document.querySelectorAll(sel)].map(e=>[e.scrollLeft,e.scrollTop]);
@@ -914,6 +915,7 @@ function vFest(){const y=+(S.festY||new Date().getFullYear());S.fest=S.fest||[];
  $('#fyP').onclick=()=>{S.festY=y-1;render()};$('#fyN').onclick=()=>{S.festY=y+1;render()};
  document.querySelectorAll('[data-fd]').forEach(b=>b.onclick=()=>{const k=b.dataset.fd;S.fest=F.has(k)?S.fest.filter(x=>x!==k):[...S.fest,k].sort();render()});
  $('#fNaz')&&($('#fNaz').onclick=()=>{const pm=addD(easter(y),1),N=['01-01','01-06','04-25','05-01','06-02','08-15','11-01','12-08','12-25','12-26'].map(x=>y+'-'+x).concat(pm);const nw=N.filter(k=>!F.has(k));S.fest=[...S.fest,...nw].sort();toastP(nw.length?'Aggiunti '+nw.length+' festivi (compresa Pasquetta '+fmt(pm)+')':'Già tutti presenti');render()})}
+const sDot=a=>{if(a.sum)return'';const k=a.stato==='conclusa'?'b-done':a.stato==='in corso'?'b-run':a.attiva?'b-ok':'b-off',t=a.stato==='conclusa'?'Conclusa':a.stato==='in corso'?'In corso':a.attiva?'Da fare':'Non attiva';return`<i class="sdot ${k}" title="${t}" aria-label="${t}"></i>`};
 function gCarico(cs){const PL=(S.gPer&&S.gPer!=='tutte'&&S.gPer!=='__none')?[S.gPer]:visPers();
  const rows=PL.map(p=>({p,L:cs.flatMap(c=>c.att.filter(a=>!a.sum&&a.pers===p&&a.ini&&a.fin&&a.stato!=='conclusa').map(a=>({a,c})))})).filter(x=>x.L.length);
  if(!rows.length)return'<div class="muted">Nessuna attività aperta con date per le persone selezionate.</div>';
@@ -924,7 +926,7 @@ function gCarico(cs){const PL=(S.gPer&&S.gPer!=='tutte'&&S.gPer!=='__none')?[S.g
  rows.forEach(({p,L})=>{const cnt=D.map((d,i)=>offD(days[i])?0:L.filter(({a})=>a.ini<=d&&a.fin>=d).length),mx=Math.max(...cnt),ov=cnt.filter(x=>x>1).length;
   out+=`<div class="gn gcar" style="grid-row:${r}"><span class="cn"><b>${esc(p)}</b></span><span class="muted">${L.length} attività${ov?' · <b style="color:var(--bad,#c0392b)">'+ov+' gg sovrapposti</b>':''}</span></div>`+cnt.map((k,i)=>`<div class="gcell gld l${Math.min(k,3)} ${offD(days[i])?'we':''}" style="grid-row:${r};grid-column:${i+2}" title="${fmt(D[i])}: ${k} attività">${k>1?k:''}</div>`).join('');r++;
   L.sort((x,y)=>x.a.ini.localeCompare(y.a.ini)).forEach(({a,c})=>{const k=a.stato==='in corso'?'b-run':a.attiva?'b-ok':'b-off';
-   out+=`<div class="gn" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};padding-left:22px"><span class="cn">${esc(a.nome)}</span><span class="muted"><span class="code">${c.id}</span> ${esc(c.nome)}</span></div>`+days.map((d,i)=>`<div class="gcell ${offD(d)?'we':''}" style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+(a.fin>=start?`<div class="gbar ${k}" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};grid-column:${col(a.ini)}/${col(a.fin)+1}" title="${esc(a.nome)} · ${fmt(a.ini)}–${fmt(a.fin)}"></div>`:'');r++})});
+   out+=`<div class="gn" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};padding-left:22px"><span class="cn">${sDot(a)}${esc(a.nome)}</span><span class="muted"><span class="code">${c.id}</span> ${esc(c.nome)}</span></div>`+days.map((d,i)=>`<div class="gcell ${offD(d)?'we':''}" style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+(a.fin>=start?`<div class="gbar ${k}" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};grid-column:${col(a.ini)}/${col(a.fin)+1}" title="${esc(a.nome)} · ${fmt(a.ini)}–${fmt(a.fin)}"></div>`:'');r++})});
  return`<div class="gwrap"><div class="gantt" style="grid-template-columns:var(--gnw) repeat(${n},var(--gdw))">${out}</div></div><div class="glg"><span><i class="b-ok"></i>Da fare</span><span><i class="b-run"></i>In corso</span><span><i class="b-off"></i>Non attiva</span><span><i class="gld l1"></i>1 attività</span><span><i class="gld l2"></i>2 attività</span><span><i class="gld l3"></i>3 o più</span></div>`}
 function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');let {cs,start,end}=ganttData();if(!start&&cs.some(c=>visAtt(c).length)){start=todayL();end=addD(start,30)}if(start){const t7=addD(todayL(),-7);if(t7<start)start=t7;const y1=addD(start,365);end=addD(end,21);if(end<y1)end=y1}
  let body=`<div class="muted">Nessuna attività con date. Aggiungine una:</div><div class="gempty">${cs.map(c=>`<button class="btn" data-gadd="${c.id}">+ ${c.id}</button>`).join('')}</div>`;
@@ -935,7 +937,7 @@ function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');let 
   let r=3,out=head.replace('class="gn gh"','class="gn gh" style="grid-row:1/3"')+ms.map(m=>`<div class="gm" style="grid-column:${m.s+2}/span ${m.n}"><span>${m.n>=4?m.d.toLocaleDateString('it-IT',{month:'long',year:'numeric'}):m.n>=2?String(m.d.getMonth()+1).padStart(2,'0')+'/'+String(m.d.getFullYear()).slice(2):''}</span></div>`).join('');
   cs.forEach(c=>{out+=`<div class="gc" style="grid-row:${r};grid-column:1/-1"><span class="gct"><span class="code">${c.id}</span> ${esc(c.nome)}${AD?`<button class="gadd" data-gadd="${c.id}">+ Attività</button>`:''}</span></div>`;r++;
    const AA=visAtt(c);AA.forEach(a=>{const ia=c.att.indexOf(a),canIn=ia>0&&(a.liv||0)<=(c.att[ia-1].liv||0);const k=a.sum?'gs':a.stato==='conclusa'?'b-done':a.stato==='in corso'?'b-run':a.attiva?'b-ok':'b-off';
-    out+=`<div class="gn ${a.sum?'gsumn':''}" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};padding-left:${8+(a.liv||0)*14}px"><span class="gnr">${ED?`<span class="garr"><button data-gmv="${c.id}|${a.id}|-1" ${a.liv?'':'disabled'} title="Sali di livello" aria-label="Sali di livello">←</button><button data-gmv="${c.id}|${a.id}|1" ${canIn?'':'disabled'} title="Rendi sottovoce" aria-label="Rendi sottovoce">→</button></span>`:''}<span style="min-width:0"><span class="cn">${esc(a.nome)}</span><span class="muted">${a.sum?'voce':esc(a.pers||'non assegnata')}${a.ini?'':' · senza date'}${a.dip&&a.dip.length?' · ⛓ dopo '+a.dip.length:''}</span></span></span></div>`+
+    out+=`<div class="gn ${a.sum?'gsumn':''}" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};padding-left:${8+(a.liv||0)*14}px"><span class="gnr">${ED?`<span class="garr"><button data-gmv="${c.id}|${a.id}|-1" ${a.liv?'':'disabled'} title="Sali di livello" aria-label="Sali di livello">←</button><button data-gmv="${c.id}|${a.id}|1" ${canIn?'':'disabled'} title="Rendi sottovoce" aria-label="Rendi sottovoce">→</button></span>`:''}<span style="min-width:0"><span class="cn">${sDot(a)}${esc(a.nome)}</span><span class="muted">${a.sum?'voce':esc(a.pers||'non assegnata')}${a.ini?'':' · senza date'}${a.dip&&a.dip.length?' · ⛓ dopo '+a.dip.length:''}</span></span></span></div>`+
     days.map((d,i)=>`<div class="gcell ${offD(d)?'we':''}" ${ED&&!a.sum?`data-gr="${c.id}|${a.id}|${i}"`:''} style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+
     (a.ini&&a.fin?`<div class="gbar ${k}" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};grid-column:${col(a.ini)}/${col(a.fin)+1}" title="${esc(a.nome)} · ${fmt(a.ini)}–${fmt(a.fin)}"></div>`:'');r++});
    S.eventi.filter(e=>e.comm===c.id&&evVis(e)).forEach(e=>{out+=`<div class="gn gev" style="grid-row:${r}"><span class="cn">◆ ${esc(e.nome)}</span><span class="muted">gate</span></div>`+days.map((d,i)=>`<div class="gcell ${offD(d)?'we':''}" style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+`<div class="gdia" style="grid-row:${r};grid-column:${col(e.data)}" title="${esc(e.nome)} · ${fmt(e.data)}"></div>`;r++});
@@ -948,7 +950,7 @@ function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');let 
   return`<div class="gl"><div class="glh"><span class="code">${c.id}</span><span class="cn">${esc(c.nome)}</span>${AD?`<button class="gadd" data-gadd="${c.id}">+ Attività</button>`:''}</div>
   ${visAtt(c).map(a=>{const ia=c.att.indexOf(a),canIn=ia>0&&(a.liv||0)<=(c.att[ia-1].liv||0);return`<div class="gli ${a.sum?'gls':''}" style="--lv:${a.liv||0}">
    ${ED?`<span class="garr"><button data-gmv="${c.id}|${a.id}|-1" ${a.liv?'':'disabled'} aria-label="Sali di livello">←</button><button data-gmv="${c.id}|${a.id}|1" ${canIn?'':'disabled'} aria-label="Rendi sottovoce">→</button></span>`:''}
-   <div class="glb" ${ED?`data-gedit="${c.id}|${a.id}"`:''}><div class="cn">${esc(a.nome)}</div><div class="glm"><span class="mono">${a.ini?fmt(a.ini)+' → '+fmt(a.fin):'senza date'}</span>${a.sum?'':`<span>${esc(a.pers||'non assegnata')}</span>`}</div></div>
+   <div class="glb" ${ED?`data-gedit="${c.id}|${a.id}"`:''}><div class="cn">${sDot(a)}${esc(a.nome)}</div><div class="glm"><span class="mono">${a.ini?fmt(a.ini)+' → '+fmt(a.fin):'senza date'}</span>${a.sum?'':`<span>${esc(a.pers||'non assegnata')}</span>`}</div></div>
    ${a.sum?'':statoPill(a)}</div>`}).join('')||'<div class="muted" style="padding:8px 0">Nessuna attività.</div>'}
   ${ev.map(e=>`<div class="gli glg2"><span class="gdia2"></span><div class="glb"><div class="cn">${esc(e.nome)}</div><div class="glm"><span class="mono">${fmt(e.data)}</span><span>gate</span></div></div></div>`).join('')}</div>`}).join('')}
 $('#view').innerHTML=`<section class="panel"><div class="row" style="justify-content:space-between;margin-bottom:14px"><div class="row"><h2>Gantt</h2><div class="seg"><button data-gv="lista" aria-pressed="${S.gView==='lista'}">Elenco</button><button data-gv="diagramma" aria-pressed="${S.gView==='diagramma'}">Diagramma</button><button data-gv="carico" aria-pressed="${S.gView==='carico'}">Per persona</button></div>
@@ -959,7 +961,8 @@ $('#view').innerHTML=`<section class="panel"><div class="row" style="justify-con
  $('#gSel').onchange=e=>{S.gSel=e.target.value;render()};
  $('#gPer').onchange=e=>{S.gPer=e.target.value;render()};
  gDrag();
- const w=$('.gwrap'),t=$('.gwrap .gd.td');if(w&&t)w.scrollLeft=Math.max(0,t.offsetLeft-w.querySelector('.gh').offsetWidth-60);
+ const w=$('.gwrap'),t=$('.gwrap .gd.td');if(w){const nw=(w.querySelector('.gh')||{}).offsetWidth||0,dw=Math.max(16,Math.floor((w.clientWidth-nw-2)/31));w.style.setProperty('--gdw',dw+'px')}
+ if(w&&t)w.scrollLeft=Math.max(0,t.offsetLeft-w.querySelector('.gh').offsetWidth-60);
  if(w){w.insertAdjacentHTML('beforebegin','<div class="gnav"><button class="btn sm" data-gs="-1" aria-label="Indietro">◀</button><button class="btn sm" data-gs="0">Oggi</button><button class="btn sm" data-gs="1" aria-label="Avanti">▶</button><div class="gtop" aria-hidden="true"><div></div></div></div>');
   const tb=$('.gtop'),ti=tb.firstElementChild,sz=()=>{ti.style.width=w.scrollWidth+'px'};sz();setTimeout(sz,50);let lk=0;
   tb.onscroll=()=>{if(lk)return;lk=1;w.scrollLeft=tb.scrollLeft;lk=0};w.addEventListener('scroll',()=>{if(lk)return;lk=1;tb.scrollLeft=w.scrollLeft;lk=0});tb.scrollLeft=w.scrollLeft;
@@ -1134,7 +1137,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.19.2"></script>
+<script src="manutenzione.js?v=2.19.3"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
