@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.18.1 — 2026-11-18
+- Commesse: cambiando la data di inizio (o di fine) di un'attività si spostano anche le attività collegate.
+- Togliendo tutti i legami ⛓ l'attività torna attiva e non resta più «in attesa».
+
 ## 2.18.0 — 2026-11-18
 - La pagina non torna più in cima dopo segnalazioni o modifiche: resta la posizione di scorrimento (anche orizzontale nel Gantt).
 - Commesse/Gantt: spostando un'attività (date, trascinamento, scheda) le attività collegate «⛓ dopo» che seguono si spostano degli stessi giorni, a catena.
