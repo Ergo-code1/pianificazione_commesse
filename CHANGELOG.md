@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.20.0 — 2026-11-18
+- Impostazioni → Persone e accessi (solo admin): «⬇ Scarica backup», copia completa dei dati in un file JSON sul PC.
+
 ## 2.19.4 — 2026-11-18
 - Gantt: «🗄 Archivia» nella scheda dell'attività (clic sul nome o sulla barra).
 
