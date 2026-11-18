@@ -163,6 +163,7 @@ aside .av{background:rgb(255 255 255/.12);color:var(--hi)}
 .irow{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--soft)}
 @media(max-width:560px){.irow{grid-template-columns:36px minmax(0,1fr)}.irow>:last-child{grid-column:1/-1}}
 /* gantt */
+.gbar.b-ok,.glg i.b-ok{background:#3b6fd8}.gbar.b-run,.glg i.b-run{background:#e67e22;box-shadow:none}.gbar.b-done,.glg i.b-done{background:#2e9d5b;opacity:1}.gbar.b-off,.glg i.b-off{background:repeating-linear-gradient(45deg,#9aa3b2 0 4px,#c9cfd8 4px 8px)}
 .gnav{display:flex;align-items:center;gap:6px;margin-bottom:6px;position:sticky;top:0;z-index:8;background:var(--surface);padding:4px 0}.gtop{flex:1;overflow-x:auto;overflow-y:hidden;height:16px}.gtop>div{height:1px}
 .fcal{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}.fmh{font-weight:700;text-transform:capitalize;margin-bottom:4px}.fg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px}.fg b{color:var(--muted);font-weight:600}.fg button{border:1px solid transparent;background:none;border-radius:6px;padding:4px 0;font:inherit;cursor:pointer;color:var(--fg)}.fg button:hover{border-color:var(--accent)}.fg .fwe{color:var(--muted);background:var(--soft)}.fg .fon{background:#c0392b;color:#fff;font-weight:700}.fg .ftd{outline:2px solid var(--accent)}
 .gld{font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}.gld.l1{background:color-mix(in srgb,var(--ok) 25%,transparent)}.gld.l2{background:color-mix(in srgb,#e67e22 45%,transparent)}.gld.l3{background:color-mix(in srgb,#c0392b 55%,transparent);color:#fff}.glg i.gld{display:inline-block;width:14px;height:10px}.gn.gcar{background:var(--soft)}
@@ -429,7 +430,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.19.1';
+const VERSIONE='2.19.2';
 // mantiene la posizione di scorrimento durante i ridisegni
 let _ksD=0,_ksT=null;
 function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrollX,tab=S.tab+'|'+S.gView,sel='.gwrap,.tablewrap,.list,.mn-box,#mnOvl,#gOvl,.dep,[data-ks]',old=[...document.querySelectorAll(sel)].map(e=>[e.scrollLeft,e.scrollTop]);
@@ -924,7 +925,7 @@ function gCarico(cs){const PL=(S.gPer&&S.gPer!=='tutte'&&S.gPer!=='__none')?[S.g
   out+=`<div class="gn gcar" style="grid-row:${r}"><span class="cn"><b>${esc(p)}</b></span><span class="muted">${L.length} attività${ov?' · <b style="color:var(--bad,#c0392b)">'+ov+' gg sovrapposti</b>':''}</span></div>`+cnt.map((k,i)=>`<div class="gcell gld l${Math.min(k,3)} ${offD(days[i])?'we':''}" style="grid-row:${r};grid-column:${i+2}" title="${fmt(D[i])}: ${k} attività">${k>1?k:''}</div>`).join('');r++;
   L.sort((x,y)=>x.a.ini.localeCompare(y.a.ini)).forEach(({a,c})=>{const k=a.stato==='in corso'?'b-run':a.attiva?'b-ok':'b-off';
    out+=`<div class="gn" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};padding-left:22px"><span class="cn">${esc(a.nome)}</span><span class="muted"><span class="code">${c.id}</span> ${esc(c.nome)}</span></div>`+days.map((d,i)=>`<div class="gcell ${offD(d)?'we':''}" style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+(a.fin>=start?`<div class="gbar ${k}" ${ED?`data-gedit="${c.id}|${a.id}"`:''} style="grid-row:${r};grid-column:${col(a.ini)}/${col(a.fin)+1}" title="${esc(a.nome)} · ${fmt(a.ini)}–${fmt(a.fin)}"></div>`:'');r++})});
- return`<div class="gwrap"><div class="gantt" style="grid-template-columns:var(--gnw) repeat(${n},var(--gdw))">${out}</div></div><div class="glg"><span><i class="gld l1"></i>1 attività</span><span><i class="gld l2"></i>2 attività</span><span><i class="gld l3"></i>3 o più</span></div>`}
+ return`<div class="gwrap"><div class="gantt" style="grid-template-columns:var(--gnw) repeat(${n},var(--gdw))">${out}</div></div><div class="glg"><span><i class="b-ok"></i>Da fare</span><span><i class="b-run"></i>In corso</span><span><i class="b-off"></i>Non attiva</span><span><i class="gld l1"></i>1 attività</span><span><i class="gld l2"></i>2 attività</span><span><i class="gld l3"></i>3 o più</span></div>`}
 function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');let {cs,start,end}=ganttData();if(!start&&cs.some(c=>visAtt(c).length)){start=todayL();end=addD(start,30)}if(start){const t7=addD(todayL(),-7);if(t7<start)start=t7;const y1=addD(start,365);end=addD(end,21);if(end<y1)end=y1}
  let body=`<div class="muted">Nessuna attività con date. Aggiungine una:</div><div class="gempty">${cs.map(c=>`<button class="btn" data-gadd="${c.id}">+ ${c.id}</button>`).join('')}</div>`;
  if(start){const s0=toD(start),n=Math.round((toD(end)-s0)/DAY)+1,col=d=>Math.round((toD(d)-s0)/DAY)+2;
@@ -940,7 +941,7 @@ function vGantt(){S.gSel=S.gSel||'tutte';const ED=can('edit'),AD=can('add');let 
    S.eventi.filter(e=>e.comm===c.id&&evVis(e)).forEach(e=>{out+=`<div class="gn gev" style="grid-row:${r}"><span class="cn">◆ ${esc(e.nome)}</span><span class="muted">gate</span></div>`+days.map((d,i)=>`<div class="gcell ${offD(d)?'we':''}" style="grid-row:${r};grid-column:${i+2}"></div>`).join('')+`<div class="gdia" style="grid-row:${r};grid-column:${col(e.data)}" title="${esc(e.nome)} · ${fmt(e.data)}"></div>`;r++});
   });
   body=`<div class="gwrap"><div class="gantt" style="grid-template-columns:var(--gnw) repeat(${n},var(--gdw))">${out}</div></div>
-  <div class="glg"><span><i class="b-ok"></i>Attiva</span><span><i class="b-off"></i>Non attiva</span><span><i class="b-run"></i>In corso</span><span><i class="b-done"></i>Conclusa</span><span><i class="dia"></i>Gate</span></div>`}
+  <div class="glg"><span><i class="b-ok"></i>Da fare</span><span><i class="b-off"></i>Non attiva</span><span><i class="b-run"></i>In corso</span><span><i class="b-done"></i>Conclusa</span><span><i class="dia"></i>Gate</span></div>`}
  if(!S.gView)S.gView=window.innerWidth<700?'lista':'diagramma';
  if(S.gView==='carico')body=gCarico(cs);
  if(S.gView==='lista'){body=cs.map(c=>{const ev=S.eventi.filter(e=>e.comm===c.id&&evVis(e)).sort((a,b)=>a.data.localeCompare(b.data));
@@ -1133,7 +1134,7 @@ function vImp(){const A=isAdm_(),pR=p=>!!((S.pInfo||{})[p]||{}).resp;
  $('#enAdd').onclick=()=>{const n=$('#enNew').value.trim();if(n&&!S.enti.includes(n)){S.enti.push(n);render()}};
 }
 </script>
-<script src="manutenzione.js?v=2.19.1"></script>
+<script src="manutenzione.js?v=2.19.2"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword,setPersistence,browserLocalPersistence,browserSessionPersistence,inMemoryPersistence,sendPasswordResetEmail,updatePassword,verifyBeforeUpdateEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";

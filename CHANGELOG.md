@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.19.2 — 2026-11-18
+- Gantt: colori distinti per stato — da fare blu, in corso arancio, conclusa verde, non attiva grigio a righe.
+
 ## 2.19.1 — 2026-11-18
 - Gantt: barra di scorrimento orizzontale anche in alto (sempre visibile) e pulsanti ◀ Oggi ▶.
 
