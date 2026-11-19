@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.32.0 — 2026-11-19
+- Pianificazione automatica: in «Esclusi dal giro» si può escludere una zona intera (tutti i suoi impianti) con una spunta.
+
 ## 2.31.0 — 2026-11-19
 - Pianificazione automatica: finestra a tutto schermo.
 
