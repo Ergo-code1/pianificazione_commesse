@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.33.0 — 2026-11-19
+- Pianificazione automatica: massimo 8 ore (480 min) per manutentore al giorno. I fermi più lunghi vengono divisi in più parti (per procedura), assegnate a più manutentori preferibilmente nello stesso giorno (conta come un solo fermo impianto) o in giorni diversi.
+
 ## 2.32.1 — 2026-11-19
 - Pianificazione automatica a tutto schermo: corretto lo sfondo che si interrompeva scorrendo.
 
