@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.34.0 — 2026-11-19
+- Pianificazione automatica: corretta la chiusura con ✕ (la finestra a tutto schermo non si chiudeva).
+- Nuovo parametro «Ore di manutenzione per turno (max per persona)», predefinito 8: oltre, il fermo viene diviso.
+
 ## 2.33.0 — 2026-11-19
 - Pianificazione automatica: massimo 8 ore (480 min) per manutentore al giorno. I fermi più lunghi vengono divisi in più parti (per procedura), assegnate a più manutentori preferibilmente nello stesso giorno (conta come un solo fermo impianto) o in giorni diversi.
 

@@ -604,7 +604,7 @@ const tAge=()=>{const T=EPT.d;if(!T)return'<span style="color:var(--accent)">Tur
 // --- parametri ---
 function apDef(){const t=tdy(),o=M.autoP||{};return{da:o.da&&o.da>=t?o.da:t,a:o.a&&o.a>t?o.a:addM(t,2),cat:o.cat!=null?o.cat:(MN.pz&&MN.pz!=='_none'?MN.pz:''),rep:o.rep||'',
  pm:o.pm!=null?o.pm:50,maxT:o.maxT||1,maxF:o.maxF||3,tol:o.tol!=null?o.tol:15,turni:o.turni||['N','P','M','G'],gg:o.gg||[0,1,2,3,4,5,6],ggPref:o.ggPref||[6,0],
- est:!!o.est,evt:o.evt!==false,map:o.map||{},pp:o.pp||{},minDef:o.minDef||30,prioZ:o.prioZ||[],prioI:o.prioI||[],excI:o.excI||[],excC:o.excC||[],unFermo:!!o.unFermo,imp:'',soloAuto:o.soloAuto!==false}}
+ est:!!o.est,evt:o.evt!==false,map:o.map||{},pp:o.pp||{},minDef:o.minDef||30,prioZ:o.prioZ||[],prioI:o.prioI||[],excI:o.excI||[],excC:o.excC||[],unFermo:!!o.unFermo,oreT:o.oreT||8,imp:'',soloAuto:o.soloAuto!==false}}
 const cNome=c=>c?(c.nome||(T(c.tipo)||{}).nome||'Componente'):'';
 // priorità: 0 impianto prioritario, 1 zona prioritaria, 2 gli altri
 const prioOf=(o,i)=>(o.prioI||[]).includes(i.id)?0:(o.prioZ||[]).some(z=>catDesc(z).has(i.cat))?1:2;
@@ -620,7 +620,7 @@ const minOf=(p,o)=>+p.min||(o||M.autoP||{}).minDef||30;
 function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};
  const zone=o.cat?catDesc(o.cat):null,imps=M.imp.filter(i=>!i.dism&&(o.imp?i.id===o.imp:(!zone||zone.has(i.cat))&&!(o.excI||[]).includes(i.id)));
  const pers=repRows(o).filter(r=>{const q=PPof(o,r.ep);return !q.off&&q.prev&&q.pm>0}).map(r=>({r,ep:r.ep,q:PPof(o,r.ep),cap:Math.round(8*60*PPof(o,r.ep).pm/100)}));res.pers=pers;
- const used={},cntT={},cntF={},TMAX=480;
+ const used={},cntT={},cntF={},TMAX=Math.max(1,+o.oreT||8)*60;
  // ore già occupate da manutenzioni pianificate prima (non toccate)
  M.att.forEach(a=>{if(!a.due||a.chiusa||!a.man||a.due<o.da||a.due>o.a)return;const k=a.man+'|'+a.due;used[k]=(used[k]||0)+minOf(PA(a)||{},o)});
  const dueOf=s=>{const p=P(s.proc);if(pend(s))return tdy();if(p.tipo==='evento')return s.evt?tdy():null;return s.next||tdy()};
@@ -629,7 +629,7 @@ function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};
  imps.forEach(i=>{let it=M.ass.filter(s=>s.imp===i.id&&P(s.proc)&&!P(s.proc)._miss&&!planned(s)).map(s=>({s,p:P(s.proc),due:dueOf(s)})).filter(x=>x.due&&x.due<=o.a&&!(x.s.comp&&(o.excC||[]).includes(i.id+'|'+x.s.comp)));
   it.filter(x=>x.p.est&&!o.est).forEach(x=>res.skip.push({i,p:x.p,why:'fornitore esterno'}));it=it.filter(x=>!x.p.est||o.est);
   it.filter(x=>x.p.tipo==='evento'&&!o.evt).forEach(x=>res.skip.push({i,p:x.p,why:'a evento'}));it=it.filter(x=>x.p.tipo!=='evento'||o.evt);
-  it.sort((a,b)=>a.due<b.due?-1:1);while(it.length){const d0=it[0].due,lim=o.unFermo&&!it[0].p.est?o.a:addD(d0<o.da?o.da:d0,o.tol);const ex=!!it[0].p.est,sel=x=>x.due<=lim&&(!o.unFermo||!!x.p.est===ex);const g=it.filter(sel);it=it.filter(x=>!sel(x));const ch=[];g.slice().sort((a,b)=>minOf(b.p,o)-minOf(a.p,o)).forEach(x=>{const m=minOf(x.p,o),c=ch.find(c=>c.min+m<=TMAX);if(c){c.it.push(x);c.min+=m}else ch.push({it:[x],min:m})});const sib={};ch.forEach(c=>groups.push({i,pr:prioOf(o,i),it:c.it,due:d0,min:c.min,sib,parti:ch.length}))}});
+  it.sort((a,b)=>a.due<b.due?-1:1);while(it.length){const d0=it[0].due,lim=o.unFermo&&!it[0].p.est?o.a:addD(d0<o.da?o.da:d0,o.tol);const ex=!!it[0].p.est,sel=x=>x.due<=lim&&(!o.unFermo||!!x.p.est===ex);const g=it.filter(sel);it=it.filter(x=>!sel(x));const TMAX=Math.max(1,+o.oreT||8)*60,ch=[];g.slice().sort((a,b)=>minOf(b.p,o)-minOf(a.p,o)).forEach(x=>{const m=minOf(x.p,o),c=ch.find(c=>c.min+m<=TMAX);if(c){c.it.push(x);c.min+=m}else ch.push({it:[x],min:m})});const sib={};ch.forEach(c=>groups.push({i,pr:prioOf(o,i),it:c.it,due:d0,min:c.min,sib,parti:ch.length}))}});
  // prima gli impianti prioritari, poi le zone prioritarie, poi gli altri; a pari priorità la scadenza più vicina
  groups.sort((a,b)=>a.pr-b.pr||(a.due<b.due?-1:a.due>b.due?1:b.min-a.min));
  const tOrd=t=>{const k=o.turni.indexOf(t);return k<0?99:k};
@@ -698,6 +698,7 @@ function drawAP0(){const o=AP.p;if(AP.step==='res')return drawAPres();
   <div class="row"><button class="btn" style="color:var(--accent)" ${E.L.length?'':'disabled'} onclick="MNX.apDel()">🗑 Cancella queste ${E.L.length} pianificazioni</button><span class="muted" style="font-size:12px">le procedure tornano da pianificare; poi puoi rifare «Simula»</span></div></div>`})()}
  <div class="mn-step"><b>3 · Supporto alla produzione e fermi</b><div class="evf">
   ${num('maxT','Manutentori in programmata per turno (max)',1,10,'gli altri del turno restano su guasti e cambi')}
+  ${num('oreT','Ore di manutenzione per turno (max per persona)',1,12,'i fermi più lunghi vengono divisi su più persone o giorni')}
   ${num('maxF','Impianti fermi per manutenzione al giorno (max)',1,20)}</div>
   <div>Turni utilizzabili <span class="muted" style="font-size:12px">(preferenza: ${o.turni.map(t=>AP_LAB[t]).join(' › ')})</span><br>${AP_WORK.map(t=>chk(t,AP_LAB[t],'turni')).join('')}</div>
   <div>Giorni utilizzabili<br>${[1,2,3,4,5,6,0].map(d=>chk(d,AP_GG[d],'gg')).join('')}</div>
