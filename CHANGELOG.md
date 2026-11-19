@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.31.0 — 2026-11-19
+- Pianificazione automatica: finestra a tutto schermo.
+
 ## 2.30.2 — 2026-11-19
 - Gantt «Per persona»: corretta la visualizzazione del numero di priorità.
 

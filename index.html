@@ -399,6 +399,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 .mn-pers{margin-top:22px;display:grid;gap:10px}.mn-pers>h3{display:flex;gap:8px;align-items:center}
 .mn-empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:20px;text-align:center}
 .mn-ovl{position:fixed;inset:0;background:rgb(0 0 0/.5);display:grid;place-items:start center;z-index:45;padding:32px 12px;overflow:auto}
+.mn-box.mn-full{width:100%!important;max-width:none!important;min-height:100dvh;border-radius:0;align-self:stretch}#mnOvl:has(.mn-full){place-items:stretch!important;align-items:stretch!important}
 .mn-box{background:var(--surface);color:var(--fg);border-radius:16px;padding:22px;width:min(100%,720px);box-shadow:0 10px 40px rgb(0 0 0/.3);display:grid;gap:14px}
 .mn-oh{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
 .mn-box .evf label{color:var(--muted)}
@@ -432,7 +433,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.30.2';
+const VERSIONE='2.31.0';
 // mantiene la posizione di scorrimento durante i ridisegni
 let _ksD=0,_ksT=null;
 function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrollX,tab=S.tab+'|'+S.gView,sel='.gwrap,.tablewrap,.list,.mn-box,#mnOvl,#gOvl,.dep,[data-ks]',old=[...document.querySelectorAll(sel)].map(e=>[e.scrollLeft,e.scrollTop]);

@@ -440,7 +440,7 @@ function vRic(){const f=MN.f,st=f.stato||'aperte',ds=f.cat?catDesc(f.cat):null;
 
 // ---------- finestre ----------
 function ovl(h){let o=document.getElementById('mnOvl');if(!o){o=document.createElement('div');o.id='mnOvl';o.className='mn-ovl';o.onpointerdown=e=>{o._d=e.target===o};o.onclick=e=>{const d=o._d;o._d=false;if(e.target===o&&d&&!o.querySelector('.mn-qi'))closeO()};document.body.appendChild(o)}
- o.style.padding='';o.innerHTML=`<div class="mn-box" role="dialog" aria-modal="true">${h}</div>`;o.hidden=false;o.scrollTop=0}
+ const fu=h.includes('<h2>Pianificazione automatica</h2>');o.style.padding=fu?'0':'';o.innerHTML=`<div class="mn-box${fu?' mn-full':''}" role="dialog" aria-modal="true">${h}</div>`;o.hidden=false;o.scrollTop=0}
 function closeO(){const o=document.getElementById('mnOvl');if(o)o.hidden=true;refresh()}
 function refresh(){if(LEAF.includes(S.tab))draw();else if(typeof render==='function'&&S.user&&(S.tab==='persone'||MN._myN!==myCount())){MN._myN=myCount();render()}}
 const myCount=()=>M.att.filter(a=>a.due&&mine(a)).length;
