@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.38.1 — 2026-11-19
+- Pianificazione automatica: «Impianti prioritari fermi max a settimana» conta gli impianti prioritari diversi fermati nella settimana (lun–dom); mai due impianti prioritari fermi lo stesso giorno.
+
 ## 2.38.0 — 2026-11-19
 - Pianificazione automatica: nuovo parametro «Fermi max a settimana per impianto prioritario» (predefinito 1, 0 = nessun limite).
 
