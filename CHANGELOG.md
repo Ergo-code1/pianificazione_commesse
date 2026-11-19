@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.38.4 — 2026-11-19
+- Proposta di pianificazione: per ogni fermo è indicata la zona dell'impianto.
+
 ## 2.38.3 — 2026-11-19
 - Pianificazione automatica: le zone della persona sono un vincolo rigido (anche per gli impianti dedicati); controllo ripetuto alla conferma, i fermi fuori zona vengono scartati e segnalati.
 
