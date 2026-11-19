@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.29.0 — 2026-11-19
+- Pianificazione automatica: riquadro «Pianificazioni già presenti» nel periodo/zona/impianto scelti, con «🗑 Cancella» (anche solo quelle create in automatico; quelle già iniziate restano) per rifare la simulazione.
+- Nuovo campo «Solo un impianto» per ripianificare un singolo impianto.
+
 ## 2.28.1 — 2026-11-18
 - Pianificazione automatica: la % manutenzione è indicativa. Un fermo lungo va comunque a un manutentore libero (anche tutto il turno); non gli si aggiungono altri lavori oltre la quota.
 
