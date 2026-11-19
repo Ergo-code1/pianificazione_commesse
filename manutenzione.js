@@ -576,7 +576,7 @@ function drawQI(){const q=MN.qi,T_=M.tipi,EX=qiEx();const sc0=document.getElemen
 // ---------- turni da «Turni e ferie» + pianificazione automatica + carico persone (v2.23.0) ----------
 // Il riepilogo turni lo scrive l'app Turni e ferie (ergoplan/rep_<id>, un doc per reparto di ingegneria e manutenzione).
 // «Sincronizza turni» lo legge con un utente di Turni e ferie e lo copia in Ergo Plan (manutDoc/_turni), visibile a tutti.
-const AP_WORK=['M','P','N','G'],AP_LAB={M:'Mattina',P:'Pomeriggio',N:'Notte',G:'Giornata'},AP_GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+const AP_WORK=['M','P','N','G'],AP_SV={MSV:'M',SV:'G'},AP_LAB={M:'Mattina',P:'Pomeriggio',N:'Notte',G:'Giornata'},AP_GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
 const AP={step:'par',res:null};
 const apNk=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z ]/g,' ').replace(/\s+/g,' ').trim();
 function apGuess(n){const L=S.persone||[],k=apNk(n),w=k.split(' ').sort().join(' ');return L.find(p=>apNk(p)===k)||L.find(p=>apNk(p).split(' ').sort().join(' ')===w)||L.find(p=>{const q=apNk(p).split(' ');return q.length>1&&q.every(x=>k.split(' ').includes(x))})||''}
@@ -587,9 +587,11 @@ const EPT={d:null,ld:0,
  idx(d){const T=this.d;if(!T)return -1;const i=Math.round((new Date(d+'T12:00:00')-new Date(T.da+'T12:00:00'))/864e5);return i>=0&&i<T.n?i:-1},
  row(ep){return this.rows().find(r=>r.ep&&sameP(r.ep,ep))},
  // turno lavorato (M/P/N/G) o '' se assente/riposo/fuori periodo
- work(r,d){const i=this.idx(d);if(!r||i<0)return'';const s=r.s[i]||'',t=r.t[i]||'';return AP_WORK.includes(s)&&t.startsWith(s)?s:''},
+ work(r,d){const i=this.idx(d);if(!r||i<0)return'';const s=r.s[i]||'',t=r.t[i]||'';if(AP_SV[s])return AP_SV[s];return AP_WORK.includes(s)&&t.startsWith(s)?s:''},
+ // MSV/SV: turno nello stabilimento di Settimo Vittone
+ sv(r,d){const i=this.idx(d);return !!(r&&i>=0&&AP_SV[r.s[i]||''])},
  // assenza da mostrare (ferie, mutua, corso…): testo o ''
- abs(r,d){const i=this.idx(d);if(!r||i<0)return'';const s=r.s[i]||'',t=r.t[i]||'';if(!t||AP_WORK.includes(s)&&t.startsWith(s))return'';return t}};
+ abs(r,d){const i=this.idx(d);if(!r||i<0)return'';const s=r.s[i]||'',t=r.t[i]||'';if(!t||AP_SV[s]||AP_WORK.includes(s)&&t.startsWith(s))return'';return t}};
 window.EPT={abs:(p,d)=>EPT.abs(EPT.row(p),d),load:f=>EPT.load(f),ready:()=>!!EPT.d};
 async function tfLogin(){const u=prompt('Utente dell\'app Turni e ferie (serve solo per leggere i turni):');if(!u)return false;const pw=prompt('Password di '+u+':');if(!pw)return false;
  try{await window.FBM.tfLogin(u.trim(),pw);return true}catch(er){mt('Accesso a Turni e ferie non riuscito: '+FB.err(er));return false}}
@@ -617,7 +619,7 @@ const isManR=r=>/manutenz/i.test(r.rep||'');
 const repRows=o=>EPT.rows().filter(r=>isManR(r)&&(!o.rep||r.rep===o.rep)&&r.ep);
 const minOf=(p,o)=>+p.min||(o||M.autoP||{}).minDef||30;
 // --- simulazione: non scrive nulla ---
-function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};
+function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};const svC=M.cat.find(c=>!c.par&&/settimo/i.test(c.nome||'')),svZ=svC?catDesc(svC.id):new Set();
  const zone=o.cat?catDesc(o.cat):null,imps=M.imp.filter(i=>!i.dism&&(o.imp?i.id===o.imp:(!zone||zone.has(i.cat))&&!(o.excI||[]).includes(i.id)));
  const pers=repRows(o).filter(r=>{const q=PPof(o,r.ep);return !q.off&&q.prev&&q.pm>0}).map(r=>({r,ep:r.ep,q:PPof(o,r.ep),cap:Math.round(8*60*PPof(o,r.ep).pm/100)}));res.pers=pers;
  const used={},cntT={},cntF={},TMAX=480,usedT={},capT={},allM=repRows(o).filter(r=>!PPof(o,r.ep).off);const capTurno=(d,t)=>{const k=d+'|'+t;if(capT[k]==null)capT[k]=allM.filter(r=>EPT.work(r,d)===t).length*480*Math.min(100,Math.max(0,+o.pctT||0))/100;return capT[k]};
@@ -638,7 +640,7 @@ function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};
   // impianto dedicato: prima solo le persone dedicate, entro la finestra; se nessuna è libera, tutti gli altri
   for(const PL of dedP.length?[dedP,pers]:[pers]){best=null;
   for(const d of days){if(PL===dedP&&d>to)break;if(d<from)continue;const wd=new Date(d+'T12:00:00').getDay();if(!o.gg.includes(wd)||(!(cntF[d]&&cntF[d].has(g.i.id))&&(cntF[d]?cntF[d].size:0)>=o.maxF))continue;
-   for(const x of PL){if(PL!==dedP&&!canImp(x.q,g.i))continue;const t=EPT.work(x.r,d);if(!t||!o.turni.includes(t))continue;const k=d+'|'+t,u=used[x.ep+'|'+d]||0,nT=cntT[k]||new Set();
+   for(const x of PL){if(PL!==dedP&&!canImp(x.q,g.i))continue;const t=EPT.work(x.r,d);if(!t||!o.turni.includes(t))continue;if(EPT.sv(x.r,d)&&!svZ.has(g.i.cat))continue;const k=d+'|'+t,u=used[x.ep+'|'+d]||0,nT=cntT[k]||new Set();
     if(!nT.has(x.ep)&&nT.size>=o.maxT)continue;// la % è un'indicazione: un lavoro iniziato si finisce anche se occupa tutto il turno; non se ne aggiunge un altro oltre la quota
     if(u>0&&(u+g.min>x.cap||u+g.min>TMAX))continue;if((usedT[k]||0)+g.min>capTurno(d,t))continue;
     const sc=(d>to?1000:0)+(g.min>x.cap?Math.min(20,(g.min-x.cap)/30):0)+(o.ggPref.includes(wd)?0:40)+tOrd(t)*10+((res.carico[x.ep]||0)/Math.max(x.cap,1))*5+days.indexOf(d)*0.5+(d<g.due?3:0)-(g.sib[d]?6:0);

@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.36.0 — 2026-11-19
+- Pianificazione automatica: i turni MSV (Mattina) e SV (Giornata) di Turni e ferie sono riconosciuti come lavorativi; in quei giorni la persona riceve solo impianti dello stabilimento di Settimo Vittone.
+
 ## 2.35.0 — 2026-11-19
 - Pianificazione automatica: «Ore di manutenzione per turno» ora in % delle ore disponibili (manutentori in turno × 8 h, predefinito 60%). Ogni manutentore resta comunque al massimo a 8 ore.
 
