@@ -433,7 +433,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.38.1';
+const VERSIONE='2.38.2';
 // mantiene la posizione di scorrimento durante i ridisegni
 let _ksD=0,_ksT=null;
 function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrollX,tab=S.tab+'|'+S.gView,sel='.gwrap,.tablewrap,.list,.mn-box,#mnOvl,#gOvl,.dep,[data-ks]',old=[...document.querySelectorAll(sel)].map(e=>[e.scrollLeft,e.scrollTop]);
@@ -931,7 +931,7 @@ const sDot=a=>{if(a.sum)return'';const k=a.stato==='conclusa'?'b-done':a.stato==
 function gCarico(cs){if(window.EPT&&!EPT.ready()&&!S._eptL){S._eptL=1;EPT.load().then(()=>{if(EPT.ready()&&S.gView==='carico')render()})}const PL=(S.gPer&&S.gPer!=='tutte'&&S.gPer!=='__none')?[S.gPer]:visPers();
  const rows=PL.map(p=>({p,L:cs.flatMap(c=>c.att.filter(a=>!a.sum&&a.pers===p&&a.ini&&a.fin&&a.stato!=='conclusa').map(a=>({a,c})))})).filter(x=>x.L.length);
  if(!rows.length)return'<div class="muted">Nessuna attività aperta con date per le persone selezionate.</div>';
- const all=rows.flatMap(x=>x.L.flatMap(({a})=>[a.ini,a.fin])).sort();let start=addD(todayL(),-7);if(all[0]>start)start=all[0];let end=all[all.length-1];const y1=addD(start,120);if(end<y1)end=y1;end=addD(end,7);
+ const all=rows.flatMap(x=>x.L.flatMap(({a})=>[a.ini,a.fin])).sort();let start=addD(todayL(),-7);if(all[0]&&all[0]<start)start=all[0];let end=all[all.length-1];const y1=addD(start,120);if(end<y1)end=y1;end=addD(end,7);
  const s0=toD(start),n=Math.round((toD(end)-s0)/DAY)+1,days=[...Array(n)].map((_,i)=>new Date(+s0+i*DAY)),D=days.map(isoL),col=d=>Math.max(2,Math.round((toD(d)-s0)/DAY)+2),ED=can('edit');
  const ms=[];days.forEach((d,i)=>{const k=d.getFullYear()+'-'+d.getMonth();if(!ms.length||ms[ms.length-1].k!==k)ms.push({k,d,s:i,n:1});else ms[ms.length-1].n++});
  let out=`<div class="gn gh" style="grid-row:1/3">Persona</div>`+ms.map(m=>`<div class="gm" style="grid-column:${m.s+2}/span ${m.n}"><span>${m.n>=4?m.d.toLocaleDateString('it-IT',{month:'long',year:'numeric'}):''}</span></div>`).join('')+days.map((d,i)=>`<div class="gd ${offD(d)?'we':''} ${D[i]===todayL()?'td':''}" style="grid-column:${i+2}"><b>${d.getDate()}</b><span>${'DLMMGVS'[d.getDay()]}</span></div>`).join(''),r=3;
