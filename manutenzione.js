@@ -604,7 +604,7 @@ const tAge=()=>{const T=EPT.d;if(!T)return'<span style="color:var(--accent)">Tur
 // --- parametri ---
 function apDef(){const t=tdy(),o=M.autoP||{};return{da:o.da&&o.da>=t?o.da:t,a:o.a&&o.a>t?o.a:addM(t,2),cat:o.cat!=null?o.cat:(MN.pz&&MN.pz!=='_none'?MN.pz:''),rep:o.rep||'',
  pm:o.pm!=null?o.pm:50,maxT:o.maxT||1,maxF:o.maxF||3,tol:o.tol!=null?o.tol:15,turni:o.turni||['N','P','M','G'],gg:o.gg||[0,1,2,3,4,5,6],ggPref:o.ggPref||[6,0],
- est:!!o.est,evt:o.evt!==false,map:o.map||{},pp:o.pp||{},minDef:o.minDef||30,prioZ:o.prioZ||[],prioI:o.prioI||[],excI:o.excI||[],excC:o.excC||[],unFermo:!!o.unFermo,oreT:o.oreT||8,imp:'',soloAuto:o.soloAuto!==false}}
+ est:!!o.est,evt:o.evt!==false,map:o.map||{},pp:o.pp||{},minDef:o.minDef||30,prioZ:o.prioZ||[],prioI:o.prioI||[],excI:o.excI||[],excC:o.excC||[],unFermo:!!o.unFermo,pctT:o.pctT||60,imp:'',soloAuto:o.soloAuto!==false}}
 const cNome=c=>c?(c.nome||(T(c.tipo)||{}).nome||'Componente'):'';
 // priorità: 0 impianto prioritario, 1 zona prioritaria, 2 gli altri
 const prioOf=(o,i)=>(o.prioI||[]).includes(i.id)?0:(o.prioZ||[]).some(z=>catDesc(z).has(i.cat))?1:2;
@@ -620,7 +620,7 @@ const minOf=(p,o)=>+p.min||(o||M.autoP||{}).minDef||30;
 function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};
  const zone=o.cat?catDesc(o.cat):null,imps=M.imp.filter(i=>!i.dism&&(o.imp?i.id===o.imp:(!zone||zone.has(i.cat))&&!(o.excI||[]).includes(i.id)));
  const pers=repRows(o).filter(r=>{const q=PPof(o,r.ep);return !q.off&&q.prev&&q.pm>0}).map(r=>({r,ep:r.ep,q:PPof(o,r.ep),cap:Math.round(8*60*PPof(o,r.ep).pm/100)}));res.pers=pers;
- const used={},cntT={},cntF={},TMAX=Math.max(1,+o.oreT||8)*60;
+ const used={},cntT={},cntF={},TMAX=480,usedT={},capT={},allM=repRows(o).filter(r=>!PPof(o,r.ep).off);const capTurno=(d,t)=>{const k=d+'|'+t;if(capT[k]==null)capT[k]=allM.filter(r=>EPT.work(r,d)===t).length*480*Math.min(100,Math.max(0,+o.pctT||0))/100;return capT[k]};
  // ore già occupate da manutenzioni pianificate prima (non toccate)
  M.att.forEach(a=>{if(!a.due||a.chiusa||!a.man||a.due<o.da||a.due>o.a)return;const k=a.man+'|'+a.due;used[k]=(used[k]||0)+minOf(PA(a)||{},o)});
  const dueOf=s=>{const p=P(s.proc);if(pend(s))return tdy();if(p.tipo==='evento')return s.evt?tdy():null;return s.next||tdy()};
@@ -629,7 +629,7 @@ function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};
  imps.forEach(i=>{let it=M.ass.filter(s=>s.imp===i.id&&P(s.proc)&&!P(s.proc)._miss&&!planned(s)).map(s=>({s,p:P(s.proc),due:dueOf(s)})).filter(x=>x.due&&x.due<=o.a&&!(x.s.comp&&(o.excC||[]).includes(i.id+'|'+x.s.comp)));
   it.filter(x=>x.p.est&&!o.est).forEach(x=>res.skip.push({i,p:x.p,why:'fornitore esterno'}));it=it.filter(x=>!x.p.est||o.est);
   it.filter(x=>x.p.tipo==='evento'&&!o.evt).forEach(x=>res.skip.push({i,p:x.p,why:'a evento'}));it=it.filter(x=>x.p.tipo!=='evento'||o.evt);
-  it.sort((a,b)=>a.due<b.due?-1:1);while(it.length){const d0=it[0].due,lim=o.unFermo&&!it[0].p.est?o.a:addD(d0<o.da?o.da:d0,o.tol);const ex=!!it[0].p.est,sel=x=>x.due<=lim&&(!o.unFermo||!!x.p.est===ex);const g=it.filter(sel);it=it.filter(x=>!sel(x));const TMAX=Math.max(1,+o.oreT||8)*60,ch=[];g.slice().sort((a,b)=>minOf(b.p,o)-minOf(a.p,o)).forEach(x=>{const m=minOf(x.p,o),c=ch.find(c=>c.min+m<=TMAX);if(c){c.it.push(x);c.min+=m}else ch.push({it:[x],min:m})});const sib={};ch.forEach(c=>groups.push({i,pr:prioOf(o,i),it:c.it,due:d0,min:c.min,sib,parti:ch.length}))}});
+  it.sort((a,b)=>a.due<b.due?-1:1);while(it.length){const d0=it[0].due,lim=o.unFermo&&!it[0].p.est?o.a:addD(d0<o.da?o.da:d0,o.tol);const ex=!!it[0].p.est,sel=x=>x.due<=lim&&(!o.unFermo||!!x.p.est===ex);const g=it.filter(sel);it=it.filter(x=>!sel(x));const TMAX=480,ch=[];g.slice().sort((a,b)=>minOf(b.p,o)-minOf(a.p,o)).forEach(x=>{const m=minOf(x.p,o),c=ch.find(c=>c.min+m<=TMAX);if(c){c.it.push(x);c.min+=m}else ch.push({it:[x],min:m})});const sib={};ch.forEach(c=>groups.push({i,pr:prioOf(o,i),it:c.it,due:d0,min:c.min,sib,parti:ch.length}))}});
  // prima gli impianti prioritari, poi le zone prioritarie, poi gli altri; a pari priorità la scadenza più vicina
  groups.sort((a,b)=>a.pr-b.pr||(a.due<b.due?-1:a.due>b.due?1:b.min-a.min));
  const tOrd=t=>{const k=o.turni.indexOf(t);return k<0?99:k};
@@ -640,13 +640,13 @@ function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};
   for(const d of days){if(PL===dedP&&d>to)break;if(d<from)continue;const wd=new Date(d+'T12:00:00').getDay();if(!o.gg.includes(wd)||(!(cntF[d]&&cntF[d].has(g.i.id))&&(cntF[d]?cntF[d].size:0)>=o.maxF))continue;
    for(const x of PL){if(PL!==dedP&&!canImp(x.q,g.i))continue;const t=EPT.work(x.r,d);if(!t||!o.turni.includes(t))continue;const k=d+'|'+t,u=used[x.ep+'|'+d]||0,nT=cntT[k]||new Set();
     if(!nT.has(x.ep)&&nT.size>=o.maxT)continue;// la % è un'indicazione: un lavoro iniziato si finisce anche se occupa tutto il turno; non se ne aggiunge un altro oltre la quota
-    if(u>0&&(u+g.min>x.cap||u+g.min>TMAX))continue;
+    if(u>0&&(u+g.min>x.cap||u+g.min>TMAX))continue;if((usedT[k]||0)+g.min>capTurno(d,t))continue;
     const sc=(d>to?1000:0)+(g.min>x.cap?Math.min(20,(g.min-x.cap)/30):0)+(o.ggPref.includes(wd)?0:40)+tOrd(t)*10+((res.carico[x.ep]||0)/Math.max(x.cap,1))*5+days.indexOf(d)*0.5+(d<g.due?3:0)-(g.sib[d]?6:0);
     if(!best||sc<best.sc)best={sc,d,t,x}}
    if(best&&best.sc<40&&d>=g.due)break}
   if(best)break}
   if(!best){g.it.forEach(x=>res.skip.push({i:g.i,p:x.p,why:!pers.some(y=>canImp(y.q,g.i))?'nessun manutentore abilitato a questo impianto':'nessun manutentore libero nel periodo'}));return}
-  const k=best.d+'|'+best.t;(cntT[k]=cntT[k]||new Set()).add(best.x.ep);used[best.x.ep+'|'+best.d]=(used[best.x.ep+'|'+best.d]||0)+g.min;(cntF[best.d]=cntF[best.d]||new Set()).add(g.i.id);g.sib[best.d]=1;
+  const k=best.d+'|'+best.t;(cntT[k]=cntT[k]||new Set()).add(best.x.ep);used[best.x.ep+'|'+best.d]=(used[best.x.ep+'|'+best.d]||0)+g.min;usedT[k]=(usedT[k]||0)+g.min;(cntF[best.d]=cntF[best.d]||new Set()).add(g.i.id);g.sib[best.d]=1;
   res.carico[best.x.ep]=(res.carico[best.x.ep]||0)+g.min;
   res.vis.push({pr:g.pr,ded:g.dedN.length?(g.dedN.includes(best.x.ep)?1:-1):0,dedN:g.dedN,imp:g.i.id,data:best.d,turno:best.t,man:best.x.ep,min:g.min,due:g.due,late:best.d>g.due,ids:g.it.map(x=>x.s.id)})});
  res.vis.sort((a,b)=>a.data<b.data?-1:a.data>b.data?1:a.turno<b.turno?-1:1);return res}
@@ -698,7 +698,7 @@ function drawAP0(){const o=AP.p;if(AP.step==='res')return drawAPres();
   <div class="row"><button class="btn" style="color:var(--accent)" ${E.L.length?'':'disabled'} onclick="MNX.apDel()">🗑 Cancella queste ${E.L.length} pianificazioni</button><span class="muted" style="font-size:12px">le procedure tornano da pianificare; poi puoi rifare «Simula»</span></div></div>`})()}
  <div class="mn-step"><b>3 · Supporto alla produzione e fermi</b><div class="evf">
   ${num('maxT','Manutentori in programmata per turno (max)',1,10,'gli altri del turno restano su guasti e cambi')}
-  ${num('oreT','Ore di manutenzione per turno (max per persona)',1,12,'i fermi più lunghi vengono divisi su più persone o giorni')}
+  ${num('pctT','Ore di manutenzione per turno (% delle ore disponibili)',0,100,'ore disponibili = manutentori in turno × 8 h; il resto resta per guasti, cambi e supporto')}
   ${num('maxF','Impianti fermi per manutenzione al giorno (max)',1,20)}</div>
   <div>Turni utilizzabili <span class="muted" style="font-size:12px">(preferenza: ${o.turni.map(t=>AP_LAB[t]).join(' › ')})</span><br>${AP_WORK.map(t=>chk(t,AP_LAB[t],'turni')).join('')}</div>
   <div>Giorni utilizzabili<br>${[1,2,3,4,5,6,0].map(d=>chk(d,AP_GG[d],'gg')).join('')}</div>

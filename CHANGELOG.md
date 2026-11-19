@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.35.0 — 2026-11-19
+- Pianificazione automatica: «Ore di manutenzione per turno» ora in % delle ore disponibili (manutentori in turno × 8 h, predefinito 60%). Ogni manutentore resta comunque al massimo a 8 ore.
+
 ## 2.34.0 — 2026-11-19
 - Pianificazione automatica: corretta la chiusura con ✕ (la finestra a tutto schermo non si chiudeva).
 - Nuovo parametro «Ore di manutenzione per turno (max per persona)», predefinito 8: oltre, il fermo viene diviso.
