@@ -606,7 +606,7 @@ const tAge=()=>{const T=EPT.d;if(!T)return'<span style="color:var(--accent)">Tur
 // --- parametri ---
 function apDef(){const t=tdy(),o=M.autoP||{};return{da:o.da&&o.da>=t?o.da:t,a:o.a&&o.a>t?o.a:addM(t,2),cat:o.cat!=null?o.cat:(MN.pz&&MN.pz!=='_none'?MN.pz:''),rep:o.rep||'',
  pm:o.pm!=null?o.pm:50,maxT:o.maxT||1,maxF:o.maxF||3,tol:o.tol!=null?o.tol:15,turni:o.turni||['N','P','M','G'],gg:o.gg||[0,1,2,3,4,5,6],ggPref:o.ggPref||[6,0],
- est:!!o.est,evt:o.evt!==false,map:o.map||{},pp:o.pp||{},minDef:o.minDef||30,prioZ:o.prioZ||[],prioI:o.prioI||[],excI:o.excI||[],excC:o.excC||[],unFermo:!!o.unFermo,pctT:o.pctT||60,imp:'',soloAuto:o.soloAuto!==false}}
+ est:!!o.est,evt:o.evt!==false,map:o.map||{},pp:o.pp||{},minDef:o.minDef||30,prioZ:o.prioZ||[],prioI:o.prioI||[],excI:o.excI||[],excC:o.excC||[],unFermo:!!o.unFermo,pctT:o.pctT||60,xPrio:o.xPrio!=null?o.xPrio:1,imp:'',soloAuto:o.soloAuto!==false}}
 const cNome=c=>c?(c.nome||(T(c.tipo)||{}).nome||'Componente'):'';
 // priorità: 0 impianto prioritario, 1 zona prioritaria, 2 gli altri
 const prioOf=(o,i)=>(o.prioI||[]).includes(i.id)?0:(o.prioZ||[]).some(z=>catDesc(z).has(i.cat))?1:2;
@@ -631,9 +631,11 @@ function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};const svC=M.cat.f
  imps.forEach(i=>{let it=M.ass.filter(s=>s.imp===i.id&&P(s.proc)&&!P(s.proc)._miss&&!planned(s)).map(s=>({s,p:P(s.proc),due:dueOf(s)})).filter(x=>x.due&&x.due<=o.a&&!(x.s.comp&&(o.excC||[]).includes(i.id+'|'+x.s.comp)));
   it.filter(x=>x.p.est&&!o.est).forEach(x=>res.skip.push({i,p:x.p,why:'fornitore esterno'}));it=it.filter(x=>!x.p.est||o.est);
   it.filter(x=>x.p.tipo==='evento'&&!o.evt).forEach(x=>res.skip.push({i,p:x.p,why:'a evento'}));it=it.filter(x=>x.p.tipo!=='evento'||o.evt);
-  it.sort((a,b)=>a.due<b.due?-1:1);while(it.length){const d0=it[0].due,lim=o.unFermo&&!it[0].p.est?o.a:addD(d0<o.da?o.da:d0,o.tol);const ex=!!it[0].p.est,sel=x=>x.due<=lim&&(!o.unFermo||!!x.p.est===ex);const g=it.filter(sel);it=it.filter(x=>!sel(x));const TMAX=480,ch=[];g.slice().sort((a,b)=>minOf(b.p,o)-minOf(a.p,o)).forEach(x=>{const m=minOf(x.p,o),c=ch.find(c=>c.min+m<=TMAX);if(c){c.it.push(x);c.min+=m}else ch.push({it:[x],min:m})});const sib={};ch.forEach(c=>groups.push({i,pr:prioOf(o,i),it:c.it,due:d0,min:c.min,sib,parti:ch.length}))}});
+  it.sort((a,b)=>a.due<b.due?-1:1);while(it.length){const d0=it[0].due,lim=o.unFermo&&!it[0].p.est?o.a:addD(d0<o.da?o.da:d0,o.tol);const ex=!!it[0].p.est,sel=x=>x.due<=lim&&(!o.unFermo||!!x.p.est===ex);const g=it.filter(sel);it=it.filter(x=>!sel(x));const TMAX=480,ch=[];g.slice().sort((a,b)=>minOf(b.p,o)-minOf(a.p,o)).forEach(x=>{const m=minOf(x.p,o),c=ch.find(c=>c.min+m<=TMAX);if(c){c.it.push(x);c.min+=m}else ch.push({it:[x],min:m})});const sib={};const nF=groups.filter(x=>x.i===i).length;ch.forEach(c=>groups.push({i,nF,pr:prioOf(o,i),it:c.it,due:d0,min:c.min,sib,parti:ch.length}))}});
  // prima gli impianti prioritari, poi le zone prioritarie, poi gli altri; a pari priorità la scadenza più vicina
- groups.sort((a,b)=>a.pr-b.pr||(a.due<b.due?-1:a.due>b.due?1:b.min-a.min));
+ // equilibrio: giro = n° del fermo sull'impianto; i prioritari possono avere al massimo xPrio passaggi in più degli altri
+ const giro=g=>Math.max(0,g.nF-(g.pr<2?Math.max(0,+o.xPrio||0):0));
+ groups.sort((a,b)=>giro(a)-giro(b)||a.pr-b.pr||(a.due<b.due?-1:a.due>b.due?1:b.min-a.min));
  const tOrd=t=>{const k=o.turni.indexOf(t);return k<0?99:k};
  groups.forEach(g=>{const from=addD(g.due,-o.tol)<o.da?o.da:addD(g.due,-o.tol),to=addD(g.due,o.tol);let best=null;
   const dedP=pers.filter(x=>x.q.ded.includes(g.i.id));g.dedN=dedP.map(x=>x.ep);
@@ -685,6 +687,7 @@ function drawAP0(){const o=AP.p;if(AP.step==='res')return drawAPres();
   <label>Impianti (zona)<select onchange="MNX.apSet('cat',this.value)">${catOpts(o.cat,'Tutti gli impianti')}</select></label>
   <label>Solo un impianto<select onchange="MNX.apSet('imp',this.value)"><option value="">— tutti quelli della zona —</option>${M.imp.filter(i=>!i.dism).sort((a,b)=>(a.cod||'').localeCompare(b.cod||'')).map(i=>`<option value="${i.id}" ${o.imp===i.id?'selected':''}>${e_(i.cod+' · '+i.nome)}</option>`).join('')}</select></label>
   ${num('tol','Tolleranza sulla scadenza (± giorni)',0,60,'raggruppa le procedure vicine in un solo fermo')}
+  ${num('xPrio','Passaggi in più per gli impianti prioritari',0,20,'nel periodo: un impianto non torna una volta in più finché gli altri non hanno avuto il loro passaggio; i prioritari possono averne fino a questo numero in più')}
   ${num('minDef','Durata se la procedura non la indica (min)',5,480)}</div>
   <label class="mn-chk"><input type="checkbox" ${o.unFermo?'checked':''} onchange="MNX.apSet('unFermo',this.checked)"> Un solo fermo per macchina: tutte le manutenzioni interne del periodo insieme</label>
   <label class="mn-chk"><input type="checkbox" ${o.est?'checked':''} onchange="MNX.apSet('est',this.checked)"> Includi gli interventi con fornitore esterno</label>

@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.37.0 — 2026-11-19
+- Pianificazione automatica: impianti bilanciati a giri (un impianto non ha un nuovo fermo finché gli altri non hanno avuto il loro). Nuovo parametro «Passaggi in più per gli impianti prioritari» (predefinito 1).
+
 ## 2.36.0 — 2026-11-19
 - Pianificazione automatica: i turni MSV (Mattina) e SV (Giornata) di Turni e ferie sono riconosciuti come lavorativi; in quei giorni la persona riceve solo impianti dello stabilimento di Settimo Vittone.
 
