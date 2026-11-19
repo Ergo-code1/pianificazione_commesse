@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.38.3 — 2026-11-19
+- Pianificazione automatica: le zone della persona sono un vincolo rigido (anche per gli impianti dedicati); controllo ripetuto alla conferma, i fermi fuori zona vengono scartati e segnalati.
+
 ## 2.38.2 — 2026-11-19
 - Gantt per persona: il periodo parte dalla prima attività anche se è più vecchia di una settimana (le attività precedenti non restano più nascoste).
 

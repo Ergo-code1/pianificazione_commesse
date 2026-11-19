@@ -642,13 +642,15 @@ function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};const svC=M.cat.f
   // impianto dedicato: prima solo le persone dedicate, entro la finestra; se nessuna è libera, tutti gli altri
   for(const PL of dedP.length?[dedP,pers]:[pers]){best=null;
   for(const d of days){if(PL===dedP&&d>to)break;if(d<from)continue;if(g.pr<2){const W=wkC[wkOf(d)],D=dPr[d];if(D&&D.size&&!D.has(g.i.id))continue;if(+o.maxW>0&&W&&!W.has(g.i.id)&&W.size>=+o.maxW)continue}const wd=new Date(d+'T12:00:00').getDay();if(!o.gg.includes(wd)||(!(cntF[d]&&cntF[d].has(g.i.id))&&(cntF[d]?cntF[d].size:0)>=o.maxF))continue;
-   for(const x of PL){if(PL!==dedP&&!canImp(x.q,g.i))continue;const t=EPT.work(x.r,d);if(!t||!o.turni.includes(t))continue;if(EPT.sv(x.r,d)&&!svZ.has(g.i.cat))continue;const k=d+'|'+t,u=used[x.ep+'|'+d]||0,nT=cntT[k]||new Set();
+   for(const x of PL){if(!canImp(x.q,g.i))continue;// zone della persona: vincolo rigido, anche per gli impianti dedicati
+const t=EPT.work(x.r,d);if(!t||!o.turni.includes(t))continue;if(EPT.sv(x.r,d)&&!svZ.has(g.i.cat))continue;const k=d+'|'+t,u=used[x.ep+'|'+d]||0,nT=cntT[k]||new Set();
     if(!nT.has(x.ep)&&nT.size>=o.maxT)continue;// la % è un'indicazione: un lavoro iniziato si finisce anche se occupa tutto il turno; non se ne aggiunge un altro oltre la quota
     if(u>0&&(u+g.min>x.cap||u+g.min>TMAX))continue;if((usedT[k]||0)+g.min>capTurno(d,t))continue;
     const sc=(d>to?1000:0)+(g.min>x.cap?Math.min(20,(g.min-x.cap)/30):0)+(o.ggPref.includes(wd)?0:40)+tOrd(t)*10+((res.carico[x.ep]||0)/Math.max(x.cap,1))*5+days.indexOf(d)*0.5+(d<g.due?3:0)-(g.sib[d]?6:0);
     if(!best||sc<best.sc)best={sc,d,t,x}}
    if(best&&best.sc<40&&d>=g.due)break}
   if(best)break}
+  if(best&&!canImp(best.x.q,g.i))best=null;
   if(!best){g.it.forEach(x=>res.skip.push({i:g.i,p:x.p,why:!pers.some(y=>canImp(y.q,g.i))?'nessun manutentore abilitato a questo impianto':'nessun manutentore libero nel periodo'}));return}
   const k=best.d+'|'+best.t;(cntT[k]=cntT[k]||new Set()).add(best.x.ep);used[best.x.ep+'|'+best.d]=(used[best.x.ep+'|'+best.d]||0)+g.min;usedT[k]=(usedT[k]||0)+g.min;(cntF[best.d]=cntF[best.d]||new Set()).add(g.i.id);if(g.pr<2){const wk=wkOf(best.d);(wkC[wk]=wkC[wk]||new Set()).add(g.i.id);(dPr[best.d]=dPr[best.d]||new Set()).add(g.i.id)}g.sib[best.d]=1;
   res.carico[best.x.ep]=(res.carico[best.x.ep]||0)+g.min;
@@ -772,11 +774,11 @@ const APX={
   const r=apSim(o);if(!r.pers.length)return mt('Nessun manutentore disponibile per la preventiva');AP.res=r;AP.step='res';drawAP0()},
  apBack(){AP.step='par';drawAP0()},
  apOk(){const r=AP.res;if(!r||!r.vis.length)return;if(MN.old||MN.noProc)return mt('Dati non modificabili ora: riprova');let n=0,f=0;
-  r.vis.forEach(x=>{const i=I(x.imp);if(!i||i.dism)return;const ss=M.ass.filter(s=>x.ids.includes(s.id)&&!planned(s));if(!ss.length)return;
+  let fz=0;r.vis.forEach(x=>{const i=I(x.imp);if(!i||i.dism)return;if(!canImp(PPof(AP.p||M.autoP||{},x.man),i)){fz++;return}const ss=M.ass.filter(s=>x.ids.includes(s.id)&&!planned(s));if(!ss.length)return;
    const v={id:nid('v'),imp:x.imp,data:x.data,man:x.man,turno:x.turno,auto:true};M.vis.push(v);f++;
    ss.forEach(s=>{const p0=pend(s);let a;if(p0){p0.due=x.data;p0.vis=v.id;p0.man=x.man;a=p0}else a=newAtt(s,x.data,v.id,x.man);s.man=x.man;LOG(p0?'Ripianificata':'Pianificata',a,'il '+fd(x.data)+' ('+AP_LAB[x.turno]+') a '+x.man+' · pianificazione automatica');n++});
    if(!i.avviato)i.avviato=x.data});
-  M.autoP=JSON.parse(JSON.stringify(AP.p));saveM();closeO();mt('Pianificati '+f+' fermi con '+n+' procedure')},
+  M.autoP=JSON.parse(JSON.stringify(AP.p));saveM();closeO();mt('Pianificati '+f+' fermi con '+n+' procedure'+(fz?' · '+fz+' fermi scartati: manutentore fuori dalle sue zone, rigenera la proposta':''))},
  car(k,v){MN.car[k]=v;draw()}
 };
 window.MNX={
