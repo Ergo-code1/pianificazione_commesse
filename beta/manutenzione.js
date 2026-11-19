@@ -587,11 +587,11 @@ const EPT={d:null,ld:0,
  idx(d){const T=this.d;if(!T)return -1;const i=Math.round((new Date(d+'T12:00:00')-new Date(T.da+'T12:00:00'))/864e5);return i>=0&&i<T.n?i:-1},
  row(ep){return this.rows().find(r=>r.ep&&sameP(r.ep,ep))},
  // turno lavorato (M/P/N/G) o '' se assente/riposo/fuori periodo
- work(r,d){const i=this.idx(d);if(!r||i<0)return'';const s=r.s[i]||'',t=r.t[i]||'';if(AP_SV[s])return AP_SV[s];return AP_WORK.includes(s)&&t.startsWith(s)?s:''},
+ work(r,d){const i=this.idx(d);if(!r||i<0)return'';const s=r.s[i]||'',t=r.t[i]||'';if(AP_SV[s])return t.startsWith(s)?AP_SV[s]:'';return AP_WORK.includes(s)&&t.startsWith(s)?s:''},
  // MSV/SV: turno nello stabilimento di Settimo Vittone
- sv(r,d){const i=this.idx(d);return !!(r&&i>=0&&AP_SV[r.s[i]||''])},
+ sv(r,d){const i=this.idx(d);return !!(r&&i>=0&&AP_SV[r.s[i]||'']&&(r.t[i]||'').startsWith(r.s[i]))},
  // assenza da mostrare (ferie, mutua, corso…): testo o ''
- abs(r,d){const i=this.idx(d);if(!r||i<0)return'';const s=r.s[i]||'',t=r.t[i]||'';if(!t||AP_SV[s]||AP_WORK.includes(s)&&t.startsWith(s))return'';return t}};
+ abs(r,d){const i=this.idx(d);if(!r||i<0)return'';const s=r.s[i]||'',t=r.t[i]||'';if(!t||(AP_SV[s]||AP_WORK.includes(s))&&t.startsWith(s))return'';return t}};
 window.EPT={abs:(p,d)=>EPT.abs(EPT.row(p),d),load:f=>EPT.load(f),ready:()=>!!EPT.d};
 async function tfLogin(){const u=prompt('Utente dell\'app Turni e ferie (serve solo per leggere i turni):');if(!u)return false;const pw=prompt('Password di '+u+':');if(!pw)return false;
  try{await window.FBM.tfLogin(u.trim(),pw);return true}catch(er){mt('Accesso a Turni e ferie non riuscito: '+FB.err(er));return false}}
