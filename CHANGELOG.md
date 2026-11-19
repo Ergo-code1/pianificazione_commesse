@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.38.0 — 2026-11-19
+- Pianificazione automatica: nuovo parametro «Fermi max a settimana per impianto prioritario» (predefinito 1, 0 = nessun limite).
+
 ## 2.37.0 — 2026-11-19
 - Pianificazione automatica: impianti bilanciati a giri (un impianto non ha un nuovo fermo finché gli altri non hanno avuto il loro). Nuovo parametro «Passaggi in più per gli impianti prioritari» (predefinito 1).
 
