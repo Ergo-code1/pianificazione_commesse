@@ -432,7 +432,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.29.0';
+const VERSIONE='2.30.0';
 // mantiene la posizione di scorrimento durante i ridisegni
 let _ksD=0,_ksT=null;
 function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrollX,tab=S.tab+'|'+S.gView,sel='.gwrap,.tablewrap,.list,.mn-box,#mnOvl,#gOvl,.dep,[data-ks]',old=[...document.querySelectorAll(sel)].map(e=>[e.scrollLeft,e.scrollTop]);
@@ -510,9 +510,17 @@ function groups(){const A=isAdm_(),o=[];if(!S.user)return o;const pm=S.user.perm
  if(st.length)o.push({id:'set',l:'Impostazioni',t:st});
  return o}
 function render(){return KS(render0)}
+function gKey(x,y){return (x.ini?0:1)-(y.ini?0:1)||(x.ini||'').localeCompare(y.ini||'')||(x.fin||'').localeCompare(y.fin||'')||(x.prio||0)-(y.prio||0)}
+function syncPrio(){const by={};S.commesse.filter(c=>!c.chiusa).forEach(c=>c.att.forEach(a=>{if(a.sum||!a.pers||a.stato==='conclusa')return;(by[a.pers]=by[a.pers]||[]).push(a)}));
+ Object.values(by).forEach(L=>L.sort(gKey).forEach((a,i)=>{if(a.prio!==i+1)a.prio=i+1}))}
+function prioMove(ids){const L=ids.map(findAtt).filter(a=>a&&a.stato!=='conclusa'),D=L.filter(a=>a.ini&&a.fin);if(!D.length)return;
+ const slots=D.map(a=>a.ini).sort(),old=D.map(a=>({a,oi:a.ini,of:a.fin,w:wdN(a.ini,a.fin)||1}));
+ old.forEach((o,k)=>{if(o.oi===slots[k])return;o.a.ini=slots[k];o.a.fin=wdEnd(slots[k],o.w)});
+ old.forEach(o=>{if(o.oi!==o.a.ini)depShift(o.a,o.oi,o.of)});
+ const ord=new Map(D.map((a,k)=>[a,k]));D.forEach(a=>a.prio=ord.get(a)+1);toastP('Priorità e Gantt allineati')}
 function render0(){
  if(S.repSez&&S.repSezV!==2&&S.user&&S.user.ruolo==='admin'){S.repSezV=2}
- S.commesse.forEach(cCalc);
+ S.commesse.forEach(cCalc);try{syncPrio()}catch(e){}
  if(!S.user){renderLogin();return}
  const isAdm=S.user.ruolo==='admin';
  const GR=groups();let cg=GR.find(g=>g.id===S.grp&&g.t.some(t=>t[0]===S.tab))||GR.find(g=>g.id===S.grp)||GR.find(g=>g.t.some(t=>t[0]===S.tab))||GR[0];
@@ -591,7 +599,7 @@ function bindAttInputs(){
 function vPersone(){
  const isAdm=S.user.ruolo==='admin';const solo=!isAdm&&!isResp();const PL=solo?[S.user.nome]:visPers();if(!PL.includes(S.selP))S.selP=solo?S.user.nome:(PL[0]||S.user.nome);
  S.pOrd=S.pOrd||'gantt';const gk=a=>{const cs=[...S.commesse].filter(c=>!c.chiusa).sort((x,y)=>x.prio-y.prio);return cs.indexOf(a._c)*10000+a._c.att.findIndex(x=>x.id===a.id)};
- const lista=allAtt().filter(a=>a.pers===S.selP).sort((x,y)=>(x.stato==='conclusa')-(y.stato==='conclusa')||(S.pOrd==='gantt'?(x.ini?0:1)-(y.ini?0:1)||(x.ini||'').localeCompare(y.ini||'')||(x.fin||'').localeCompare(y.fin||'')||gk(x)-gk(y):x.prio-y.prio));
+ const lista=allAtt().filter(a=>a.pers===S.selP).sort((x,y)=>(x.stato==='conclusa')-(y.stato==='conclusa')||(S.pOrd==='gantt'?gKey(x,y)||gk(x)-gk(y):x.prio-y.prio));
  $('#view').innerHTML=`<div class="${solo?'':'grid2'}">${solo?'':`<aside class="panel pside"><h3 style="margin-bottom:8px">Persone</h3><div class="list">
  ${PL.map(p=>{const n=allAtt().filter(a=>a.pers===p&&a.stato!=='conclusa').length+(window.MNP?MNP.count(p):0);return`<button class="pbtn ${p===S.selP?'sel':''}" data-p="${esc(p)}" ${!isAdm&&!isResp()&&p!==S.user.nome?'disabled':''}><span class="av">${ini(p)}</span><span style="min-width:0"><span class="cn">${esc(p)}</span><span class="muted" style="font-size:12px;display:block">${pEnte(p)?esc(pEnte(p))+' · ':''}${n} attività aperte</span></span></button>`}).join('')}</div></aside>`}
  <section class="panel">${solo?'':`<div class="pchips" role="group" aria-label="Persona">${PL.map(p=>`<button aria-pressed="${p===S.selP}" data-p="${esc(p)}">${esc(p)}</button>`).join('')}</div>`}<h2>${esc(S.selP)}</h2><div class="row pord"><div class="seg"><button data-po="gantt" aria-pressed="${S.pOrd==='gantt'}">Per date (Gantt)</button><button data-po="prio" aria-pressed="${S.pOrd==='prio'}">Priorità personale</button></div><span class="muted" style="font-size:12px">${S.pOrd==='gantt'?'Ordinate per data di inizio, poi di fine':'Tieni premuto e trascina per riordinare (o usa le frecce)'}</span></div><div class="stack" id="plist">
@@ -604,13 +612,14 @@ function vPersone(){
    ${a.stato==='conclusa'?`<button class="btn sm" data-st="in corso" data-id="${a.id}">Riapri</button>`:''}</div></div>`).join('')||'<div class="muted">Nessuna attività assegnata.</div>'}
  </div>${window.MNP?MNP.html(S.selP):''}</section></div>`;
  document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{S.selP=b.dataset.p;render()});
- document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const a=findAtt(b.dataset.up);a.prio=Math.max(1,a.prio-1);render()});
- document.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>{const a=findAtt(b.dataset.dn);a.prio++;render()});
+ const pIds=lista.filter(a=>a.stato!=='conclusa').map(a=>String(a.id)),pSw=(id,d)=>{const i=pIds.indexOf(String(id)),j=i+d;if(i<0||j<0||j>=pIds.length)return;[pIds[i],pIds[j]]=[pIds[j],pIds[i]];prioMove(pIds);render()};
+ document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>pSw(b.dataset.up,-1));
+ document.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>pSw(b.dataset.dn,1));
  document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{findAtt(b.dataset.id).stato=b.dataset.st;render()});
  document.querySelectorAll('[data-pd]').forEach(el=>el.onchange=()=>{const [id,f]=el.dataset.pd.split('|'),a=findAtt(id),oi=a.ini,of=a.fin;a[f]=el.value;if(a.ini&&a.fin&&a.fin<a.ini){if(f==='ini')a.fin=a.ini;else a.ini=a.fin}depShift(a,oi,of);render()});
  const pl=$('#plist');document.querySelectorAll('[data-po]').forEach(b=>b.onclick=()=>{S.pOrd=b.dataset.po;render()});
  if(pl&&window.Sortable&&lista.length>1&&S.pOrd==='prio')Sortable.create(pl,{animation:160,delay:280,delayOnTouchOnly:false,touchStartThreshold:6,filter:'button,input',preventOnFilter:false,ghostClass:'drag-ghost',chosenClass:'drag-chosen',
-  onEnd:()=>{[...pl.querySelectorAll('[data-aid]')].forEach((el,i)=>{const a=findAtt(el.dataset.aid);if(a)a.prio=i+1});render()}});
+  onEnd:()=>{prioMove([...pl.querySelectorAll('[data-aid]')].map(el=>el.dataset.aid));render()}});
 }
 
 function vOre(){const ED=S.user.ruolo==='admin'||!!(S.user.perm||{}).edit;

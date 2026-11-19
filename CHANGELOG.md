@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.30.0 — 2026-11-19
+- Ingegneria: priorità personali e Gantt per persona allineati. Il riferimento è il Gantt: la priorità segue le date (inizio, poi fine). Riordinando le priorità (frecce o trascina) le attività si scambiano le date di inizio mantenendo la durata, e le dipendenti si spostano di conseguenza.
+
 ## 2.29.0 — 2026-11-19
 - Pianificazione automatica: riquadro «Pianificazioni già presenti» nel periodo/zona/impianto scelti, con «🗑 Cancella» (anche solo quelle create in automatico; quelle già iniziate restano) per rifare la simulazione.
 - Nuovo campo «Solo un impianto» per ripianificare un singolo impianto.
