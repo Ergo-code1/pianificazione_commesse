@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.30.2 — 2026-11-19
+- Gantt «Per persona»: corretta la visualizzazione del numero di priorità.
+
 ## 2.30.1 — 2026-11-19
 - Gantt «Per persona»: attività nello stesso ordine della priorità personale, con il numero di priorità accanto al nome.
 
