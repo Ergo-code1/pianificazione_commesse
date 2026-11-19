@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.38.6 — 2026-11-19
+- Manutenzione: gli impianti senza procedure non compaiono più tra quelli da pianificare (stato «Nessuna procedura»).
+
 ## 2.38.5 — 2026-11-19
 - Pianificazione automatica: corretto, le ferie sui giorni MSV/SV venivano ignorate.
 

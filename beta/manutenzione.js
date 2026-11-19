@@ -104,6 +104,7 @@ function assStatus0(s){const p=P(s.proc),t=tdy(),pa=planned(s);
  if(s.next<=addD(t,avvOf(p)))return['In scadenza il '+fd(s.next),'var(--warn)','g'];
  return['Prossima '+fd(s.next),'var(--ok)','v']}
 function impStatus(id){const ass=M.ass.filter(a=>a.imp===id),st=ass.map(assStatus),open=M.att.filter(a=>a.imp===id),imp=I(id);
+ if(!ass.some(s=>P(s.proc)&&!P(s.proc)._miss)&&!open.length)return{open,w:['Nessuna procedura','var(--off)','n'],next:null,toPlan:0,inc:0};
  if(imp&&!imp.avviato&&!open.length)return{open,w:['Mai pianificato','var(--accent)','r'],next:null,toPlan:ass.length||1,mai:1,inc:0};
  const w=st.find(x=>x[2]==='r')?['Da pianificare','var(--accent)','r']:st.find(x=>x[2]==='g')?['In scadenza','var(--warn)','g']:st.find(x=>x[2]==='b')?['Pianificato','var(--info)','b']:ass.length&&st.every(x=>x[2]==='n')?['Attesa evento','var(--off)','n']:['In regola','var(--ok)','v'];
  const nx=ass.filter(s=>!planned(s)&&P(s.proc)?.tipo!=='evento').map(s=>s.next||tdy()).sort()[0];
