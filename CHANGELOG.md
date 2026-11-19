@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.32.1 — 2026-11-19
+- Pianificazione automatica a tutto schermo: corretto lo sfondo che si interrompeva scorrendo.
+
 ## 2.32.0 — 2026-11-19
 - Pianificazione automatica: in «Esclusi dal giro» si può escludere una zona intera (tutti i suoi impianti) con una spunta.
 
