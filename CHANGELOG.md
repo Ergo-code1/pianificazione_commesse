@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.40.0 — 2026-11-25
+- Configura impianto: «Elementi presenti» diventa un elenco con quantità e nomi per tipo; ogni elemento aggiunto riceve le procedure del tipo.
+- Configura impianto: aprendo un componente la finestra resta dove si trova; il contenuto non esce più dai bordi.
+
 ## 2.39.0 — 2026-11-25
 - Manutenzione: il responsabile può aprire e modificare un intervento non programmato già registrato (impianto, elemento, data, causale, ore, descrizione, ricambi, ore impianto). La modifica resta nel registro.
 

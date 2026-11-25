@@ -407,6 +407,9 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 .mn-box textarea{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;box-sizing:border-box}
 .mn-box .mn-list .mn-it{background:var(--bg)}
 .mn-step{border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:8px}
+.mn-box>*,.mn-step,.mn-step>div,.mn-step .row>span{min-width:0}.mn-step .row{flex-wrap:wrap}.mn-step .row>span{flex:1 1 260px!important}.mn-box{max-width:calc(100vw - 24px);box-sizing:border-box}
+.mn-ell{display:grid;gap:6px}.mn-elr{display:grid;grid-template-columns:minmax(120px,200px) 70px 1fr;gap:8px;align-items:start;padding:6px 8px;border:1px solid var(--line);border-radius:8px}.mn-elr>b{font-size:14px;padding-top:6px}.mn-el0{opacity:.6}.mn-eln{display:flex;flex-wrap:wrap;gap:6px}.mn-eln input{flex:1 1 140px;min-width:0}
+@media(max-width:700px){.mn-elr{grid-template-columns:1fr 70px}.mn-eln{grid-column:1/-1}}
 .mn-cfgc{display:flex;gap:10px;align-items:center;width:100%;background:none;border:0;padding:12px;cursor:pointer;color:var(--fg);font:inherit}.mn-cfgc:hover{background:var(--soft)}
 .mn-ist{font-size:13px;color:var(--muted);margin-left:32px}.mn-ist summary{cursor:pointer;color:var(--accent);font-weight:600}.mn-ist div{margin-top:4px;color:var(--fg)}
 #mnOvl textarea{width:100%;font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);resize:vertical}
@@ -433,7 +436,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='2.39.0';
+const VERSIONE='2.40.0';
 // mantiene la posizione di scorrimento durante i ridisegni
 let _ksD=0,_ksT=null;
 function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrollX,tab=S.tab+'|'+S.gView,sel='.gwrap,.tablewrap,.list,.mn-box,#mnOvl,#gOvl,.dep,[data-ks]',old=[...document.querySelectorAll(sel)].map(e=>[e.scrollLeft,e.scrollTop]);
