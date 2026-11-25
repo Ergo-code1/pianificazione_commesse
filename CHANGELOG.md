@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.39.0 — 2026-11-25
+- Manutenzione: il responsabile può aprire e modificare un intervento non programmato già registrato (impianto, elemento, data, causale, ore, descrizione, ricambi, ore impianto). La modifica resta nel registro.
+
 ## 2.38.6 — 2026-11-19
 - Manutenzione: gli impianti senza procedure non compaiono più tra quelli da pianificare (stato «Nessuna procedura»).
 
