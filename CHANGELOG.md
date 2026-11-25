@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.41.0 — 2026-11-25
+- Segnalazioni: nuova scheda «Fornitore esterno» con le procedure a intervento esterno (di default quelle mai eseguite, da richiedere): data di esecuzione inseribile direttamente, poi «Pianifica».
+- Segnalazioni: nuova scheda «Statistica ricambi» (volte, quantità, da acquistare, acquistati, impianti, ultimo) per periodo, zona e impianto.
+
 ## 2.40.4 — 2026-11-25
 - Pianificazione automatica: nei giorni a Montestrutto la persona non riceve impianti di Settimo Vittone (e nei giorni MSV/SV solo impianti di Settimo).
 
