@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.0.0 — 2026-11-25
+- Manutenzione: «Pianifica il …» per singola procedura (anche mai eseguita, es. interventi a molti anni dall'installazione) in Pianifica manutenzione, nella scheda impianto, in Impianti → Configura e in Segnalazioni → Fornitore esterno.
+
 ## 2.41.1 — 2026-11-25
 - Corretto: le schede «Fornitore esterno» e «Statistica ricambi» non si aprivano.
 
