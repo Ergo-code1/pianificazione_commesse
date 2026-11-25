@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.41.1 — 2026-11-25
+- Corretto: le schede «Fornitore esterno» e «Statistica ricambi» non si aprivano.
+
 ## 2.41.0 — 2026-11-25
 - Segnalazioni: nuova scheda «Fornitore esterno» con le procedure a intervento esterno (di default quelle mai eseguite, da richiedere): data di esecuzione inseribile direttamente, poi «Pianifica».
 - Segnalazioni: nuova scheda «Statistica ricambi» (volte, quantità, da acquistare, acquistati, impianti, ultimo) per periodo, zona e impianto.

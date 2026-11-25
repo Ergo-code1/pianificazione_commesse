@@ -452,7 +452,7 @@ function vRic(){const f=MN.f,st=f.stato||'aperte',ds=f.cat?catDesc(f.cat):null;
  const flt={aperte:r=>!r.arch,note:r=>!r.arch&&r.tipo==='nota',da:r=>!r.arch&&r.tipo!=='nota'&&r.stato!=='ok',ok:r=>!r.arch&&r.tipo!=='nota'&&r.stato==='ok',arch:r=>!!r.arch};
  const l=base.filter(flt[st]||flt.aperte).sort((a,b)=>a.data<b.data?1:-1);
  const tab=(k,lb)=>`<button aria-current="${st===k?'page':'false'}" onclick="MNX.f('stato','${k}')">${lb} <span class="mn-n">${base.filter(flt[k]).length}</span></button>`;
- const xtab=(k,lb,n)=>`<button aria-current="${st===k?'page':'false'}" onclick="MN.f.per='';MNX.f('stato','${k}')">${lb}${n!==''?` <span class="mn-n">${n}</span>`:''}</button>`;
+ const xtab=(k,lb,n)=>`<button aria-current="${st===k?'page':'false'}" onclick="MNX.tabS('${k}')">${lb}${n!==''?` <span class="mn-n">${n}</span>`:''}</button>`;
  const head=`<div class="mn-oh" style="margin-bottom:10px"><div class="mn-seg">${tab('aperte','Aperte')}${tab('note','Note')}${tab('da','Ricambi da acquistare')}${tab('ok','Ricambi acquistati')}${tab('arch','Archiviate')}${xtab('est','🏢 Fornitore esterno',estL(f,ds).filter(a=>!a.last).length)}${xtab('stat','Statistica ricambi','')}</div><button class="btn pri" onclick="MNX.segNew()">+ Nuova segnalazione</button></div>`;if(st==='est')return vEst(f,ds,head);if(st==='stat')return vRicStat(f,ds,head);return head+fBox((M.cat.length?`<label class="mn-fs">Zona<select onchange="MNX.f('cat',this.value)">${catOpts(f.cat,'Tutte')}</select></label>`:'')+fImp(),`${l.length} voci`)+ricList(l,true)}
 
 // ---------- finestre ----------
@@ -842,7 +842,7 @@ window.MNX={
   <b>Ultimo salvataggio:</b> ${MN.sv?`${MN.sv.t} · ${Math.round(MN.sv.b/1024)} KB · ${e_(MN.sv.st)}`:'nessuno da questa apertura'}<br>
   <b>Attività pianificate qui:</b> ${M.att.filter(a=>a.due).length}<br>${Object.entries(mans).map(([k,v])=>'«'+e_(k)+'»: '+v).join('<br>')}<br>
   <b>Sul server adesso:</b> ${srv}</div><div class="muted" style="font-size:12px">Fai uno screenshot di questa finestra (sul tuo PC e sul telefono del manutentore).</div>`)},
- f(k,v){MN.f[k]=v;draw()},pz(v){MN.pz=v||'';draw()},sortI(v){MN.sortI=v;draw()},q(v){MN.f.q=v;MN.focus='mnQ';draw()},reset(){MN.f={imp:'',stato:'',man:'',proc:'',q:'',da:'',a:''};draw()},
+ f(k,v){MN.f[k]=v;draw()},tabS(k){MN.f.per='';MN.f.stato=k;draw()},pz(v){MN.pz=v||'';draw()},sortI(v){MN.sortI=v;draw()},q(v){MN.f.q=v;MN.focus='mnQ';draw()},reset(){MN.f={imp:'',stato:'',man:'',proc:'',q:'',da:'',a:''};draw()},
  anno(v){MN.anno=v;draw()},close:closeO,impDett,
  catAdd(par){const c={id:nid('k'),nome:par?'Nuovo sotto-livello':'Nuovo livello',par:par||null};M.cat.push(c);saveM();draw();setTimeout(()=>{const x=[...document.querySelectorAll('.mn-catr input')].find(e=>e.value===c.nome);if(x){x.focus();x.select()}},30)},
  catRen(id,v){if(v.trim()){CAT(id).nome=v.trim();saveM()}},
