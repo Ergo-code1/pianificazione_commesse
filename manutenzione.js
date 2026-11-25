@@ -647,7 +647,7 @@ function apSim(o){const res={vis:[],skip:[],carico:{},pers:[]};const svC=M.cat.f
   for(const PL of dedP.length?[dedP,pers]:[pers]){best=null;
   for(const d of days){if(PL===dedP&&d>to)break;if(d<from)continue;if(g.pr<2){const W=wkC[wkOf(d)],D=dPr[d];if(D&&D.size&&!D.has(g.i.id))continue;if(+o.maxW>0&&W&&!W.has(g.i.id)&&W.size>=+o.maxW)continue}const wd=new Date(d+'T12:00:00').getDay();if(!o.gg.includes(wd)||(!(cntF[d]&&cntF[d].has(g.i.id))&&(cntF[d]?cntF[d].size:0)>=o.maxF))continue;
    for(const x of PL){if(!canImp(x.q,g.i))continue;// zone della persona: vincolo rigido, anche per gli impianti dedicati
-const t=EPT.work(x.r,d);if(!t||!o.turni.includes(t))continue;if(EPT.sv(x.r,d)&&!svZ.has(g.i.cat))continue;const k=d+'|'+t,u=used[x.ep+'|'+d]||0,nT=cntT[k]||new Set();
+const t=EPT.work(x.r,d);if(!t||!o.turni.includes(t))continue;if(EPT.sv(x.r,d)!==svZ.has(g.i.cat))continue;const k=d+'|'+t,u=used[x.ep+'|'+d]||0,nT=cntT[k]||new Set();
     if(!nT.has(x.ep)&&nT.size>=o.maxT)continue;// la % è un'indicazione: un lavoro iniziato si finisce anche se occupa tutto il turno; non se ne aggiunge un altro oltre la quota
     if(u>0&&(u+g.min>x.cap||u+g.min>TMAX))continue;if((usedT[k]||0)+g.min>capTurno(d,t))continue;
     const sc=(d>to?1000:0)+(g.min>x.cap?Math.min(20,(g.min-x.cap)/30):0)+(o.ggPref.includes(wd)?0:40)+tOrd(t)*10+((res.carico[x.ep]||0)/Math.max(x.cap,1))*5+days.indexOf(d)*0.5+(d<g.due?3:0)-(g.sib[d]?6:0);

@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.40.4 — 2026-11-25
+- Pianificazione automatica: nei giorni a Montestrutto la persona non riceve impianti di Settimo Vittone (e nei giorni MSV/SV solo impianti di Settimo).
+
 ## 2.40.3 — 2026-11-25
 - Corretto: il browser teneva in cache il modulo manutenzione vecchio (le modifiche dalla 2.29 alla 2.40 potevano non comparire).
 
