@@ -554,6 +554,9 @@ window.MNP={
   return `<div class="mn-pers"><h3>🔧 Manutenzioni <span class="mn-n">${l.length}</span></h3><div class="muted" style="font-size:13px">Apri un'attività per vedere i passi da eseguire, confermarli e chiuderla.</div>${split(l,false)}</div>`}
 };
 // --- Intervento non programmato
+// ricambi dell'intervento → elenco ricambi (da acquistare / utilizzati); quelli già acquistati o archiviati restano
+function npRicSync(c){M.ric=M.ric||[];const keep=M.ric.filter(r=>r.att===c.id&&(r.stato==='ok'||r.arch));M.ric=M.ric.filter(r=>r.att!==c.id||keep.includes(r));
+ (c.ric||[]).forEach(r=>{const d=(r.cod?r.cod+' ':'')+r.desc;if(keep.some(x=>x.desc===d))return;M.ric.push({id:nid('r'),tipo:'ric',imp:c.imp,comp:c.comp||null,att:c.id,proc:c.proc||null,desc:d,qta:String(r.q),buy:!!r.buy,stato:'da',da:me(),data:c.chiusa||tdy()})})}
 const NPC=['Manutenzione preventiva','Manutenzione straordinaria','Manutenzione predittiva','Assistenza produzione','Setup/Messa a punto','Costruzione/montaggio/cablaggio','Supporto fornitore','Programmazione','Gestione RDA/ricambi e documentazione manutenzione'];
 function drawNP(){const n=MN.np,i=I(n.imp);const ass=i?M.ass.filter(s=>s.imp===i.id&&(!n.el||s.comp===n.el)&&P(s.proc)&&!P(s.proc)._miss):[];const el=i&&n.el&&(i.comps||[]).find(c=>c.id===n.el);
  ovl(`<div class="mn-oh"><h2>Intervento non programmato${n.edit?' · modifica':''}</h2><button class="btn" onclick="MNX.close()" aria-label="Chiudi">✕</button></div>
@@ -562,7 +565,7 @@ function drawNP(){const n=MN.np,i=I(n.imp);const ass=i?M.ass.filter(s=>s.imp===i
  <label>Ore impiegate<input type="number" min="0.5" step="0.5" inputmode="decimal" placeholder="min 0,5" value="${e_(n.ore)}" onchange="MNX.npSet('ore',this.value)"></label></div>
  ${n.edit&&n.edit.ass?`<div class="muted" style="font-size:13px">Preventiva collegata: ${(()=>{const s0=M.ass.find(x=>x.id===n.edit.ass),p0=s0&&P(s0.proc);return p0?e_(p0.cod+' · '+p0.desc):'—'})()} (non modificabile)</div>`:''}${n.caus===NPC[0]&&!(n.edit&&n.edit.ass)?`<div class="evf"><label>Preventiva eseguita<select onchange="MNX.npSet('ass',this.value)"><option value="">${i?(ass.length?'— scegli —':'nessuna preventiva su questo impianto'):'scegli prima l\'impianto'}</option>${ass.map(s=>{const p=P(s.proc);return `<option value="${s.id}" ${s.id===n.ass?'selected':''}>${e_(p.cod)} · ${e_(p.desc)}${CMP(s)?' · '+e_(CMP(s)):''}${s.next?' (scad. '+fd(s.next)+')':''}</option>`}).join('')}</select></label></div>`:''}
  <div class="evf"><label>Descrizione<textarea rows="3" placeholder="Cosa è stato fatto" onchange="MNX.npSet('desc',this.value)">${e_(n.desc)}</textarea></label></div>
- <div><div class="mn-oh"><b>Ricambi utilizzati</b><button class="btn sm" onclick="MNX.npRic(-1)">+ Ricambio</button></div>${n.ric.map((r,k)=>`<div class="row" style="gap:6px;margin-top:6px"><input style="width:110px" placeholder="Codice" value="${e_(r.cod)}" onchange="MNX.npRic(${k},'cod',this.value)"><input style="flex:1;min-width:120px" placeholder="Descrizione" value="${e_(r.desc)}" onchange="MNX.npRic(${k},'desc',this.value)"><input type="number" min="0" step="any" style="width:70px" aria-label="Quantità" value="${e_(r.q)}" onchange="MNX.npRic(${k},'q',this.value)"><button class="btn sm" onclick="MNX.npRic(${k},'del')">✕</button></div>`).join('')||'<div class="muted" style="font-size:13px">Nessun ricambio</div>'}</div>
+ <div><div class="mn-oh"><b>Ricambi utilizzati</b><button class="btn sm" onclick="MNX.npRic(-1)">+ Ricambio</button></div>${n.ric.map((r,k)=>`<div class="row" style="gap:6px;margin-top:6px"><input style="width:110px" placeholder="Codice" value="${e_(r.cod)}" onchange="MNX.npRic(${k},'cod',this.value)"><input style="flex:1;min-width:120px" placeholder="Descrizione" value="${e_(r.desc)}" onchange="MNX.npRic(${k},'desc',this.value)"><input type="number" min="0" step="any" style="width:70px" aria-label="Quantità" value="${e_(r.q)}" onchange="MNX.npRic(${k},'q',this.value)"><label class="mn-chk" style="font-size:12px!important;align-items:center" title="Spunta se il ricambio va riacquistato"><input type="checkbox" ${r.buy?'checked':''} onchange="MNX.npRic(${k},'buy',this.checked)"> Da riacquistare</label><button class="btn sm" onclick="MNX.npRic(${k},'del')">✕</button></div>`).join('')||'<div class="muted" style="font-size:13px">Nessun ricambio</div>'}</div>
  ${i?`<div class="evf"><label>Ore lavorate impianto (facoltativo)${i.oreImp!=null?` · ultime ${i.oreImp}${i.oreImpD?' il '+fd(i.oreImpD):''}`:''}<input type="number" min="0" step="any" inputmode="decimal" value="${e_(n.oreImp)}" onchange="MNX.npSet('oreImp',this.value)"></label>${el?`<label>Ore ${e_(el.sigla)} (facoltativo)${el.ore!=null?` · attuali ${el.ore}`:''}<input type="number" min="0" step="any" inputmode="decimal" value="${e_(n.oreEl)}" onchange="MNX.npSet('oreEl',this.value)"></label>`:''}</div><div class="muted" style="font-size:12px">Le ore impianto aggiornano tutti gli elementi con la differenza; le ore scritte sull'elemento diventano il suo riferimento.</div>`:''}
  <div class="row" style="justify-content:flex-end"><button class="btn" onclick="MNX.close()">Annulla</button><button class="btn pri" onclick="MNX.npOk()">${n.edit?'Salva modifiche':'Registra'}</button></div>`)}
 function qiEx(){const q=MN.qi,fz=q.fz||'';const IM=M.imp.filter(i=>!i.dism);if(fz==='_all')return sortI(IM.slice());if(fz==='_none')return sortI(IM.filter(i=>!i.cat||!M.cat.some(c=>c.id===i.cat)));if(fz){const ds=catDesc(fz);return sortI(IM.filter(i=>ds.has(i.cat)))}return sortI(IM.filter(i=>!q.cat||q.cat==='_new'?q.cat!=='_new':i.cat===q.cat))}
@@ -897,7 +900,7 @@ window.MNX={betaMenu(){if(!isR())return mt('Solo il responsabile manutenzione');
  np(imp){const i0=imp&&I(imp);MN.np={imp:imp||'',el:'',data:tdy(),caus:'',ass:'',desc:'',ric:[],ore:'',oreImp:'',oreEl:''};drawNP()},
  npSet(k,v){const n=MN.np;n[k]=v;if(k==='imp'){n.ass='';n.el='';n.oreEl=''}if(k==='el'){n.ass='';n.oreEl=''}if(k==='imp'||k==='caus'||k==='el')drawNP()},
  npComp(id,v){MN.np.comp[id]=v},
- npRic(k,f,v){if(k<0){MN.np.ric.push({cod:'',desc:'',q:1});return drawNP()}if(f==='del'){MN.np.ric.splice(k,1);return drawNP()}MN.np.ric[k][f]=v},
+ npRic(k,f,v){if(k<0){MN.np.ric.push({cod:'',desc:'',q:1,buy:false});return drawNP()}if(f==='del'){MN.np.ric.splice(k,1);return drawNP()}MN.np.ric[k][f]=v},
  npOk(conf){const n=MN.np,i=I(n.imp),num=x=>x===''||x==null?null:Number(String(x).replace(',','.'));
   if(!i)return mt('Scegli l\'impianto');if(!n.caus)return mt('Scegli la causale');
   const ore=num(n.ore);if(ore==null||isNaN(ore))return mt('Scrivi le ore impiegate');if(ore<0.5)return mt('Ore impiegate: minimo 0,5');
@@ -913,7 +916,7 @@ window.MNX={betaMenu(){if(!isR())return mt('Solo il responsabile manutenzione');
   MNX.npSave()},
  npBack(){drawNP()},
  async npEdit(y,id){if(!isR())return mt('Solo il responsabile può modificare');const arr=await storico(y,true),c=arr.find(x=>x.id===id);if(!c)return mt('Intervento non trovato');
-  MN.np={edit:{y:String(y),id,ass:c.ass||null},imp:c.imp||'',el:c.ass?'':(c.comp||''),data:c.chiusa||c.due||tdy(),caus:c.caus||'',ass:c.ass||'',desc:c.note||'',ric:(c.ric||[]).map(r=>({cod:r.cod||'',desc:r.desc||'',q:r.q})),ore:c.ore!=null?String(c.ore):'',oreImp:c.oreImp!=null?String(c.oreImp):'',oreEl:c.oreEl!=null?String(c.oreEl):''};drawNP()},
+  MN.np={edit:{y:String(y),id,ass:c.ass||null},imp:c.imp||'',el:c.ass?'':(c.comp||''),data:c.chiusa||c.due||tdy(),caus:c.caus||'',ass:c.ass||'',desc:c.note||'',ric:(c.ric||[]).map(r=>({cod:r.cod||'',desc:r.desc||'',q:r.q,buy:!!r.buy})),ore:c.ore!=null?String(c.ore):'',oreImp:c.oreImp!=null?String(c.oreImp):'',oreEl:c.oreEl!=null?String(c.oreEl):''};drawNP()},
  async npEditSave(){if(!isR())return mt('Solo il responsabile può modificare');const n=MN.np,E=n.edit,i=I(n.imp),num=x=>x===''||x==null?null:Number(String(x).replace(',','.'));
   if(!i)return mt('Scegli l\'impianto');if(!n.caus)return mt('Scegli la causale');if(n.caus===NPC[0]&&!E.ass)return mt('Causale «preventiva» solo per interventi registrati su una preventiva');
   const ore=num(n.ore);if(ore==null||isNaN(ore)||ore<0.5)return mt('Ore impiegate: minimo 0,5');
@@ -922,17 +925,18 @@ window.MNX={betaMenu(){if(!isR())return mt('Solo il responsabile manutenzione');
   const y0=E.y,y=n.data.slice(0,4);let c;
   try{const a0=await storico(y0,true);c=a0.find(x=>x.id===E.id);if(!c)return mt('Intervento non trovato: forse eliminato');
    const s=c.ass&&M.ass.find(x=>x.id===c.ass),p=s&&P(s.proc),el=!c.ass&&n.el?n.el:(c.ass?c.comp:null);
-   Object.assign(c,{caus:n.caus,imp:i.id,comp:el||null,due:n.data,chiusa:n.data,ore,ric:ric.map(r=>({cod:(r.cod||'').trim(),desc:r.desc.trim(),q:Number(r.q)})),note:n.desc,oreImp:oi,oreEl:!c.ass&&n.el&&oe!=null?oe:(c.oreEl??null),
+   Object.assign(c,{caus:n.caus,imp:i.id,comp:el||null,due:n.data,chiusa:n.data,ore,ric:ric.map(r=>({cod:(r.cod||'').trim(),desc:r.desc.trim(),q:Number(r.q),buy:!!r.buy})),note:n.desc,oreImp:oi,oreEl:!c.ass&&n.el&&oe!=null?oe:(c.oreEl??null),
     _imp:i.cod+' '+i.nome,_cmp:s?CMP(s):(el?((i.comps||[]).find(x=>x.id===el)||{}).sigla||'':''),_pdesc:n.caus+(p?' · '+p.cod+' '+p.desc:''),_free:{titolo:n.caus,desc:n.desc},mod:tdy(),modDa:me()});
    if(y!==y0){H[y0]=a0.filter(x=>x.id!==c.id);const a1=await storico(y,true);a1.push(c);await saveYm(y);await saveYm(y0);if(!(M.anni||[]).includes(y))(M.anni=M.anni||[]).push(y)}else await saveYm(y0);
   }catch(er){return mt('Modifica NON salvata: '+FB.err(er))}
   if(oi!=null&&(i.oreImpD==null||n.data>=i.oreImpD)){i.oreImp=oi;i.oreImpD=n.data}
   const f=(M.fatte||[]).find(x=>x.id===c.id);if(f)Object.assign(f,{y,imp:i.id,chiusa:n.data,desc:c._pdesc,cmp:c._cmp,caus:n.caus,ore});
+  npRicSync(c);
   LOG('Modificata',c,n.caus+' · '+String(ore).replace('.',',')+' h · da '+me());saveM();closeO();mt('✓ Intervento modificato')},
  async npSave(){if(MN.npBusy)return;MN.npBusy=1;try{await MNX.npSave0()}finally{MN.npBusy=0}},
  async npSave0(){if(MN.np.edit)return MNX.npEditSave();const n=MN.np,i=I(n.imp),num=x=>x===''||x==null?null:Number(String(x).replace(',','.'));const s=n.caus===NPC[0]&&n.ass?M.ass.find(x=>x.id===n.ass):null,p=s&&P(s.proc);
   const ore=num(n.ore),oi=num(n.oreImp),pOi=i.oreImp!=null?i.oreImp:null;
-  const ric=n.ric.filter(r=>(r.cod||'').trim()||(r.desc||'').trim()).map(r=>({cod:(r.cod||'').trim(),desc:r.desc.trim(),q:Number(r.q)}));
+  const ric=n.ric.filter(r=>(r.cod||'').trim()||(r.desc||'').trim()).map(r=>({cod:(r.cod||'').trim(),desc:r.desc.trim(),q:Number(r.q),buy:!!r.buy}));
   const compOre={},oe=num(n.oreEl);if(n.el&&oe!=null)compOre[n.el]=oe;
   const c={id:nid('a'),np:1,caus:n.caus,vis:null,ass:s?s.id:null,imp:i.id,comp:s?s.comp:(n.el||null),proc:s?s.proc:null,due:n.data,man:me(),ok:[],foto:[],note:n.desc,chiusa:n.data,esec:me(),parziale:0,ore,ric,oreImp:oi,oreImpPrec:pOi,compOre,oreEl:n.el&&oe!=null?oe:null,
    _imp:i.cod+' '+i.nome,_cmp:s?CMP(s):(n.el?((i.comps||[]).find(x=>x.id===n.el)||{}).sigla||'':''),_pcod:'Non programmato',_pdesc:n.caus+(p?' · '+p.cod+' '+p.desc:''),_free:{titolo:n.caus,desc:n.desc},_steps:[]};
@@ -947,6 +951,7 @@ window.MNX={betaMenu(){if(!isR())return mt('Solo il responsabile manutenzione');
    s.last=n.data;s.incompleto=null;if(p.tipo==='evento')s.evt=false;else s.next=addM(n.data,p.int);
    const op=M.att.filter(a=>a.ass===s.id);M.att=M.att.filter(a=>a.ass!==s.id);op.forEach(a=>{if(a.vis&&!M.att.some(x=>x.vis===a.vis))M.vis=M.vis.filter(v=>v.id!==a.vis)})}
   (M.fatte=M.fatte||[]).push({id:c.id,y,imp:i.id,man:me(),esec:me(),chiusa:n.data,parziale:0,cod:c._pcod,desc:c._pdesc,cmp:c._cmp,np:1,caus:n.caus,ore});
+  npRicSync(c);
   LOG('Non programmato',c,n.caus+' · '+String(ore).replace('.',',')+' h'+(oi!=null?' · ore impianto '+oi:'')+' · da '+me());
   saveM();closeO();mt('✓ Intervento registrato'+(s?' · preventiva ripianificata'+(s.next&&p.tipo!=='evento'?' dal '+fd(s.next):''):''))},
  fatta(id){const a=M.att.find(x=>x.id===id);if(!a)return;const p=PA(a);MN.ex=id;

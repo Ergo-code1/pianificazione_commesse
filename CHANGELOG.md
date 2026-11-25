@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.40.2 — 2026-11-25
+- Intervento non programmato: spunta «Da riacquistare» su ogni ricambio; i ricambi finiscono nell'elenco ricambi (da acquistare / utilizzati), anche dopo una modifica.
+
 ## 2.40.1 — 2026-11-25
 - Inserimento rapido: il nome degli impianti già inseriti è modificabile (non vuoto, non duplicato).
 
