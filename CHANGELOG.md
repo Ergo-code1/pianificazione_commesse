@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.40.1 — 2026-11-25
+- Inserimento rapido: il nome degli impianti già inseriti è modificabile (non vuoto, non duplicato).
+
 ## 2.40.0 — 2026-11-25
 - Configura impianto: «Elementi presenti» diventa un elenco con quantità e nomi per tipo; ogni elemento aggiunto riceve le procedure del tipo.
 - Configura impianto: aprendo un componente la finestra resta dove si trova; il contenuto non esce più dai bordi.
