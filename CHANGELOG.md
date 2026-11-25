@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.0.2 — 2026-11-25
+- Scheda impianto, «Da fare»: indicata la ricorrenza di ogni procedura.
+
 ## 3.0.1 — 2026-11-25
 - Impianti: simbolo 🏢 sulle procedure con fornitore esterno (scheda impianto, Configura, Pianifica manutenzione).
 
