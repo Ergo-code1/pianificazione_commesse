@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.40.3 — 2026-11-25
+- Corretto: il browser teneva in cache il modulo manutenzione vecchio (le modifiche dalla 2.29 alla 2.40 potevano non comparire).
+
 ## 2.40.2 — 2026-11-25
 - Intervento non programmato: spunta «Da riacquistare» su ogni ricambio; i ricambi finiscono nell'elenco ricambi (da acquistare / utilizzati), anche dopo una modifica.
 
