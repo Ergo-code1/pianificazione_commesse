@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.0.1 — 2026-11-25
+- Impianti: simbolo 🏢 sulle procedure con fornitore esterno (scheda impianto, Configura, Pianifica manutenzione).
+
 ## 3.0.0 — 2026-11-25
 - Manutenzione: «Pianifica il …» per singola procedura (anche mai eseguita, es. interventi a molti anni dall'installazione) in Pianifica manutenzione, nella scheda impianto, in Impianti → Configura e in Segnalazioni → Fornitore esterno.
 
