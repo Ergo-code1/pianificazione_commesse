@@ -436,7 +436,7 @@ details.pgrp>summary{cursor:pointer;list-style:none}details.pgrp>summary::before
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const VERSIONE='3.0.2';
+const VERSIONE='3.0.3';
 // mantiene la posizione di scorrimento durante i ridisegni
 let _ksD=0,_ksT=null;
 function KS(fn){if(_ksD)return fn();_ksD=1;const y=window.scrollY,x=window.scrollX,tab=S.tab+'|'+S.gView,sel='.gwrap,.tablewrap,.list,.mn-box,#mnOvl,#gOvl,.dep,[data-ks]',old=[...document.querySelectorAll(sel)].map(e=>[e.scrollLeft,e.scrollTop]);
@@ -1327,6 +1327,7 @@ onAuthStateChanged(auth,user=>{
   b.innerHTML='Nuova versione '+m[1]+' disponibile <button class="btn sm" style="background:#fff;color:#1f3b5a">Aggiorna</button>';b.querySelector('button').onclick=async()=>{try{const rs=await navigator.serviceWorker?.getRegistrations?.();for(const r of rs||[])await r.update();const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch(e){}location.replace(location.pathname+'?v='+m[1])};document.body.appendChild(b)}}catch(e){}busy=0}
  addEventListener('load',()=>setTimeout(chk,3000));document.addEventListener('visibilitychange',chk);setInterval(chk,15*60*1000)})();
 </script>
+<script>(function(){const P=new WeakSet();const bad=t=>t&&t.type==="date"&&t.value&&+t.value.slice(0,4)<1900;document.addEventListener("change",e=>{const t=e.target;if(bad(t)){e.stopImmediatePropagation();P.add(t)}else if(t&&P.has(t))P.delete(t)},true);document.addEventListener("input",e=>{if(bad(e.target)){e.stopImmediatePropagation();P.add(e.target)}},true);document.addEventListener("focusout",e=>{const t=e.target;if(t&&P.has(t)&&!bad(t)){P.delete(t);t.dispatchEvent(new Event("change",{bubbles:true}))}},true)})()</script>
 <script>if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register("../sw.js",{scope:"/pianificazione_commesse/"}).catch(()=>{})</script>
 <script>
 // Installazione: pulsante proprio, così non serve il menu di Chrome

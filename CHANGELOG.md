@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.0.3 — 2026-11-26
+- Corretto: nei campi data non si riusciva a scrivere l'anno a mano (si salvava dopo la prima cifra).
+
 ## 3.0.2 — 2026-11-25
 - Scheda impianto, «Da fare»: indicata la ricorrenza di ogni procedura.
 
