@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.0.4 — 2026-11-26
+- Impianti → Configura: si può togliere da un singolo componente anche una procedura che arriva dal tipo (es. procedure alternative).
+
 ## 3.0.3 — 2026-11-26
 - Corretto: nei campi data non si riusciva a scrivere l'anno a mano (si salvava dopo la prima cifra).
 
